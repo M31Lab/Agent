@@ -60,6 +60,66 @@
         "command": "m31-agent.navigateCodebase",
         "title": "Navigate Codebase",
         "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.webSearch.search",
+        "title": "M31-Agent: Search the Web",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.webSearch.configure",
+        "title": "M31-Agent: Configure Web Search Provider",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.checkpoint.compare",
+        "title": "M31-Agent: Compare Checkpoints",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.checkpoint.restoreWithOptions",
+        "title": "M31-Agent: Restore Checkpoint with Options",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.diagnostics.showAll",
+        "title": "M31-Agent: Show All Diagnostics",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.diagnostics.showErrors",
+        "title": "M31-Agent: Show Errors",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.diagnostics.monitorCurrentFile",
+        "title": "M31-Agent: Monitor Current File Diagnostics",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.diagnostics.updateOptions",
+        "title": "M31-Agent: Update Diagnostics Options",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.diagnostics.showWarnings",
+        "title": "M31-Agent: Show Warnings",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.diagnostics.configureDiagnostics",
+        "title": "M31-Agent: Configure Diagnostics",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.mcp.addTool",
+        "title": "M31-Agent: Add Custom Tool",
+        "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.mcp.listTools",
+        "title": "M31-Agent: Manage Custom Tools",
+        "category": "M31-Agent"
       }
     ],
     "keybindings": [
@@ -147,6 +207,60 @@
           "type": "boolean",
           "default": true,
           "description": "Show welcome message when the extension starts"
+        },
+        "m31-agent.search.provider": {
+          "type": "string",
+          "enum": ["bing", "google", "duckduckgo", "custom"],
+          "default": "bing",
+          "description": "Web search provider to use"
+        },
+        "m31-agent.search.bingApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Bing search"
+        },
+        "m31-agent.search.googleApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Google search"
+        },
+        "m31-agent.search.googleEngineId": {
+          "type": "string",
+          "default": "",
+          "description": "Custom search engine ID for Google search"
+        },
+        "m31-agent.search.customEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Custom search endpoint URL"
+        },
+        "m31-agent.search.customApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for custom search endpoint"
+        },
+        "m31-agent.diagnostics.includeInformation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include information-level diagnostics in monitoring"
+        },
+        "m31-agent.diagnostics.includeHints": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include hint-level diagnostics in monitoring"
+        },
+        "m31-agent.diagnostics.trackHistory": {
+          "type": "boolean",
+          "default": true,
+          "description": "Track diagnostic history"
+        },
+        "m31-agent.diagnostics.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["node_modules/**", ".git/**"],
+          "description": "Glob patterns for files to exclude from diagnostics monitoring"
         }
       }
     },
@@ -178,6 +292,8 @@
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.2",
     "@types/node": "^20.8.0",
+    "@types/react": "^18.2.38",
+    "@types/react-dom": "^18.2.17",
     "@types/uuid": "^9.0.4",
     "@types/vscode": "^1.99.1",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
@@ -195,7 +311,12 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "axios": "^1.5.1",
-    "uuid": "^9.0.1"
+    "axios": "^1.4.0",
+    "cheerio": "^1.0.0-rc.12",
+    "puppeteer-core": "^21.0.0",
+    "minimatch": "^9.0.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "uuid": "^9.0.0"
   }
 }

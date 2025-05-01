@@ -3,9 +3,31 @@ import { ConfigurationService } from '../../services/configuration/configuration
 import { LoggingService } from '../../utils/logging/loggingService';
 import { TelemetryService } from '../../services/telemetry/telemetryService';
 import { AuthenticationService } from '../../services/authentication/authenticationService';
+import { BrowserService } from '../../services/browser/browserService';
+import { TerminalService } from '../../services/terminal/terminalService';
+import { CheckpointService } from '../../services/checkpoint/checkpointService';
+import { ContextToolsService } from '../../services/contextTools/contextToolsService';
+import { CustomToolsService } from '../../services/customTools/customToolsService';
+import { BrowserTestingService } from '../../services/browser/browserTestingService';
+import { CheckpointComparisonService } from '../../services/checkpoint/checkpointComparisonService';
+import { WebSearchService } from '../../services/search/webSearchService';
+import { McpService } from '../../services/mcp/mcpService';
+import { DiagnosticsMonitoringService } from '../../services/diagnostics/diagnosticsMonitoringService';
 
 export class ExtensionContext {
     private disposables: vscode.Disposable[] = [];
+    
+    // Agent Services
+    public browserService?: BrowserService;
+    public terminalService?: TerminalService;
+    public checkpointService?: CheckpointService;
+    public contextToolsService?: ContextToolsService;
+    public customToolsService?: CustomToolsService;
+    public browserTestingService?: BrowserTestingService;
+    public checkpointComparisonService?: CheckpointComparisonService;
+    public webSearchService?: WebSearchService;
+    public mcpService?: McpService;
+    public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
 
     constructor(
         public readonly vscodeContext: vscode.ExtensionContext,
@@ -42,6 +64,10 @@ export class ExtensionContext {
 
     public get logPath(): string {
         return this.vscodeContext.logPath;
+    }
+    
+    public get globalStoragePath(): string {
+        return this.vscodeContext.globalStoragePath;
     }
 
     public dispose(): void {

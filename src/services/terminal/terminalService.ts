@@ -1,213 +1,438 @@
 import * as vscode from 'vscode';
-import { ExtensionContext } from '../../models/context/extensionContext';
-import { LoggingService } from '../../utils/logging/loggingService';
-import { TelemetryService } from '../../services/telemetry/telemetryService';
+import { v4 as uuidv4 } from 'uuid';
+import { 
+    TerminalCommand, 
+    TerminalCommandResult, 
+    TerminalOutput, 
+    TerminalOutputType,
+    TerminalSession,
+    TerminalOptions
+} from '../../models/terminalExecution';
 
-export interface TerminalCommand {
-    command: string;
-    description: string;
-    timestamp: number;
-    workingDirectory?: string;
-    status: 'success' | 'error' | 'pending';
-    output?: string;
-}
-
-export interface CommandResult {
-    output: string;
-    exitCode: number | null;
-}
-
-export class TerminalService implements vscode.Disposable {
-    private static instance: TerminalService;
+export class TerminalService {
     private terminals: Map<string, vscode.Terminal> = new Map();
-    private activeTerminal: vscode.Terminal | undefined;
-    private terminalOutputs: Map<string, string> = new Map();
-    private executingCommands: Map<string, boolean> = new Map();
+    private sessions: Map<string, TerminalSession> = new Map();
+    private commandResults: Map<string, TerminalCommandResult> = new Map();
+    private activeCommand: Map<string, TerminalCommand> = new Map();
+    private outputBuffers: Map<string, string[]> = new Map();
+    
+    private readonly eventEmitter = new vscode.EventEmitter<TerminalEvent>();
     private readonly disposables: vscode.Disposable[] = [];
-
-    private readonly _extensionContext: ExtensionContext;
-    private readonly _logging: LoggingService;
-    private readonly _telemetry: TelemetryService;
-
-    constructor(extensionContext: ExtensionContext) {
-        this._extensionContext = extensionContext;
-        this._logging = extensionContext.loggingService;
-        this._telemetry = extensionContext.telemetryService;
-
-        this.registerTerminalListeners();
-    }
-
-    public static getInstance(extensionContext: ExtensionContext): TerminalService {
-        if (!TerminalService.instance) {
-            TerminalService.instance = new TerminalService(extensionContext);
-        }
-        return TerminalService.instance;
-    }
-
-    private registerTerminalListeners(): void {
+    
+    public readonly onTerminalEvent = this.eventEmitter.event;
+    
+    constructor() {
+        this.disposables.push(this.eventEmitter);
         this.disposables.push(
-            vscode.window.onDidOpenTerminal(terminal => {
-                this.terminals.set(terminal.name, terminal);
-                this._logging.debug(`Terminal opened: ${terminal.name}`);
-            }),
-
             vscode.window.onDidCloseTerminal(terminal => {
-                this.terminals.delete(terminal.name);
-                this.terminalOutputs.delete(terminal.name);
-                this.executingCommands.delete(terminal.name);
-                this._logging.debug(`Terminal closed: ${terminal.name}`);
-            }),
-
-            vscode.window.onDidChangeActiveTerminal(terminal => {
-                this.activeTerminal = terminal || undefined;
-                this._logging.debug(`Active terminal changed: ${terminal?.name || 'none'}`);
+                for (const [id, term] of this.terminals.entries()) {
+                    if (term === terminal) {
+                        this.terminals.delete(id);
+                        
+                        const session = this.getSessionByTerminalId(id);
+                        if (session) {
+                            session.status = 'idle';
+                            
+                            this.emitEvent({
+                                type: 'terminalClosed',
+                                sessionId: session.id,
+                                timestamp: Date.now()
+                            });
+                        }
+                        
+                        break;
+                    }
+                }
+            })
+        );
+        
+        this.disposables.push(
+            vscode.window.onDidWriteTerminalData(e => {
+                for (const [id, term] of this.terminals.entries()) {
+                    if (term === e.terminal) {
+                        const session = this.getSessionByTerminalId(id);
+                        if (session && session.currentCommand) {
+                            const buffer = this.outputBuffers.get(id) || [];
+                            buffer.push(e.data);
+                            this.outputBuffers.set(id, buffer);
+                            
+                            const output: TerminalOutput = {
+                                commandId: session.currentCommand.id,
+                                type: TerminalOutputType.Stdout,
+                                text: e.data,
+                                timestamp: Date.now()
+                            };
+                            
+                            session.outputs.push(output);
+                            
+                            this.emitEvent({
+                                type: 'terminalOutput',
+                                sessionId: session.id,
+                                output,
+                                timestamp: Date.now()
+                            });
+                            
+                            break;
+                        }
+                    }
+                }
             })
         );
     }
-
-    public createTerminal(name: string = 'M31 Agent'): vscode.Terminal {
-        const terminal = vscode.window.createTerminal(name);
-        this.terminals.set(name, terminal);
-        this._logging.debug(`Terminal created: ${name}`);
-        return terminal;
-    }
-
-    public getOrCreateTerminal(name: string = 'M31 Agent'): vscode.Terminal {
-        const existingTerminal = this.terminals.get(name);
-        if (existingTerminal) {
-            return existingTerminal;
-        }
-        return this.createTerminal(name);
-    }
-
-    public async executeCommand(command: string, captureOutput: boolean = false): Promise<string> {
-        this._logging.debug(`Executing command: ${command}`);
+    
+    public createSession(options?: TerminalOptions): string {
+        const sessionId = uuidv4();
+        const terminalId = uuidv4();
         
-        if (captureOutput) {
-            try {
-                const result = await this.executeCommandWithOutput(command);
-                return result.output;
-            } catch (error) {
-                this._logging.error(`Error executing command with output: ${error}`);
-                throw error;
-            }
-        } else {
-            const terminal = this.getOrCreateTerminal();
-            terminal.show();
-            terminal.sendText(command);
-            return '';
-        }
-    }
-
-    public async executeCommandWithOutput(command: string): Promise<CommandResult> {
-        this._logging.debug(`Executing command with output: ${command}`);
+        const terminal = vscode.window.createTerminal({
+            name: `M31 Agent Terminal ${sessionId.substring(0, 8)}`,
+            shellPath: options?.shellPath,
+            shellArgs: options?.shellArgs,
+            cwd: options?.cwd,
+            env: options?.env,
+            strictEnv: true
+        });
         
-        return new Promise<CommandResult>((resolve, reject) => {
-            const execProcess = require('child_process').exec;
+        this.terminals.set(terminalId, terminal);
+        
+        const session: TerminalSession = {
+            id: sessionId,
+            status: 'idle',
+            currentDirectory: options?.cwd || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
+            history: [],
+            outputs: [],
+            createdAt: Date.now(),
+            lastActivity: Date.now()
+        };
+        
+        this.sessions.set(sessionId, session);
+        this.outputBuffers.set(terminalId, []);
+        
+        terminal.show(true);
+        
+        this.emitEvent({
+            type: 'sessionCreated',
+            sessionId,
+            timestamp: Date.now()
+        });
+        
+        return sessionId;
+    }
+    
+    public async executeCommand(
+        sessionId: string, 
+        commandText: string, 
+        options: {
+            requireConfirmation?: boolean;
+            isBackground?: boolean;
+            description?: string;
+            directory?: string;
+        } = {}
+    ): Promise<TerminalCommandResult> {
+        const session = this.sessions.get(sessionId);
+        if (!session) {
+            throw new Error(`Terminal session ${sessionId} not found`);
+        }
+        
+        if (session.status === 'running' && !options.isBackground) {
+            throw new Error(`Terminal session ${sessionId} is already running a command`);
+        }
+        
+        const requireConfirmation = options.requireConfirmation ?? 
+            vscode.workspace.getConfiguration('m31-agent').get('requireConfirmation', true);
+        
+        const command: TerminalCommand = {
+            id: uuidv4(),
+            command: commandText,
+            isBackground: options.isBackground || false,
+            requireConfirmation,
+            createdAt: Date.now(),
+            directory: options.directory || session.currentDirectory,
+            description: options.description
+        };
+        
+        let executeCommand = !requireConfirmation;
+        
+        if (requireConfirmation) {
+            const result = await vscode.window.showInformationMessage(
+                `Execute terminal command: ${commandText}`,
+                { modal: true },
+                'Execute',
+                'Cancel'
+            );
             
-            execProcess(command, { maxBuffer: 10 * 1024 * 1024 }, (error: any, stdout: string, stderr: string) => {
-                if (error) {
-                    this._logging.error(`Command execution error: ${error}`);
-                    resolve({
-                        output: stderr || stdout,
-                        exitCode: error.code
-                    });
-                } else {
-                    resolve({
-                        output: stdout,
-                        exitCode: 0
-                    });
-                }
+            executeCommand = result === 'Execute';
+        }
+        
+        if (!executeCommand) {
+            const result: TerminalCommandResult = {
+                id: command.id,
+                command: command.command,
+                exitCode: null,
+                stdout: '',
+                stderr: 'Command execution was cancelled by user',
+                isRunning: false,
+                startTime: Date.now(),
+                endTime: Date.now()
+            };
+            
+            this.commandResults.set(command.id, result);
+            
+            this.emitEvent({
+                type: 'commandCancelled',
+                sessionId,
+                command,
+                result,
+                timestamp: Date.now()
             });
+            
+            return result;
+        }
+        
+        session.history.push(command);
+        session.currentCommand = command;
+        session.status = 'running';
+        session.lastActivity = Date.now();
+        
+        this.activeCommand.set(sessionId, command);
+        
+        const terminalId = this.getTerminalIdBySessionId(sessionId);
+        if (!terminalId) {
+            throw new Error(`Terminal for session ${sessionId} not found`);
+        }
+        
+        const terminal = this.terminals.get(terminalId);
+        if (!terminal) {
+            throw new Error(`Terminal for session ${sessionId} not found`);
+        }
+        
+        // Clear output buffer
+        this.outputBuffers.set(terminalId, []);
+        
+        const result: TerminalCommandResult = {
+            id: command.id,
+            command: command.command,
+            exitCode: null,
+            stdout: '',
+            stderr: '',
+            isRunning: true,
+            startTime: Date.now()
+        };
+        
+        this.commandResults.set(command.id, result);
+        
+        this.emitEvent({
+            type: 'commandStarted',
+            sessionId,
+            command,
+            timestamp: Date.now()
+        });
+        
+        terminal.show(true);
+        terminal.sendText(commandText, true);
+        
+        // For background commands, we don't wait for completion
+        if (command.isBackground) {
+            setTimeout(() => {
+                if (this.commandResults.has(command.id)) {
+                    const currentResult = this.commandResults.get(command.id)!;
+                    if (currentResult.isRunning) {
+                        // Keep the command running but remove it as the current command
+                        if (session.currentCommand?.id === command.id) {
+                            session.currentCommand = undefined;
+                            session.status = 'idle';
+                        }
+                        
+                        this.emitEvent({
+                            type: 'commandBackgrounded',
+                            sessionId,
+                            command,
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+            }, 1000);
+            
+            return result;
+        }
+        
+        // For foreground commands, we simulate waiting for completion
+        // In a real implementation, this would use the Terminal API to get command results
+        return new Promise<TerminalCommandResult>((resolve) => {
+            // This is a simplified approach that waits a bit then resolves
+            // In a real implementation, you'd monitor the terminal output or use a proper API
+            setTimeout(() => {
+                const buffer = this.outputBuffers.get(terminalId) || [];
+                const output = buffer.join('');
+                
+                const updatedResult: TerminalCommandResult = {
+                    ...result,
+                    isRunning: false,
+                    stdout: output,
+                    exitCode: 0,
+                    endTime: Date.now()
+                };
+                
+                this.commandResults.set(command.id, updatedResult);
+                
+                if (session.currentCommand?.id === command.id) {
+                    session.currentCommand = undefined;
+                    session.status = 'idle';
+                }
+                
+                this.emitEvent({
+                    type: 'commandCompleted',
+                    sessionId,
+                    command,
+                    result: updatedResult,
+                    timestamp: Date.now()
+                });
+                
+                resolve(updatedResult);
+            }, 2000);
         });
     }
-
-    public async runInTerminal(text: string): Promise<void> {
-        const terminal = this.getOrCreateTerminal();
-        terminal.show();
-        terminal.sendText(text);
-        this._logging.debug(`Text sent to terminal: ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}`);
-    }
-
-    public async executeCode(code: string, languageId: string): Promise<void> {
-        this._logging.debug(`Executing code of language: ${languageId}`);
-        
-        let command = '';
-        switch (languageId) {
-            case 'javascript':
-                command = `node -e "${code.replace(/"/g, '\\"')}"`;
-                break;
-            case 'typescript':
-                command = `ts-node -e "${code.replace(/"/g, '\\"')}"`;
-                break;
-            case 'python':
-                command = `python -c "${code.replace(/"/g, '\\"')}"`;
-                break;
-            case 'shellscript':
-            case 'bash':
-                command = code;
-                break;
-            default:
-                throw new Error(`Execution not supported for language: ${languageId}`);
+    
+    public cancelCommand(sessionId: string): boolean {
+        const session = this.sessions.get(sessionId);
+        if (!session || !session.currentCommand) {
+            return false;
         }
         
-        await this.executeCommand(command);
-    }
-
-    public async runFile(filePath: string, fileExtension: string): Promise<void> {
-        this._logging.debug(`Running file: ${filePath}`);
-        
-        const command = this.getRunCommandForFile(filePath, fileExtension);
-        if (!command) {
-            throw new Error(`Running files with extension ${fileExtension} is not supported`);
+        const command = session.currentCommand;
+        const terminalId = this.getTerminalIdBySessionId(sessionId);
+        if (!terminalId) {
+            return false;
         }
         
-        await this.executeCommand(command);
-    }
-
-    private getRunCommandForFile(filePath: string, fileExtension: string): string | null {
-        switch (fileExtension.toLowerCase()) {
-            case 'js':
-                return `node "${filePath}"`;
-            case 'ts':
-                return `ts-node "${filePath}"`;
-            case 'py':
-                return `python "${filePath}"`;
-            case 'sh':
-                return `bash "${filePath}"`;
-            case 'java':
-                return `java "${filePath}"`;
-            case 'c':
-                return `gcc "${filePath}" -o "${filePath}.out" && "${filePath}.out"`;
-            case 'cpp':
-                return `g++ "${filePath}" -o "${filePath}.out" && "${filePath}.out"`;
-            case 'go':
-                return `go run "${filePath}"`;
-            case 'rb':
-                return `ruby "${filePath}"`;
-            case 'php':
-                return `php "${filePath}"`;
-            case 'rs':
-                return `rustc "${filePath}" && "${filePath.replace('.rs', '')}"`;
-            default:
-                return null;
+        const terminal = this.terminals.get(terminalId);
+        if (!terminal) {
+            return false;
         }
-    }
-
-    public async killRunningProcess(): Promise<void> {
-        if (process.platform === 'win32') {
-            await this.executeCommand('\u0003'); // Ctrl+C
-        } else {
-            await this.executeCommand('\u0003'); // Ctrl+C
+        
+        // Send SIGINT (Ctrl+C) to the terminal
+        terminal.sendText('\u0003', false);
+        
+        const result = this.commandResults.get(command.id);
+        if (result) {
+            result.isRunning = false;
+            result.exitCode = 130; // SIGINT exit code
+            result.endTime = Date.now();
+            result.stderr += '\nCommand was cancelled';
+            
+            this.emitEvent({
+                type: 'commandCancelled',
+                sessionId,
+                command,
+                result,
+                timestamp: Date.now()
+            });
         }
-        this._logging.debug('Sent kill signal to running process');
+        
+        session.currentCommand = undefined;
+        session.status = 'idle';
+        
+        return true;
     }
-
+    
+    public closeSession(sessionId: string): boolean {
+        const session = this.sessions.get(sessionId);
+        if (!session) {
+            return false;
+        }
+        
+        if (session.status === 'running') {
+            this.cancelCommand(sessionId);
+        }
+        
+        const terminalId = this.getTerminalIdBySessionId(sessionId);
+        if (terminalId) {
+            const terminal = this.terminals.get(terminalId);
+            if (terminal) {
+                terminal.dispose();
+                this.terminals.delete(terminalId);
+            }
+            
+            this.outputBuffers.delete(terminalId);
+        }
+        
+        this.sessions.delete(sessionId);
+        
+        this.emitEvent({
+            type: 'sessionClosed',
+            sessionId,
+            timestamp: Date.now()
+        });
+        
+        return true;
+    }
+    
+    public getSession(sessionId: string): TerminalSession | undefined {
+        return this.sessions.get(sessionId);
+    }
+    
+    public getCommandResult(commandId: string): TerminalCommandResult | undefined {
+        return this.commandResults.get(commandId);
+    }
+    
+    public getAllSessions(): TerminalSession[] {
+        return Array.from(this.sessions.values());
+    }
+    
+    private getSessionByTerminalId(terminalId: string): TerminalSession | undefined {
+        for (const [sessionId, session] of this.sessions.entries()) {
+            const thisTerminalId = this.getTerminalIdBySessionId(sessionId);
+            if (thisTerminalId === terminalId) {
+                return session;
+            }
+        }
+        return undefined;
+    }
+    
+    private getTerminalIdBySessionId(sessionId: string): string | undefined {
+        for (const [terminalId, _] of this.terminals.entries()) {
+            const thisSession = this.getSessionByTerminalId(terminalId);
+            if (thisSession?.id === sessionId) {
+                return terminalId;
+            }
+        }
+        return undefined;
+    }
+    
+    private emitEvent(event: TerminalEvent): void {
+        this.eventEmitter.fire(event);
+    }
+    
     public dispose(): void {
-        this.disposables.forEach(d => d.dispose());
-        this.terminals.forEach(terminal => terminal.dispose());
+        for (const [sessionId, _] of this.sessions.entries()) {
+            this.closeSession(sessionId);
+        }
+        
+        this.sessions.clear();
         this.terminals.clear();
-        this.terminalOutputs.clear();
-        this.executingCommands.clear();
+        this.commandResults.clear();
+        this.activeCommand.clear();
+        this.outputBuffers.clear();
+        
+        this.disposables.forEach(d => d.dispose());
     }
+}
+
+export type TerminalEventType = 
+    | 'sessionCreated'
+    | 'sessionClosed'
+    | 'commandStarted'
+    | 'commandCompleted'
+    | 'commandCancelled'
+    | 'commandBackgrounded'
+    | 'terminalOutput'
+    | 'terminalClosed';
+
+export interface TerminalEvent {
+    type: TerminalEventType;
+    sessionId: string;
+    command?: TerminalCommand;
+    result?: TerminalCommandResult;
+    output?: TerminalOutput;
+    timestamp: number;
 }

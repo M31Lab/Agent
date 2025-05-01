@@ -7,6 +7,10 @@ import { registerSettingsCommands } from './settings/settingsCommands';
 import { registerCodeCommands } from './code/codeCommands';
 import { registerTerminalCommands } from './terminal/terminalCommands';
 import { registerNavigationCommands } from './navigation/navigationCommands';
+import { registerWebSearchCommands } from './websearch/webSearchCommands';
+import { registerCheckpointComparisonCommands } from './checkpoint/checkpointComparisonCommands';
+import { registerDiagnosticsMonitoringCommands } from './diagnostics/diagnosticsMonitoringCommands';
+import { registerMcpCommands } from './mcp/mcpToolCommands';
 
 export interface CommandDependencies {
     statusBarManager: StatusBarManager;
@@ -27,6 +31,12 @@ export function registerAllCommands(
     registerCodeCommands(context, chatPanelProvider, statusBarManager);
     registerTerminalCommands(context, chatPanelProvider, statusBarManager);
     registerNavigationCommands(context, chatPanelProvider, statusBarManager);
+    
+    // Register new command groups
+    registerWebSearchCommands(context);
+    registerCheckpointComparisonCommands(context);
+    registerDiagnosticsMonitoringCommands(context);
+    registerMcpCommands(context);
 
     context.loggingService.info('All extension commands registered');
     context.telemetryService.trackEvent('commands_registered');
