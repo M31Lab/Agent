@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs';
 import { ApiConfiguration } from './configurationInterfaces';
 
 export interface Environment {
@@ -52,9 +53,10 @@ export function getApiConfigFromEnvironment(): Partial<ApiConfiguration> {
 
 export function getExtensionVersion(): string {
     try {
-        // This assumes we're in a bundled context where the extension manifest is available
-        const packageJson = require('../../package.json');
-        return packageJson.version || '0.0.0';
+        const packagePath = path.resolve(__dirname, '../../package.json');
+        const packageContent = fs.readFileSync(packagePath, 'utf8');
+        const packageInfo = JSON.parse(packageContent);
+        return packageInfo.version || '0.0.0';
     } catch (error) {
         return '0.0.0';
     }

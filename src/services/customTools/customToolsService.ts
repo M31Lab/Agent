@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
+import * as childProcess from 'child_process';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -418,7 +419,7 @@ export class CustomToolsService {
     private spawnServer(scriptPath: string, port: number): Promise<http.Server> {
         return new Promise((resolve, reject) => {
             try {
-                const node = require('child_process').spawn('node', [scriptPath], {
+                const node = childProcess.spawn('node', [scriptPath], {
                     env: {
                         ...process.env,
                         PORT: port.toString()

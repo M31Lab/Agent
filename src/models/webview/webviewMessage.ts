@@ -8,7 +8,7 @@ interface BaseWebviewMessage {
 
 interface InitializeMessage extends BaseWebviewMessage {
     type: WebviewMessageType.Initialize;
-    payload: {};
+    payload: Record<string, never>;
 }
 
 interface UpdateConfigMessage extends BaseWebviewMessage {
@@ -38,12 +38,12 @@ interface MessageMessage extends BaseWebviewMessage {
 
 interface ThinkingStartMessage extends BaseWebviewMessage {
     type: WebviewMessageType.ThinkingStart;
-    payload: {};
+    payload: Record<string, never>;
 }
 
 interface ThinkingEndMessage extends BaseWebviewMessage {
     type: WebviewMessageType.ThinkingEnd;
-    payload: {};
+    payload: Record<string, never>;
 }
 
 interface ErrorMessage extends BaseWebviewMessage {
@@ -56,17 +56,17 @@ interface ErrorMessage extends BaseWebviewMessage {
 
 interface ClearChatMessage extends BaseWebviewMessage {
     type: WebviewMessageType.ClearChat;
-    payload: {};
+    payload: Record<string, never>;
 }
 
 interface FocusInputMessage extends BaseWebviewMessage {
     type: WebviewMessageType.FocusInput;
-    payload: {};
+    payload: Record<string, never>;
 }
 
 interface CancelRequestMessage extends BaseWebviewMessage {
     type: WebviewMessageType.CancelRequest;
-    payload: {};
+    payload: Record<string, never>;
 }
 
 interface ExecuteCommandMessage extends BaseWebviewMessage {

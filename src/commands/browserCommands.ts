@@ -186,13 +186,14 @@ export function registerBrowserCommands(
                     
                     panel.webview.onDidReceiveMessage(
                         async message => {
+                            let uri;
                             switch (message.command) {
                                 case 'copyToClipboard':
                                     // Implementation would depend on the platform
                                     vscode.window.showInformationMessage('Screenshot copied to clipboard');
                                     break;
                                 case 'saveToFile':
-                                    const uri = await vscode.window.showSaveDialog({
+                                    uri = await vscode.window.showSaveDialog({
                                         filters: {
                                             'Images': ['png']
                                         },

@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { EnvironmentConfig } from '../interfaces/configurationInterfaces';
 
 export enum Environment {
@@ -20,16 +22,27 @@ export function getCurrentEnvironment(): Environment {
 
 export function getEnvironmentConfig(): EnvironmentConfig {
     const environment = getCurrentEnvironment();
-    const packageJson = require('../../../../package.json');
+    const packageInfo = getPackageInfo();
     
     return {
         isProduction: environment === Environment.Production,
         isDevelopment: environment === Environment.Development,
         isTest: environment === Environment.Test,
-        version: packageJson.version || '0.0.0',
-        name: packageJson.name || 'm31-agent',
+        version: packageInfo.version || '0.0.0',
+        name: packageInfo.name || 'm31-agent',
         buildDate: new Date()
     };
+}
+
+function getPackageInfo(): { name: string, version: string } {
+    try {
+        // Find package.json by resolving from current file path
+        const packagePath = path.resolve(__dirname, '../../../../package.json');
+        const packageContent = fs.readFileSync(packagePath, 'utf8');
+        return JSON.parse(packageContent);
+    } catch (error) {
+        return { name: 'm31-agent', version: '0.0.0' };
+    }
 }
 
 export function isProduction(): boolean {

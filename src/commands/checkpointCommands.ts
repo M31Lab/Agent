@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { CheckpointService } from '../services/checkpoint/checkpointService';
 import { CheckpointRestoreOptions } from '../models/checkpoint';
 
@@ -181,7 +182,6 @@ export function registerCheckpointCommands(
                 
                 // Create a temporary folder for diff files
                 const tempFolder = path.join(workspaceRoot, '.m31-agent-diff');
-                const fs = require('fs');
                 
                 if (!fs.existsSync(tempFolder)) {
                     fs.mkdirSync(tempFolder, { recursive: true });

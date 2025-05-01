@@ -244,16 +244,18 @@ export function registerCustomToolsCommands(
                         await invokeToolEndpoint(customToolsService, tool);
                         break;
                     case 'Uninstall':
-                        const confirm = await vscode.window.showWarningMessage(
-                            `Are you sure you want to uninstall the tool "${tool.name}"?`,
-                            { modal: true },
-                            'Uninstall',
-                            'Cancel'
-                        );
-                        
-                        if (confirm === 'Uninstall') {
-                            await customToolsService.uninstallTool(tool.id);
-                            vscode.window.showInformationMessage(`Tool uninstalled: ${tool.name}`);
+                        {
+                            const confirm = await vscode.window.showWarningMessage(
+                                `Are you sure you want to uninstall the tool "${tool.name}"?`,
+                                { modal: true },
+                                'Uninstall',
+                                'Cancel'
+                            );
+                            
+                            if (confirm === 'Uninstall') {
+                                await customToolsService.uninstallTool(tool.id);
+                                vscode.window.showInformationMessage(`Tool uninstalled: ${tool.name}`);
+                            }
                         }
                         break;
                 }
@@ -320,17 +322,19 @@ async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: 
                 }
                 
                 if (paramValue) {
+                    let convertedValue;
                     // Convert to the correct type
                     switch (param.type) {
                         case 'number':
-                            parameters[param.name] = parseFloat(paramValue);
+                            convertedValue = parseFloat(paramValue);
                             break;
                         case 'boolean':
-                            parameters[param.name] = paramValue.toLowerCase() === 'true';
+                            convertedValue = paramValue.toLowerCase() === 'true';
                             break;
                         default:
-                            parameters[param.name] = paramValue;
+                            convertedValue = paramValue;
                     }
+                    parameters[param.name] = convertedValue;
                 }
             }
         }

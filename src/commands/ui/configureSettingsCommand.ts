@@ -133,43 +133,49 @@ async function configureAiParameters(context: ExtensionContext): Promise<void> {
     
     switch (selection) {
         case 'Max Tokens':
-            const maxTokens = await vscode.window.showInputBox({
-                prompt: 'Enter max tokens (256-8192)',
-                value: configService.getMaxTokens().toString(),
-                validateInput: value => {
-                    const num = parseInt(value);
-                    return (num >= 256 && num <= 8192) ? null : 'Please enter a number between 256 and 8192';
+            {
+                const maxTokens = await vscode.window.showInputBox({
+                    prompt: 'Enter max tokens (256-8192)',
+                    value: configService.getMaxTokens().toString(),
+                    validateInput: value => {
+                        const num = parseInt(value);
+                        return (num >= 256 && num <= 8192) ? null : 'Please enter a number between 256 and 8192';
+                    }
+                });
+                
+                if (maxTokens) {
+                    await configService.update('maxTokens', parseInt(maxTokens), vscode.ConfigurationTarget.Global);
+                    vscode.window.showInformationMessage(`Max tokens set to ${maxTokens}`);
                 }
-            });
-            
-            if (maxTokens) {
-                await configService.update('maxTokens', parseInt(maxTokens), vscode.ConfigurationTarget.Global);
-                vscode.window.showInformationMessage(`Max tokens set to ${maxTokens}`);
             }
             break;
             
         case 'Temperature':
-            const temperature = await vscode.window.showInputBox({
-                prompt: 'Enter temperature (0.0-1.0)',
-                value: configService.getTemperature().toString(),
-                validateInput: value => {
-                    const num = parseFloat(value);
-                    return (num >= 0 && num <= 1) ? null : 'Please enter a number between 0.0 and 1.0';
+            {
+                const temperature = await vscode.window.showInputBox({
+                    prompt: 'Enter temperature (0.0-1.0)',
+                    value: configService.getTemperature().toString(),
+                    validateInput: value => {
+                        const num = parseFloat(value);
+                        return (num >= 0 && num <= 1) ? null : 'Please enter a number between 0.0 and 1.0';
+                    }
+                });
+                
+                if (temperature) {
+                    await configService.update('temperature', parseFloat(temperature), vscode.ConfigurationTarget.Global);
+                    vscode.window.showInformationMessage(`Temperature set to ${temperature}`);
                 }
-            });
-            
-            if (temperature) {
-                await configService.update('temperature', parseFloat(temperature), vscode.ConfigurationTarget.Global);
-                vscode.window.showInformationMessage(`Temperature set to ${temperature}`);
             }
             break;
             
         case 'Require Confirmation':
-            const currentSetting = configService.isRequireConfirmation();
-            const newSetting = !currentSetting;
-            
-            await configService.update('requireConfirmation', newSetting, vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage(`Confirmation requirement ${newSetting ? 'enabled' : 'disabled'}`);
+            {
+                const currentSetting = configService.isRequireConfirmation();
+                const newSetting = !currentSetting;
+                
+                await configService.update('requireConfirmation', newSetting, vscode.ConfigurationTarget.Global);
+                vscode.window.showInformationMessage(`Confirmation requirement ${newSetting ? 'enabled' : 'disabled'}`);
+            }
             break;
     }
 }

@@ -137,10 +137,13 @@ export function registerMcpCommands(
                     return;
                 }
                 
+                let detailsPanel;
+                let confirmDelete;
+                
                 switch (selectedAction.value) {
                     case 'view':
                         // Display tool details
-                        const detailsPanel = vscode.window.createWebviewPanel(
+                        detailsPanel = vscode.window.createWebviewPanel(
                             'mcpToolDetails',
                             `MCP Tool: ${tool.name}`,
                             vscode.ViewColumn.One,
@@ -157,7 +160,7 @@ export function registerMcpCommands(
                         
                     case 'delete':
                         // Confirm deletion
-                        const confirmDelete = await vscode.window.showWarningMessage(
+                        confirmDelete = await vscode.window.showWarningMessage(
                             `Are you sure you want to delete the tool "${tool.name}"?`,
                             { modal: true },
                             'Delete'
