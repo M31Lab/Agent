@@ -122,10 +122,8 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         }
         
         try {
-            const fileContent = await this.readFile(filePath);
             const fileUri = vscode.Uri.file(filePath);
             const document = await vscode.workspace.openTextDocument(fileUri);
-            const languageId = document.languageId;
             
             const imports = await this.extractImports(document);
             const importedBy = await this.findFilesImporting(filePath);
@@ -160,7 +158,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             const functionRange = definition.range;
             
             const functionText = document.getText(functionRange);
-            const calls = await this.extractFunctionCalls(functionText, document, functionRange);
+            const _calls = await this.extractFunctionCalls(functionText, document, functionRange);
             
             const callGraph = await this.buildCallGraph(functionName, definition);
             const dataFlow = await this.analyzeDataFlow(document, functionRange);
@@ -381,7 +379,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
     }
 
     public async getDependencyGraph(): Promise<DependencyGraphResult> {
-        if (this.dependencyGraphCache) {
+        if (this.dependencyGraphCache !== null) {
             return this.dependencyGraphCache;
         }
         
@@ -415,22 +413,24 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             }
             
             // Add package dependencies
-            for (const dep of analysis.dependencyInsights) {
-                const depId = `pkg:${dep.name}`;
-                nodes.push({
-                    id: depId,
-                    type: 'package',
-                    name: dep.name,
-                    path: ''
-                });
-                
-                // Connect package dependencies to files
-                for (const location of dep.importLocations) {
-                    edges.push({
-                        source: this.getNodeId(location),
-                        target: depId,
-                        type: 'imports'
+            if (analysis.dependencyInsights) {
+                for (const dep of analysis.dependencyInsights) {
+                    const depId = `pkg:${dep.name}`;
+                    nodes.push({
+                        id: depId,
+                        type: 'package',
+                        name: dep.name,
+                        path: ''
                     });
+                    
+                    // Connect package dependencies to files
+                    for (const location of dep.importLocations) {
+                        edges.push({
+                            source: this.getNodeId(location),
+                            target: depId,
+                            type: 'imports'
+                        });
+                    }
                 }
             }
             
@@ -1177,7 +1177,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
                 }
                 
                 // Infer module purpose
-                let purpose = this.inferModulePurpose(directoryName, files, exportedItems);
+                const purpose = this.inferModulePurpose(directoryName, files, exportedItems);
                 
                 moduleSummaries.push({
                     name: directoryName,
@@ -1631,7 +1631,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
                     
                     // Get variable type if possible
                     let dataType = 'unknown';
-                    if (initialValue.startsWith('"') || initialValue.startsWith("'")) {
+                    if (initialValue.startsWith('"') || initialValue.startsWith('\'')) {
                         dataType = 'string';
                     } else if (!isNaN(Number(initialValue))) {
                         dataType = 'number';
@@ -1861,7 +1861,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             // Handle relative paths
             if (importPath.startsWith('./') || importPath.startsWith('../')) {
                 const basePath = path.dirname(documentUri.fsPath);
-                let resolvedPath = path.join(basePath, importPath);
+                const resolvedPath = path.join(basePath, importPath);
                 
                 // Try with different extensions if no extension specified
                 if (!path.extname(resolvedPath)) {
@@ -1966,7 +1966,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         try {
             if (importPath.startsWith('./') || importPath.startsWith('../')) {
                 const sourceDirPath = path.dirname(sourceFilePath);
-                let resolvedPath = path.resolve(sourceDirPath, importPath);
+                const resolvedPath = path.resolve(sourceDirPath, importPath);
                 
                 // If no extension, try to find matching file
                 if (!path.extname(resolvedPath)) {
