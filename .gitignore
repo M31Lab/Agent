@@ -1,0 +1,14 @@
+node_modules/
+out/
+dist/
+.vscode-test/
+*.vsix
+.DS_Store
+.env
+.env.*
+coverage/
+.nyc_output/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock 

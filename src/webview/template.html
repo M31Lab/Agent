@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M31 Agent Chat</title>
+    <link rel="stylesheet" href="{{stylesUri}}">
+    <script src="{{scriptUri}}" defer></script>
+</head>
+<body>
+    <div class="chat-app">
+        <header class="header">
+            <div class="header-title">
+                <div class="logo">M31 Agent</div>
+                <div class="model-info">{{modelId}}</div>
+            </div>
+            <div class="header-actions">
+                <button id="clear-button" class="action-button" title="Clear chat">
+                    <span class="codicon codicon-clear-all"></span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div id="chat-container" class="chat-container">
+                <!-- Chat messages will be inserted here -->
+            </div>
+        </main>
+
+        <div id="error-container" class="error-container"></div>
+
+        <footer class="footer">
+            <div class="message-input-container">
+                <textarea id="message-input" 
+                          class="message-input" 
+                          placeholder="Ask a question or describe what you need help with..."
+                          rows="1"
+                          autofocus></textarea>
+                <button id="send-button" class="send-button" title="Send message">
+                    <span class="codicon codicon-send"></span>
+                </button>
+            </div>
+            <div class="footer-info">
+                <span class="info-text">Powered by OpenRouter AI</span>
+            </div>
+        </footer>
+    </div>
+</body>
+</html> 

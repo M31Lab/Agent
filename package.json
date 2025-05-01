@@ -1,0 +1,201 @@
+{
+  "name": "m31-agent",
+  "displayName": "M31 Agent",
+  "description": "AI-powered coding assistant that integrates with OpenRouter AI",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "publisher": "m31-ai",
+  "categories": [
+    "AI",
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "coding",
+    "openrouter",
+    "openai",
+    "claude"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "m31-agent.showChat",
+        "title": "Show Chat",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.configureSettings",
+        "title": "Configure Settings",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.quickChat",
+        "title": "Quick Chat",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.explainCode",
+        "title": "Explain Code",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.generateCode",
+        "title": "Generate Code",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.runCommand",
+        "title": "Run Command",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.navigateCodebase",
+        "title": "Navigate Codebase",
+        "category": "M31 Agent"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "m31-agent.quickChat",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m",
+        "when": "editorTextFocus || editorFocus"
+      },
+      {
+        "command": "m31-agent.explainCode",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "M31 Agent",
+      "properties": {
+        "m31-agent.modelId": {
+          "type": "string",
+          "default": "openai/gpt-4o",
+          "description": "AI model to use for code generation and chat",
+          "enum": [
+            "openai/gpt-4o",
+            "openai/gpt-4-turbo",
+            "openai/gpt-3.5-turbo",
+            "anthropic/claude-3-opus",
+            "anthropic/claude-3-sonnet",
+            "anthropic/claude-3-haiku",
+            "google/gemini-pro"
+          ],
+          "enumDescriptions": [
+            "OpenAI GPT-4o - Most capable general-purpose model",
+            "OpenAI GPT-4 Turbo - Highly capable general-purpose model",
+            "OpenAI GPT-3.5 Turbo - Fast and economical general-purpose model",
+            "Anthropic Claude 3 Opus - Highest capability Claude model",
+            "Anthropic Claude 3 Sonnet - Balanced capability and performance",
+            "Anthropic Claude 3 Haiku - Fast and efficient Claude model",
+            "Google Gemini Pro - Google's advanced large language model"
+          ]
+        },
+        "m31-agent.maxTokens": {
+          "type": "number",
+          "default": 1024,
+          "minimum": 256,
+          "maximum": 8192,
+          "description": "Maximum number of tokens to generate in responses"
+        },
+        "m31-agent.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Temperature for generation (0-1). Lower values make responses more focused, higher values increase creativity."
+        },
+        "m31-agent.requireConfirmation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require confirmation before executing commands or writing files"
+        },
+        "m31-agent.apiEndpoint": {
+          "type": "string",
+          "default": "https://openrouter.ai/api/v1",
+          "description": "OpenRouter API endpoint"
+        },
+        "m31-agent.enableTelemetry": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable telemetry to help improve the extension"
+        },
+        "m31-agent.logLevel": {
+          "type": "string",
+          "default": "info",
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error",
+            "none"
+          ],
+          "description": "Log level for the extension"
+        },
+        "m31-agent.showWelcomeOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show welcome message when the extension starts"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "m31-agent.explainCode",
+          "when": "editorHasSelection",
+          "group": "m31-agent"
+        },
+        {
+          "command": "m31-agent.generateCode",
+          "group": "m31-agent"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.2",
+    "@types/node": "^20.8.0",
+    "@types/uuid": "^9.0.4",
+    "@types/vscode": "^1.99.1",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "@vscode/test-electron": "^2.3.4",
+    "@vscode/vsce": "^2.21.0",
+    "css-loader": "^6.8.1",
+    "eslint": "^8.50.0",
+    "glob": "^10.3.4",
+    "mocha": "^10.2.0",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "axios": "^1.5.1",
+    "uuid": "^9.0.1"
+  }
+}
