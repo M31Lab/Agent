@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { IOpenRouterCompletionRequest } from '../interfaces/requests/completionRequest';
 import { IOpenRouterCompletionResponse } from '../interfaces/responses/completionResponse';
@@ -46,19 +46,17 @@ export class OpenRouterApiClient implements vscode.Disposable {
     private configService: ConfigurationService;
     private authService: AuthenticationService;
     private loggingService: LoggingService;
-    private context: ExtensionContext;
 
     constructor(
         configService: ConfigurationService,
         authService: AuthenticationService,
         loggingService: LoggingService,
-        context: ExtensionContext
+        _context: ExtensionContext
     ) {
         OpenRouterApiClient.instance = this;
         this.configService = configService;
         this.authService = authService;
         this.loggingService = loggingService;
-        this.context = context;
 
         this.client = axios.create({
             baseURL: this.baseUrl,
@@ -121,7 +119,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
             
             return response.data;
         } catch (error) {
-            this.handleApiError('Failed to fetch models', error);
+            this.handleApiError('Failed to fetch models', error as Error | AxiosError);
             throw error;
         }
     }
@@ -149,7 +147,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
             
             return response.data;
         } catch (error) {
-            this.handleApiError('Failed to create completion', error);
+            this.handleApiError('Failed to create completion', error as Error | AxiosError);
             throw error;
         }
     }
@@ -223,14 +221,14 @@ export class OpenRouterApiClient implements vscode.Disposable {
                 onError(error instanceof Error ? error : new Error(String(error)));
             });
         } catch (error) {
-            this.handleApiError('Failed to create streaming completion', error);
+            this.handleApiError('Failed to create streaming completion', error as Error | AxiosError);
             onError(error instanceof Error ? error : new Error(String(error)));
         }
     }
 
-    private handleApiError(message: string, error: any): void {
-        const errorResponse = error.response?.data as IOpenRouterError | undefined;
-        const errorCode = errorResponse?.error?.code || error.code || 'unknown';
+    private handleApiError(message: string, error: Error | AxiosError): void {
+        const errorResponse = axios.isAxiosError(error) ? error.response?.data as IOpenRouterError | undefined : undefined;
+        const errorCode = errorResponse?.error?.code || (axios.isAxiosError(error) && error.code) || 'unknown';
         const errorMessage = errorResponse?.error?.message || error.message || 'Unknown error';
         
         this.loggingService.error(`${message}: ${errorCode} - ${errorMessage}`, error);
@@ -434,7 +432,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
                 return response;
             },
             (error) => {
-                this.handleApiError('API Response Error', error);
+                this.handleApiError('API Response Error', error as Error | AxiosError);
                 this.loggingService.error('API Response Error', error);
                 return Promise.reject(error);
             }
@@ -623,7 +621,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
                     }
                 });
 
-                stream.on('error', (error: any) => {
+                stream.on('error', (error: Error | AxiosError) => {
                     this.handleApiError('Stream error', error);
                     const apiError = new ApiError(500, error.message || 'Stream error', 'stream_error');
                     callbacks.onError(apiError);
@@ -631,7 +629,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
                 });
             });
         } catch (error) {
-            this.handleApiError('Stream error', error);
+            this.handleApiError('Stream error', error as Error | AxiosError);
             const apiError = new ApiError(500, error instanceof Error ? error.message : 'Stream error', 'stream_error');
             callbacks.onError(apiError);
             throw apiError;
