@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ExtensionContext } from '../models/context/extensionContext';
 import { LanguageSupportService } from './languageSupport/languageSupportService';
 import { CodebaseAnalysisService } from './codeAnalysis/codebaseAnalysisService';
+import { CodebaseUnderstandingService } from './codeAnalysis/codebaseUnderstandingService';
 import { FileOperationsService } from './fileOperations/fileOperationsService';
 import { TerminalService } from './terminal/terminalService';
 import { BrowserService } from './browser/browserService';
@@ -24,6 +25,12 @@ export async function initializeServices(context: ExtensionContext): Promise<voi
         const codebaseAnalysisService = new CodebaseAnalysisService(context);
         await codebaseAnalysisService.initialize();
         context.registerDisposable(codebaseAnalysisService);
+        
+        // Initialize codebase understanding service
+        const codebaseUnderstandingService = new CodebaseUnderstandingService(context);
+        await codebaseUnderstandingService.initialize();
+        context.registerDisposable(codebaseUnderstandingService);
+        context.codebaseUnderstandingService = codebaseUnderstandingService;
         
         const fileOperationsService = new FileOperationsService(context);
         await fileOperationsService.initialize();

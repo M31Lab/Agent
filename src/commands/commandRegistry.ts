@@ -11,6 +11,7 @@ import { registerWebSearchCommands } from './websearch/webSearchCommands';
 import { registerCheckpointComparisonCommands } from './checkpoint/checkpointComparisonCommands';
 import { registerDiagnosticsMonitoringCommands } from './diagnostics/diagnosticsMonitoringCommands';
 import { registerMcpCommands } from './mcp/mcpToolCommands';
+import { registerCodeAnalysisCommands } from './codeAnalysis/codeAnalysisCommands';
 
 export interface CommandDependencies {
     statusBarManager: StatusBarManager;
@@ -37,6 +38,7 @@ export function registerAllCommands(
     registerCheckpointComparisonCommands(context);
     registerDiagnosticsMonitoringCommands(context);
     registerMcpCommands(context);
+    registerCodeAnalysisCommands(context);
 
     context.loggingService.info('All extension commands registered');
     context.telemetryService.trackEvent('commands_registered');

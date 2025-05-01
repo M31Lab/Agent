@@ -62,6 +62,11 @@
         "category": "M31 Agent"
       },
       {
+        "command": "m31-agent.codeAnalysis.analyzeCodebase",
+        "title": "Analyze Codebase Structure",
+        "category": "M31 Agent"
+      },
+      {
         "command": "m31-agent.webSearch.search",
         "title": "M31-Agent: Search the Web",
         "category": "M31-Agent"

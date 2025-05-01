@@ -13,6 +13,7 @@ import { CheckpointComparisonService } from '../../services/checkpoint/checkpoin
 import { WebSearchService } from '../../services/search/webSearchService';
 import { McpService } from '../../services/mcp/mcpService';
 import { DiagnosticsMonitoringService } from '../../services/diagnostics/diagnosticsMonitoringService';
+import { CodebaseUnderstandingService } from '../../services/codeAnalysis/codebaseUnderstandingService';
 
 export class ExtensionContext {
     private disposables: vscode.Disposable[] = [];
@@ -28,6 +29,7 @@ export class ExtensionContext {
     public webSearchService?: WebSearchService;
     public mcpService?: McpService;
     public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
+    public codebaseUnderstandingService?: CodebaseUnderstandingService;
 
     constructor(
         public readonly vscodeContext: vscode.ExtensionContext,
