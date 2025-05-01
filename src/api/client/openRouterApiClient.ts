@@ -441,10 +441,6 @@ export class OpenRouterApiClient implements vscode.Disposable {
         );
     }
 
-    private getApiKey(): string {
-        return this.authService.getApiKey();
-    }
-
     public async listModels(): Promise<AIModel[]> {
         try {
             const config: AxiosRequestConfig = {
