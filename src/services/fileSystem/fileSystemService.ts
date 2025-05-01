@@ -155,7 +155,7 @@ export class FileSystemService implements vscode.Disposable {
         }
     }
 
-    public getWorkspaceFolders(): vscode.WorkspaceFolder[] {
+    public getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] {
         const folders = vscode.workspace.workspaceFolders || [];
         return folders;
     }
