@@ -251,7 +251,7 @@ export class ContextToolsService {
             const diagnostics = allDiagnostics.slice(0, maxProblems);
             
             // Generate markdown
-            let markdown = `# Workspace Problems\n\n`;
+            let markdown = '# Workspace Problems\n\n';
             
             if (diagnostics.length === 0) {
                 markdown += 'No problems found matching the criteria.\n';
@@ -585,7 +585,7 @@ export class ContextToolsService {
             return 'No problems found in workspace.';
         }
         
-        let content = `# Workspace Problems\n\n`;
+        let content = '# Workspace Problems\n\n';
         content += `Found ${diagnostics.length} problems in workspace.\n\n`;
         
         // Group by file

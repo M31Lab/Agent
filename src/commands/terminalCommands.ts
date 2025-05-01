@@ -138,9 +138,9 @@ export function registerTerminalCommands(
                 const success = terminalService.cancelCommand(sessionPick.label);
                 
                 if (success) {
-                    vscode.window.showInformationMessage(`Command cancelled`);
+                    vscode.window.showInformationMessage('Command cancelled');
                 } else {
-                    vscode.window.showErrorMessage(`Failed to cancel command`);
+                    vscode.window.showErrorMessage('Failed to cancel command');
                 }
                 
                 return success;
@@ -180,7 +180,7 @@ export function registerTerminalCommands(
                 if (success) {
                     vscode.window.showInformationMessage(`Terminal session closed: ${sessionPick.label}`);
                 } else {
-                    vscode.window.showErrorMessage(`Failed to close terminal session`);
+                    vscode.window.showErrorMessage('Failed to close terminal session');
                 }
                 
                 return success;
@@ -244,7 +244,7 @@ function formatTerminalOutput(session: any): string {
     output += `Created: ${new Date(session.createdAt).toLocaleString()}\n`;
     output += `Last Activity: ${new Date(session.lastActivity).toLocaleString()}\n\n`;
     
-    output += `## Command History\n\n`;
+    output += '## Command History\n\n';
     
     if (session.history.length === 0) {
         output += 'No commands executed yet.\n\n';

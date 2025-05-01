@@ -542,7 +542,7 @@ export class BrowserTestingService implements vscode.Disposable {
                 return screenshot;
             }
         } catch (error) {
-            this.context.loggingService.error(`Error capturing screenshot:`, error);
+            this.context.loggingService.error('Error capturing screenshot:', error);
         }
         
         return undefined;

@@ -130,9 +130,9 @@ export function useAiCompletion(
                             tokensUsed: response.usage?.total_tokens?.toString() 
                         });
                     },
-                    onError: (error: ApiError) => {
-                        error = error;
-                        logging.error('Streaming AI completion error', error);
+                    onError: (err: ApiError) => {
+                        error = err;
+                        logging.error('Streaming AI completion error', err);
                     }
                 }
             });

@@ -374,7 +374,7 @@ function formatToolDetails(tool: any): string {
         content += `**Path:** ${endpoint.path}\n`;
         
         if (endpoint.parameters && endpoint.parameters.length > 0) {
-            content += `\n**Parameters:**\n\n`;
+            content += '\n**Parameters:**\n\n';
             
             for (const param of endpoint.parameters) {
                 content += `- \`${param.name}\` (${param.type}${param.required ? ', required' : ''}): ${param.description}\n`;
@@ -396,11 +396,11 @@ function formatToolDetails(tool: any): string {
 }
 
 function formatToolResult(endpoint: any, parameters: Record<string, any>, result: any): string {
-    let content = `# Tool Invocation Result\n\n`;
+    let content = '# Tool Invocation Result\n\n';
     
     content += `**Endpoint:** ${endpoint.name} (${endpoint.method} ${endpoint.path})\n\n`;
     
-    content += `## Parameters\n\n`;
+    content += '## Parameters\n\n';
     
     if (Object.keys(parameters).length === 0) {
         content += 'No parameters were provided.\n\n';
@@ -410,7 +410,7 @@ function formatToolResult(endpoint: any, parameters: Record<string, any>, result
         content += '\n```\n\n';
     }
     
-    content += `## Result\n\n`;
+    content += '## Result\n\n';
     
     if (result.error) {
         content += `**Error:** ${result.error}\n\n`;

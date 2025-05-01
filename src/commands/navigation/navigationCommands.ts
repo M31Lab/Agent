@@ -120,7 +120,7 @@ export function registerNavigationCommands(
             try {
                 await chatPanelProvider.show();
                 await chatPanelProvider.sendMessage(
-                    `Analyze this project and provide a comprehensive overview. Include information about:\n\n1. Project structure\n2. Key components and their purposes\n3. Technologies used\n4. Main entry points\n5. Architecture patterns\n\nPlease be as detailed as possible.`
+                    'Analyze this project and provide a comprehensive overview. Include information about:\n\n1. Project structure\n2. Key components and their purposes\n3. Technologies used\n4. Main entry points\n5. Architecture patterns\n\nPlease be as detailed as possible.'
                 );
                 
                 statusBarManager.setDefaultState();

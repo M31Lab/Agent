@@ -330,7 +330,7 @@ Do not include any other text in your response, only valid JSON.`
             }
         } catch (error) {
             context.loggingService.error('Error parsing AI response', error);
-            vscode.window.showErrorMessage(`Error processing AI response. Please try again.`);
+            vscode.window.showErrorMessage('Error processing AI response. Please try again.');
         }
     } catch (error) {
         context.loggingService.error('Error in AI-powered file search', error);

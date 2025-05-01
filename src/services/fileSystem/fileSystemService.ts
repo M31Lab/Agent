@@ -184,5 +184,3 @@ export class FileSystemService implements vscode.Disposable {
         this.disposables = [];
     }
 } 
-    }
-} 

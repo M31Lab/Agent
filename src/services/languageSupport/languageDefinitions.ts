@@ -17,7 +17,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ],
         surroundingPairs: [
@@ -25,7 +25,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ]
     },
@@ -45,7 +45,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ],
         surroundingPairs: [
@@ -53,7 +53,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ]
     },
@@ -73,7 +73,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['"""', '"""']
         ],
         surroundingPairs: [
@@ -81,7 +81,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -100,14 +100,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -126,14 +126,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -152,14 +152,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -178,14 +178,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -204,7 +204,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ],
         surroundingPairs: [
@@ -212,7 +212,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ]
     },
@@ -232,14 +232,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -258,14 +258,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -284,14 +284,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -310,14 +310,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -336,7 +336,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ],
         surroundingPairs: [
@@ -344,7 +344,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ]
     },
@@ -363,7 +363,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ],
         surroundingPairs: [
@@ -371,7 +371,7 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"],
+            ['\'', '\''],
             ['`', '`']
         ]
     },
@@ -391,14 +391,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['{', '}'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['<', '>'],
             ['{', '}'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -417,14 +417,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -443,14 +443,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -469,14 +469,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -495,14 +495,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     },
     {
@@ -521,14 +521,14 @@ export const languageDefinitions: LanguageFeatures[] = [
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ],
         surroundingPairs: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
             ['"', '"'],
-            ["'", "'"]
+            ['\'', '\'']
         ]
     }
 ]; 

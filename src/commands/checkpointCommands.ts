@@ -105,7 +105,7 @@ export function registerCheckpointCommands(
                 if (success) {
                     vscode.window.showInformationMessage(`Checkpoint restored: ${checkpoint.label}`);
                 } else {
-                    vscode.window.showWarningMessage(`Checkpoint restore was cancelled`);
+                    vscode.window.showWarningMessage('Checkpoint restore was cancelled');
                 }
                 
                 return success;
@@ -283,7 +283,7 @@ export function registerCheckpointCommands(
                 if (success) {
                     vscode.window.showInformationMessage(`Checkpoint deleted: ${checkpoint.label}`);
                 } else {
-                    vscode.window.showErrorMessage(`Failed to delete checkpoint`);
+                    vscode.window.showErrorMessage('Failed to delete checkpoint');
                 }
                 
                 return success;
@@ -342,14 +342,14 @@ function formatDiffSummary(diff: any, fromLabel: string, toLabel: string): strin
         }
     }
     
-    content += `## Summary\n\n`;
+    content += '## Summary\n\n';
     content += `- ${diff.fileChanges.length} files changed\n`;
     content += `- ${added} files added\n`;
     content += `- ${modified} files modified\n`;
     content += `- ${deleted} files deleted\n\n`;
     
     // List of changed files
-    content += `## Changed Files\n\n`;
+    content += '## Changed Files\n\n';
     
     for (const change of diff.fileChanges) {
         let changeType = '';
