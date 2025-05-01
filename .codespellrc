@@ -1,0 +1,5 @@
+[codespell]
+skip = .git,node_modules,dist,*.lock,*.svg,*.min.js
+ignore-words-list = crate,ser
+check-filenames =
+check-hidden = 

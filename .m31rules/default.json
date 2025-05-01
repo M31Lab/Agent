@@ -1,0 +1,39 @@
+{
+  "rules": [
+    "Use simple, expressive TypeScript that is easy to read and maintain.",
+    "Prefer async/await over Promise chains.",
+    "Handle errors explicitly and provide informative error messages.",
+    "Document complex algorithms with clear explanations.",
+    "Utilize strong typing and avoid using 'any' type.",
+    "Use named exports over default exports for better refactoring support.",
+    "Follow consistent naming conventions across the codebase.",
+    "Organize imports with external libraries first, followed by internal modules.",
+    "Implement proper error handling for asynchronous operations.",
+    "Avoid deeply nested code blocks and prefer early returns.",
+    "Keep functions small and focused on a single responsibility.",
+    "Use camelCase for variables and functions, PascalCase for classes and interfaces.",
+    "Add appropriate JSDoc comments for public APIs.",
+    "Write defensive code that validates inputs and handles edge cases.",
+    "Ensure all UI elements are accessible according to WCAG standards.",
+    "Use CSS-in-JS or dedicated CSS modules to avoid styling conflicts.",
+    "Prefer composition over inheritance for code reuse.",
+    "Use dependency injection for better testability.",
+    "Implement proper resource cleanup in UI components and background services.",
+    "Keep the bundle size small by avoiding unnecessary dependencies.",
+    "Secure all communications with OpenRouter AI API using proper authentication.",
+    "Always respect user privacy and handle sensitive data with care.",
+    "Implement explicit user permission prompts for file system and command operations.",
+    "Design UI components with accessibility, responsiveness, and performance in mind.",
+    "Structure code to optimize for VS Code extension performance."
+  ],
+  "preferences": {
+    "indentation": 2,
+    "quotes": "single",
+    "semicolons": true,
+    "trailingComma": "es5",
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "jsxBracketSameLine": false,
+    "printWidth": 100
+  }
+} 

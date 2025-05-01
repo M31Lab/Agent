@@ -1,0 +1,63 @@
+name: Changesets
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    if: github.repository == 'M31Lab/Agent'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+      
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+          version: npm run version-packages
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create VS Code Package
+        if: steps.changesets.outputs.published == 'true'
+        run: npm run package
+        
+      - name: Publish to VS Code Marketplace
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          npm install -g @vscode/vsce
+          vsce publish -p ${{ secrets.VSCE_TOKEN }}
+        
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.changesets.outputs.version }}
+          release_name: Release v${{ steps.changesets.outputs.version }}
+          body: ${{ steps.changesets.outputs.publishedPackages }}
+          draft: false
+          prerelease: false 

@@ -1,0 +1,33 @@
+changelogFormat: markdown
+unreleasedDir: .changes/unreleased
+headerPath: .changes/header.tpl.md
+versionHeaderPath: .changes/version-header.tpl.md
+changelogPath: CHANGELOG.md
+versionExt: md
+versionFormat: '## {{.Version}} - {{.Time.Format "2006-01-02"}}'
+kindFormat: '### {{.Kind}}'
+changeFormat: '* {{.Body}}'
+kinds:
+  - label: Added
+    tag: added
+  - label: Changed
+    tag: changed
+  - label: Deprecated
+    tag: deprecated
+  - label: Removed
+    tag: removed
+  - label: Fixed
+    tag: fixed
+  - label: Security
+    tag: security
+  - label: Performance
+    tag: performance
+  - label: Other
+    tag: other
+newlines:
+  afterChangelogHeader: 1
+  beforeChangelogVersion: 1
+  afterChangelogVersion: 1
+  afterKind: 1
+  beforeKind: 1
+  endOfVersion: 1 

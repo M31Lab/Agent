@@ -1369,7 +1369,24 @@ This guide walks you through setting up a development environment for M31-Agent 
 
 ### 📂 Project Structure
 
-See the [Extension Architecture](#extension-architecture) section for a detailed directory structure.
+M31-Agent follows a professional-grade project structure with modern development practices:
+
+- **Type Safety**: Comprehensive TypeScript interfaces and types throughout the codebase
+- **Modular Design**: Clear separation of concerns with 100+ files organized by feature and responsibility
+- **Quality Assurance**: 
+  - Automated tests (unit, integration, and scenario-based)
+  - Performance benchmarks
+  - Linting and formatting rules
+  - Pre-commit hooks
+- **Version Management**:
+  - Semantic versioning via Changesets
+  - Automated changelog generation
+- **Developer Tools**:
+  - Custom scripts for common development tasks
+  - Dependency management utilities
+  - Release automation
+
+For more details, see [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md).
 
 ### ⚙️ Key Development Tasks
 
