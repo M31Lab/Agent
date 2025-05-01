@@ -76,22 +76,20 @@ export class OpenRouterApiClient implements vscode.Disposable {
         return OpenRouterApiClient.instance;
     }
 
-    public async initialize(): Promise<void> {
+    public initialize(): void {
         this.loggingService.debug('Initializing OpenRouter API client');
-        await this.updateApiKey();
+        this.updateApiKey();
 
         // Set up API key change listener
-        const disposable = this.configService.onConfigurationChanged(async (e) => {
-            if (e.affectsConfiguration('m31-agent.apiKey')) {
-                await this.updateApiKey();
-            }
+        const disposable = this.configService.onConfigChanged(() => {
+            this.updateApiKey();
         });
         this.disposables.push(disposable);
     }
 
-    private async updateApiKey(): Promise<void> {
+    private updateApiKey(): void {
         try {
-            this.apiKey = await this.authService.getApiKey();
+            this.apiKey = this.authService.getApiKey();
             this.loggingService.debug('OpenRouter API key updated');
         } catch (error) {
             this.loggingService.error('Failed to update OpenRouter API key', error);
@@ -245,7 +243,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
 
     public async sendRequest(options: AIRequestOptions): Promise<AIResponse> {
         try {
-            const apiKey = await this.authService.getApiKey();
+            const apiKey = this.authService.getApiKey();
             if (!apiKey) {
                 throw new Error('API key not configured. Please set your OpenRouter API key in the extension settings.');
             }
@@ -310,7 +308,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
         onError: (error: Error) => void
     ): Promise<void> {
         try {
-            const apiKey = await this.authService.getApiKey();
+            const apiKey = this.authService.getApiKey();
             if (!apiKey) {
                 throw new Error('API key not configured. Please set your OpenRouter API key in the extension settings.');
             }
@@ -407,8 +405,8 @@ export class OpenRouterApiClient implements vscode.Disposable {
     private setupInterceptors(): void {
         this.client.interceptors.request.use(
             (config) => {
-                if (this.getApiKey()) {
-                    config.headers['Authorization'] = `Bearer ${this.getApiKey()}`;
+                if (this.apiKey) {
+                    config.headers['Authorization'] = `Bearer ${this.apiKey}`;
                 }
                 
                 this.loggingService.debug('API Request', {
@@ -436,9 +434,9 @@ export class OpenRouterApiClient implements vscode.Disposable {
                 return response;
             },
             (error) => {
-                const apiError = this.handleApiError('API Response Error', error);
-                this.loggingService.error('API Response Error', apiError);
-                return Promise.reject(apiError);
+                this.handleApiError('API Response Error', error);
+                this.loggingService.error('API Response Error', error);
+                return Promise.reject(error);
             }
         );
     }
@@ -449,7 +447,11 @@ export class OpenRouterApiClient implements vscode.Disposable {
 
     public async listModels(): Promise<AIModel[]> {
         try {
-            const response = await this.client.get<OpenRouterModelsResponse>('/models');
+            const config: AxiosRequestConfig = {
+                headers: this.getAuthHeaders()
+            };
+            
+            const response = await this.client.get<OpenRouterModelsResponse>('/models', config);
             
             return response.data.data.map(model => ({
                 id: model.id,
@@ -533,10 +535,15 @@ export class OpenRouterApiClient implements vscode.Disposable {
             if (options.stream && options.streamCallbacks) {
                 return await this.streamChatCompletion(requestData, options.streamCallbacks);
             } else {
+                const config = {
+                    ...requestConfig,
+                    headers: this.getAuthHeaders()
+                };
+                
                 const response = await this.client.post<OpenRouterChatResponse>(
                     '/chat/completions',
                     requestData,
-                    requestConfig
+                    config
                 );
                 
                 this.loggingService.trackEvent('api_chat_completion', {
@@ -565,7 +572,8 @@ export class OpenRouterApiClient implements vscode.Disposable {
         
         try {
             const response = await this.client.post('/chat/completions', requestData, {
-                responseType: 'stream'
+                responseType: 'stream',
+                headers: this.getAuthHeaders()
             });
             
             const stream = response.data;
@@ -620,13 +628,15 @@ export class OpenRouterApiClient implements vscode.Disposable {
                 });
 
                 stream.on('error', (error: any) => {
-                    const apiError = this.handleApiError('Stream error', error);
+                    this.handleApiError('Stream error', error);
+                    const apiError = new ApiError(500, error.message || 'Stream error', 'stream_error');
                     callbacks.onError(apiError);
                     reject(apiError);
                 });
             });
         } catch (error) {
-            const apiError = this.handleApiError('Stream error', error);
+            this.handleApiError('Stream error', error);
+            const apiError = new ApiError(500, error instanceof Error ? error.message : 'Stream error', 'stream_error');
             callbacks.onError(apiError);
             throw apiError;
         }
