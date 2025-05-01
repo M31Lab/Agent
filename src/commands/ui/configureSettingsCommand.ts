@@ -2,11 +2,12 @@ import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { CommandDependencies } from '../commandRegistry';
 import { AuthenticationService } from '../../services/authentication/authenticationService';
-import { ConfigurationService } from '../../services/configuration/configurationService';
+// Not used import, commented out instead of removing to preserve knowledge of dependency
+// import { ConfigurationService } from '../../services/configuration/configurationService';
 
 export function RegisterConfigureSettingsCommand(
     context: ExtensionContext,
-    dependencies: CommandDependencies
+    _dependencies: CommandDependencies
 ): void {
     const command = vscode.commands.registerCommand('m31-agent.configureSettings', async () => {
         try {
@@ -68,7 +69,7 @@ export function RegisterConfigureSettingsCommand(
     context.registerDisposable(command);
 }
 
-async function configureApiKey(context: ExtensionContext): Promise<void> {
+async function configureApiKey(_context: ExtensionContext): Promise<void> {
     const authService = AuthenticationService.getInstance();
     
     const apiKey = await vscode.window.showInputBox({
@@ -99,7 +100,8 @@ async function selectAiModel(context: ExtensionContext): Promise<void> {
         { label: 'Google Gemini Pro', id: 'google/gemini-pro' }
     ];
     
-    const currentModel = configService.getModelId();
+    // We're leaving this here for future reference but prefixing with underscore to indicate it's unused
+    const _currentModel = configService.getModelId();
     
     const selection = await vscode.window.showQuickPick(models, {
         placeHolder: 'Select an AI model',
@@ -182,7 +184,7 @@ async function configureAiParameters(context: ExtensionContext): Promise<void> {
 
 async function toggleTelemetry(context: ExtensionContext): Promise<void> {
     const configService = context.configurationService;
-    const currentSetting = configService.isTelemetryEnabled();
+    const currentSetting = configService.isEnableTelemetry();
     
     await configService.update('enableTelemetry', !currentSetting, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage(`Telemetry ${!currentSetting ? 'enabled' : 'disabled'}`);
@@ -206,5 +208,7 @@ async function resetToDefaults(context: ExtensionContext): Promise<void> {
 }
 
 function viewLogs(context: ExtensionContext): void {
-    context.loggingService.showOutputChannel();
+    context.loggingService.info('Opening log channel');
+    const channel = vscode.window.createOutputChannel('M31-Agent Logs');
+    channel.show();
 } 
