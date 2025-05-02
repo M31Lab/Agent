@@ -6,79 +6,79 @@ import { ChatMessage, ChatRole, ChatSession } from '../../models/ai/chatTypes';
 import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 
 export class ChatPanelProvider {
-  private panel: vscode.WebviewPanel | undefined;
-  private context: ExtensionContext;
-  private sessions: ChatSession[] = [];
-  private activeSessionId: string | null = null;
-  private apiClient: OpenRouterApiClient;
-  private static readonly viewType = 'm31-agent.chatView';
-  private isProcessing: boolean = false;
+    private panel: vscode.WebviewPanel | undefined;
+    private context: ExtensionContext;
+    private sessions: ChatSession[] = [];
+    private activeSessionId: string | null = null;
+    private apiClient: OpenRouterApiClient;
+    private static readonly viewType = 'm31-agent.chatView';
+    private isProcessing: boolean = false;
 
-  constructor(context: ExtensionContext) {
-    this.context = context;
-    this.apiClient = new OpenRouterApiClient(
-      context.configurationService,
-      context.authenticationService,
-      context.loggingService
-    );
-    this.loadSessions();
-
-    // Create default session if none exists
-    if (this.sessions.length === 0) {
-      this.createNewSession();
-    } else {
-      this.activeSessionId = this.sessions[0].id;
-    }
-  }
-
-  public async show(): Promise<void> {
-    if (this.panel) {
-      this.panel.reveal();
-      return;
+    constructor(context: ExtensionContext) {
+        this.context = context;
+        this.apiClient = new OpenRouterApiClient(
+            context.configurationService,
+            context.authenticationService,
+            context.loggingService
+        );
+        this.loadSessions();
+        
+        // Create default session if none exists
+        if (this.sessions.length === 0) {
+            this.createNewSession();
+        } else {
+            this.activeSessionId = this.sessions[0].id;
+        }
     }
 
-    this.panel = vscode.window.createWebviewPanel(
-      ChatPanelProvider.viewType,
-      'M31 Agent Chat',
-      vscode.ViewColumn.Beside,
-      {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.file(path.join(this.context.extensionPath, 'resources'))],
-      }
-    );
+    public async show(): Promise<void> {
+        if (this.panel) {
+            this.panel.reveal();
+            return;
+        }
 
-    this.panel.iconPath = {
-      light: vscode.Uri.file(
-        path.join(this.context.extensionPath, 'resources', 'light', 'chat.svg')
-      ),
-      dark: vscode.Uri.file(path.join(this.context.extensionPath, 'resources', 'dark', 'chat.svg')),
-    };
+        this.panel = vscode.window.createWebviewPanel(
+            ChatPanelProvider.viewType,
+            'M31 Agent Chat',
+            vscode.ViewColumn.Beside,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [
+                    vscode.Uri.file(path.join(this.context.extensionPath, 'resources'))
+                ]
+            }
+        );
 
-    this.panel.webview.html = this.getWebviewContent();
+        this.panel.iconPath = {
+            light: vscode.Uri.file(path.join(this.context.extensionPath, 'resources', 'light', 'chat.svg')),
+            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'resources', 'dark', 'chat.svg'))
+        };
 
-    this.panel.webview.onDidReceiveMessage(
-      async (message) => {
-        await this.handleWebviewMessage(message);
-      },
-      undefined,
-      this.context.subscriptions
-    );
+        this.panel.webview.html = this.getWebviewContent();
 
-    this.panel.onDidDispose(
-      () => {
-        this.panel = undefined;
-      },
-      null,
-      this.context.subscriptions
-    );
+        this.panel.webview.onDidReceiveMessage(
+            async (message) => {
+                await this.handleWebviewMessage(message);
+            },
+            undefined,
+            this.context.subscriptions
+        );
 
-    // Send initial state to webview
-    await this.updateWebview();
-  }
+        this.panel.onDidDispose(
+            () => {
+                this.panel = undefined;
+            },
+            null,
+            this.context.subscriptions
+        );
 
-  private getWebviewContent(): string {
-    return `<!DOCTYPE html>
+        // Send initial state to webview
+        await this.updateWebview();
+    }
+
+    private getWebviewContent(): string {
+        return `<!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
@@ -345,288 +345,281 @@ export class ChatPanelProvider {
                 </script>
             </body>
             </html>`;
-  }
-
-  private async handleWebviewMessage(message: unknown): Promise<void> {
-    switch (message.command) {
-      case 'ready':
-        await this.updateWebview();
-        break;
-      case 'sendMessage':
-        await this.sendMessage(message.text);
-        break;
-      case 'newChat':
-        await this.createNewSession();
-        await this.updateWebview();
-        break;
-      case 'clearChat':
-        await this.clearCurrentSession();
-        await this.updateWebview();
-        break;
-      case 'exportChat':
-        await this.exportCurrentSession();
-        break;
-    }
-  }
-
-  private async updateWebview(): Promise<void> {
-    if (!this.panel) {
-      return;
     }
 
-    const activeSession = this.getActiveSession();
-    if (!activeSession) {
-      return;
+    private async handleWebviewMessage(message: unknown): Promise<void> {
+        switch (message.command) {
+            case 'ready':
+                await this.updateWebview();
+                break;
+            case 'sendMessage':
+                await this.sendMessage(message.text);
+                break;
+            case 'newChat':
+                await this.createNewSession();
+                await this.updateWebview();
+                break;
+            case 'clearChat':
+                await this.clearCurrentSession();
+                await this.updateWebview();
+                break;
+            case 'exportChat':
+                await this.exportCurrentSession();
+                break;
+        }
     }
 
-    this.panel.webview.postMessage({
-      command: 'updateChat',
-      messages: activeSession.messages,
-    });
+    private async updateWebview(): Promise<void> {
+        if (!this.panel) {
+            return;
+        }
 
-    this.panel.webview.postMessage({
-      command: 'setProcessing',
-      isProcessing: this.isProcessing,
-    });
-  }
+        const activeSession = this.getActiveSession();
+        if (!activeSession) {
+            return;
+        }
 
-  public async sendMessage(text: string): Promise<void> {
-    if (!text.trim() || this.isProcessing) {
-      return;
-    }
-
-    const session = this.getActiveSession();
-    if (!session) {
-      this.context.loggingService.error('No active chat session found');
-      return;
-    }
-
-    try {
-      // Add user message
-      const userMessage: ChatMessage = {
-        role: ChatRole.User,
-        content: text,
-        timestamp: Date.now(),
-        id: uuidv4(),
-      };
-
-      session.messages.push(userMessage);
-      session.updatedAt = Date.now();
-      await this.updateWebview();
-
-      // Start processing
-      this.isProcessing = true;
-      await this.updateWebview();
-
-      // Ensure API key is set
-      const isAuthenticated = await this.context.authenticationService.ensureAuthenticated();
-      if (!isAuthenticated) {
-        this.addSystemMessage(
-          'API key not configured. Please set your OpenRouter API key in the settings.'
-        );
-        this.isProcessing = false;
-        await this.updateWebview();
-        return;
-      }
-
-      // Prepare chat completion request
-      const messages = session.messages
-        .filter((m) => m.role !== ChatRole.System || session.messages.indexOf(m) === 0)
-        .map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
-
-      // Add a system message if none exists
-      if (!messages.find((m) => m.role === ChatRole.System)) {
-        messages.unshift({
-          role: ChatRole.System,
-          content:
-            'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.',
+        this.panel.webview.postMessage({
+            command: 'updateChat',
+            messages: activeSession.messages
         });
-      }
 
-      // Get completion from OpenRouter
-      const modelId = session.modelId || this.context.configurationService.getModelId();
-      const response = await this.apiClient.generateChatCompletion(messages, {
-        modelId,
-        temperature: this.context.configurationService.getTemperature(),
-        maxTokens: this.context.configurationService.getMaxTokens(),
-      });
-
-      // Add assistant response
-      const assistantMessage: ChatMessage = {
-        role: ChatRole.Assistant,
-        content: response.choices[0].message.content,
-        timestamp: Date.now(),
-        id: uuidv4(),
-      };
-
-      session.messages.push(assistantMessage);
-      session.updatedAt = Date.now();
-
-      // Save sessions and update UI
-      this.saveSessions();
-
-      // Track the event
-      this.context.telemetryService.trackEvent('chat_message_processed', {
-        modelId,
-        inputTokens: response.usage.prompt_tokens.toString(),
-        outputTokens: response.usage.completion_tokens.toString(),
-        totalTokens: response.usage.total_tokens.toString(),
-      });
-    } catch (error) {
-      this.context.loggingService.error('Error processing chat message', error);
-      this.addSystemMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      this.isProcessing = false;
-      await this.updateWebview();
-    }
-  }
-
-  private addSystemMessage(content: string): void {
-    const session = this.getActiveSession();
-    if (!session) {
-      return;
+        this.panel.webview.postMessage({
+            command: 'setProcessing',
+            isProcessing: this.isProcessing
+        });
     }
 
-    const systemMessage: ChatMessage = {
-      role: ChatRole.System,
-      content,
-      timestamp: Date.now(),
-      id: uuidv4(),
-    };
+    public async sendMessage(text: string): Promise<void> {
+        if (!text.trim() || this.isProcessing) {
+            return;
+        }
 
-    session.messages.push(systemMessage);
-    session.updatedAt = Date.now();
-    this.saveSessions();
-  }
+        const session = this.getActiveSession();
+        if (!session) {
+            this.context.loggingService.error('No active chat session found');
+            return;
+        }
 
-  public async createNewSession(): Promise<string> {
-    const sessionId = uuidv4();
-    const newSession: ChatSession = {
-      id: sessionId,
-      title: `Chat ${this.sessions.length + 1}`,
-      messages: [
-        {
-          role: ChatRole.System,
-          content:
-            'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.',
-          timestamp: Date.now(),
-          id: uuidv4(),
-        },
-      ],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      modelId: this.context.configurationService.getModelId(),
-    };
+        try {
+            // Add user message
+            const userMessage: ChatMessage = {
+                role: ChatRole.User,
+                content: text,
+                timestamp: Date.now(),
+                id: uuidv4()
+            };
 
-    this.sessions.unshift(newSession);
-    this.activeSessionId = sessionId;
-    this.saveSessions();
+            session.messages.push(userMessage);
+            session.updatedAt = Date.now();
+            await this.updateWebview();
 
-    this.context.telemetryService.trackEvent('chat_session_created');
+            // Start processing
+            this.isProcessing = true;
+            await this.updateWebview();
 
-    return sessionId;
-  }
+            // Ensure API key is set
+            const isAuthenticated = await this.context.authenticationService.ensureAuthenticated();
+            if (!isAuthenticated) {
+                this.addSystemMessage('API key not configured. Please set your OpenRouter API key in the settings.');
+                this.isProcessing = false;
+                await this.updateWebview();
+                return;
+            }
 
-  public async clearCurrentSession(): Promise<void> {
-    const session = this.getActiveSession();
-    if (!session) {
-      return;
+            // Prepare chat completion request
+            const messages = session.messages
+                .filter(m => m.role !== ChatRole.System || session.messages.indexOf(m) === 0)
+                .map(m => ({
+                    role: m.role,
+                    content: m.content
+                }));
+
+            // Add a system message if none exists
+            if (!messages.find(m => m.role === ChatRole.System)) {
+                messages.unshift({
+                    role: ChatRole.System,
+                    content: 'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.'
+                });
+            }
+
+            // Get completion from OpenRouter
+            const modelId = session.modelId || this.context.configurationService.getModelId();
+            const response = await this.apiClient.generateChatCompletion(messages, {
+                modelId,
+                temperature: this.context.configurationService.getTemperature(),
+                maxTokens: this.context.configurationService.getMaxTokens()
+            });
+
+            // Add assistant response
+            const assistantMessage: ChatMessage = {
+                role: ChatRole.Assistant,
+                content: response.choices[0].message.content,
+                timestamp: Date.now(),
+                id: uuidv4()
+            };
+
+            session.messages.push(assistantMessage);
+            session.updatedAt = Date.now();
+
+            // Save sessions and update UI
+            this.saveSessions();
+
+            // Track the event
+            this.context.telemetryService.trackEvent('chat_message_processed', {
+                modelId,
+                inputTokens: response.usage.prompt_tokens.toString(),
+                outputTokens: response.usage.completion_tokens.toString(),
+                totalTokens: response.usage.total_tokens.toString()
+            });
+        } catch (error) {
+            this.context.loggingService.error('Error processing chat message', error);
+            this.addSystemMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            this.isProcessing = false;
+            await this.updateWebview();
+        }
     }
 
-    session.messages = [
-      {
-        role: ChatRole.System,
-        content:
-          'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.',
-        timestamp: Date.now(),
-        id: uuidv4(),
-      },
-    ];
-    session.updatedAt = Date.now();
+    private addSystemMessage(content: string): void {
+        const session = this.getActiveSession();
+        if (!session) {
+            return;
+        }
 
-    this.saveSessions();
-    this.context.telemetryService.trackEvent('chat_session_cleared');
-  }
+        const systemMessage: ChatMessage = {
+            role: ChatRole.System,
+            content,
+            timestamp: Date.now(),
+            id: uuidv4()
+        };
 
-  public async exportCurrentSession(): Promise<void> {
-    const session = this.getActiveSession();
-    if (!session) {
-      throw new Error('No active session to export');
+        session.messages.push(systemMessage);
+        session.updatedAt = Date.now();
+        this.saveSessions();
     }
 
-    try {
-      const exportData = {
-        title: session.title,
-        modelId: session.modelId || this.context.configurationService.getModelId(),
-        timestamp: new Date().toISOString(),
-        messages: session.messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp ? new Date(m.timestamp).toISOString() : undefined,
-        })),
-      };
+    public async createNewSession(): Promise<string> {
+        const sessionId = uuidv4();
+        const newSession: ChatSession = {
+            id: sessionId,
+            title: `Chat ${this.sessions.length + 1}`,
+            messages: [
+                {
+                    role: ChatRole.System,
+                    content: 'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.',
+                    timestamp: Date.now(),
+                    id: uuidv4()
+                }
+            ],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            modelId: this.context.configurationService.getModelId()
+        };
 
-      const jsonString = JSON.stringify(exportData, null, 2);
+        this.sessions.unshift(newSession);
+        this.activeSessionId = sessionId;
+        this.saveSessions();
 
-      // Save to file
-      const uri = await vscode.window.showSaveDialog({
-        defaultUri: vscode.Uri.file(
-          `${session.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().replace(/:/g, '-')}.json`
-        ),
-        filters: {
-          JSON: ['json'],
-          'All Files': ['*'],
-        },
-      });
+        this.context.telemetryService.trackEvent('chat_session_created');
 
-      if (uri) {
-        await vscode.workspace.fs.writeFile(uri, Buffer.from(jsonString, 'utf8'));
-        this.context.telemetryService.trackEvent('chat_session_exported');
-      }
-    } catch (error) {
-      this.context.loggingService.error('Failed to export chat session', error);
-      throw error;
+        return sessionId;
     }
-  }
 
-  private getActiveSession(): ChatSession | undefined {
-    if (!this.activeSessionId) {
-      return undefined;
-    }
-    return this.sessions.find((s) => s.id === this.activeSessionId);
-  }
+    public async clearCurrentSession(): Promise<void> {
+        const session = this.getActiveSession();
+        if (!session) {
+            return;
+        }
 
-  private async loadSessions(): Promise<void> {
-    try {
-      const storedData = this.context.globalState.get<string>('m31-agent.chatSessions');
-      if (storedData) {
-        this.sessions = JSON.parse(storedData);
-        this.context.loggingService.debug(`Loaded ${this.sessions.length} chat sessions`);
-      }
-    } catch (error) {
-      this.context.loggingService.error('Failed to load chat sessions', error);
-      this.sessions = [];
+        session.messages = [
+            {
+                role: ChatRole.System,
+                content: 'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.',
+                timestamp: Date.now(),
+                id: uuidv4()
+            }
+        ];
+        session.updatedAt = Date.now();
+        
+        this.saveSessions();
+        this.context.telemetryService.trackEvent('chat_session_cleared');
     }
-  }
 
-  private saveSessions(): void {
-    try {
-      // Limit to the 50 most recent sessions
-      const recentSessions = this.sessions.slice(0, 50);
-      this.context.globalState.update('m31-agent.chatSessions', JSON.stringify(recentSessions));
-      this.context.loggingService.debug(`Saved ${recentSessions.length} chat sessions`);
-    } catch (error) {
-      this.context.loggingService.error('Failed to save chat sessions', error);
-    }
-  }
+    public async exportCurrentSession(): Promise<void> {
+        const session = this.getActiveSession();
+        if (!session) {
+            throw new Error('No active session to export');
+        }
 
-  public dispose(): void {
-    if (this.panel) {
-      this.panel.dispose();
-      this.panel = undefined;
+        try {
+            const exportData = {
+                title: session.title,
+                modelId: session.modelId || this.context.configurationService.getModelId(),
+                timestamp: new Date().toISOString(),
+                messages: session.messages.map(m => ({
+                    role: m.role,
+                    content: m.content,
+                    timestamp: m.timestamp ? new Date(m.timestamp).toISOString() : undefined
+                }))
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            
+            // Save to file
+            const uri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.file(`${session.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().replace(/:/g, '-')}.json`),
+                filters: {
+                    'JSON': ['json'],
+                    'All Files': ['*']
+                }
+            });
+
+            if (uri) {
+                await vscode.workspace.fs.writeFile(uri, Buffer.from(jsonString, 'utf8'));
+                this.context.telemetryService.trackEvent('chat_session_exported');
+            }
+        } catch (error) {
+            this.context.loggingService.error('Failed to export chat session', error);
+            throw error;
+        }
     }
-  }
-}
+
+    private getActiveSession(): ChatSession | undefined {
+        if (!this.activeSessionId) {
+            return undefined;
+        }
+        return this.sessions.find(s => s.id === this.activeSessionId);
+    }
+
+    private async loadSessions(): Promise<void> {
+        try {
+            const storedData = this.context.globalState.get<string>('m31-agent.chatSessions');
+            if (storedData) {
+                this.sessions = JSON.parse(storedData);
+                this.context.loggingService.debug(`Loaded ${this.sessions.length} chat sessions`);
+            }
+        } catch (error) {
+            this.context.loggingService.error('Failed to load chat sessions', error);
+            this.sessions = [];
+        }
+    }
+
+    private saveSessions(): void {
+        try {
+            // Limit to the 50 most recent sessions
+            const recentSessions = this.sessions.slice(0, 50);
+            this.context.globalState.update('m31-agent.chatSessions', JSON.stringify(recentSessions));
+            this.context.loggingService.debug(`Saved ${recentSessions.length} chat sessions`);
+        } catch (error) {
+            this.context.loggingService.error('Failed to save chat sessions', error);
+        }
+    }
+
+    public dispose(): void {
+        if (this.panel) {
+            this.panel.dispose();
+            this.panel = undefined;
+        }
+    }
+} 

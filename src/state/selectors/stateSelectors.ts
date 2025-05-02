@@ -21,8 +21,8 @@ export const getSessions = (state: AppState): ChatSession[] => state.chat.sessio
 export const getActiveSessionId = (state: AppState): string | null => state.chat.activeSessionId;
 
 export const getActiveSession = (state: AppState): ChatSession | undefined => {
-  const activeId = state.chat.activeSessionId;
-  return activeId ? state.chat.sessions.find((session) => session.id === activeId) : undefined;
+    const activeId = state.chat.activeSessionId;
+    return activeId ? state.chat.sessions.find(session => session.id === activeId) : undefined;
 };
 
 export const getIsProcessing = (state: AppState): boolean => state.chat.isProcessing;
@@ -38,14 +38,13 @@ export const getMaxTokens = (state: AppState): number => state.settings.maxToken
 
 export const getIsTelemetryEnabled = (state: AppState): boolean => state.settings.telemetryEnabled;
 
-export const getIsConfirmationRequired = (state: AppState): boolean =>
-  state.settings.requireConfirmation;
+export const getIsConfirmationRequired = (state: AppState): boolean => state.settings.requireConfirmation;
 
 export const getAvailableModels = (state: AppState): AIModel[] => state.settings.availableModels;
 
 export const getSelectedModel = (state: AppState): AIModel | undefined => {
-  const modelId = state.settings.modelId;
-  return state.settings.availableModels.find((model) => model.id === modelId);
+    const modelId = state.settings.modelId;
+    return state.settings.availableModels.find(model => model.id === modelId);
 };
 
 // Terminal Selectors
@@ -58,8 +57,7 @@ export const getCommandHistory = (state: AppState): string[] => state.terminal.c
 // Editor Selectors
 export const getActiveFile = (state: AppState): string | null => state.editor.activeFile;
 
-export const getEditorSelection = (state: AppState): { start: number; end: number } | null =>
-  state.editor.selection;
+export const getEditorSelection = (state: AppState): { start: number; end: number } | null => state.editor.selection;
 
 export const getEditorContent = (state: AppState): string | null => state.editor.content;
 
@@ -75,4 +73,4 @@ export const getIsStreaming = (state: AppState): boolean => state.ai.isStreaming
 // Auth Selectors
 export const getApiKey = (state: AppState): string | null => state.auth.apiKey;
 
-export const getIsAuthenticated = (state: AppState): boolean => state.auth.isAuthenticated;
+export const getIsAuthenticated = (state: AppState): boolean => state.auth.isAuthenticated; 

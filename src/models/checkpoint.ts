@@ -1,124 +1,124 @@
 export interface FileChange {
-  path: string;
-  type: 'create' | 'modify' | 'delete';
-  oldContent?: string;
-  newContent?: string;
+    path: string;
+    type: 'create' | 'modify' | 'delete';
+    oldContent?: string;
+    newContent?: string;
 }
 
 export interface Checkpoint {
-  id: string;
-  name: string;
-  description: string;
-  timestamp: number;
-  changes: FileChange[];
-  taskState?: TaskState;
-  terminalState?: TerminalState;
-  editorState?: EditorState;
-  metrics?: CheckpointMetrics;
+    id: string;
+    name: string;
+    description: string;
+    timestamp: number;
+    changes: FileChange[];
+    taskState?: TaskState;
+    terminalState?: TerminalState;
+    editorState?: EditorState;
+    metrics?: CheckpointMetrics;
 }
 
 export interface TaskState {
-  id: string;
-  currentStep: number;
-  steps: TaskStep[];
-  startTime: number;
-  lastUpdateTime: number;
+    id: string;
+    currentStep: number;
+    steps: TaskStep[];
+    startTime: number;
+    lastUpdateTime: number;
 }
 
 export interface TaskStep {
-  id: string;
-  type: 'file' | 'terminal' | 'browser' | 'other';
-  action: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  startTime?: number;
-  endTime?: number;
-  details?: Record<string, unknown>;
+    id: string;
+    type: 'file' | 'terminal' | 'browser' | 'other';
+    action: string;
+    status: 'pending' | 'running' | 'completed' | 'failed';
+    startTime?: number;
+    endTime?: number;
+    details?: Record<string, unknown>;
 }
 
 export interface TerminalState {
-  sessions: TerminalSession[];
+    sessions: TerminalSession[];
 }
 
 export interface TerminalSession {
-  id: string;
-  name: string;
-  cwd: string;
-  commands: TerminalCommand[];
+    id: string;
+    name: string;
+    cwd: string;
+    commands: TerminalCommand[];
 }
 
 export interface TerminalCommand {
-  id: string;
-  command: string;
-  output: string;
-  exitCode?: number;
-  startTime: number;
-  endTime?: number;
+    id: string;
+    command: string;
+    output: string;
+    exitCode?: number;
+    startTime: number;
+    endTime?: number;
 }
 
 export interface EditorState {
-  openFiles: string[];
-  viewColumn: number;
-  selections: EditorSelection[];
+    openFiles: string[];
+    viewColumn: number;
+    selections: EditorSelection[];
 }
 
 export interface EditorSelection {
-  filePath: string;
-  selection: {
-    startLine: number;
-    startCharacter: number;
-    endLine: number;
-    endCharacter: number;
-  };
+    filePath: string;
+    selection: {
+        startLine: number;
+        startCharacter: number;
+        endLine: number;
+        endCharacter: number;
+    };
 }
 
 export interface CheckpointDiff {
-  id: string;
-  fromCheckpointId: string;
-  toCheckpointId: string;
-  timestamp: number;
-  fileChanges: FileChangeDiff[];
+    id: string;
+    fromCheckpointId: string;
+    toCheckpointId: string;
+    timestamp: number;
+    fileChanges: FileChangeDiff[];
 }
 
 export interface FileChangeDiff {
-  path: string;
-  type: 'added' | 'modified' | 'deleted';
-  diff?: string;
+    path: string;
+    type: 'added' | 'modified' | 'deleted';
+    diff?: string;
 }
 
 export interface CheckpointRestoreOptions {
-  restoreTaskState: boolean;
-  restoreTerminalState: boolean;
-  restoreEditorState: boolean;
+    restoreTaskState: boolean;
+    restoreTerminalState: boolean;
+    restoreEditorState: boolean;
 }
 
 export const defaultCheckpointRestoreOptions: CheckpointRestoreOptions = {
-  restoreTaskState: true,
-  restoreTerminalState: false,
-  restoreEditorState: true,
+    restoreTaskState: true,
+    restoreTerminalState: false,
+    restoreEditorState: true
 };
 
 export interface CheckpointMetrics {
-  totalFiles: number;
-  createdFiles: number;
-  modifiedFiles: number;
-  deletedFiles: number;
-  totalLines: number;
-  addedLines: number;
-  removedLines: number;
+    totalFiles: number;
+    createdFiles: number;
+    modifiedFiles: number;
+    deletedFiles: number;
+    totalLines: number;
+    addedLines: number;
+    removedLines: number;
 }
 
-export type CheckpointEventType =
-  | 'checkpointCreated'
-  | 'checkpointRestored'
-  | 'checkpointCompared'
-  | 'checkpointDeleted'
-  | 'error';
+export type CheckpointEventType = 
+    | 'checkpointCreated'
+    | 'checkpointRestored'
+    | 'checkpointCompared'
+    | 'checkpointDeleted'
+    | 'error';
 
 export interface CheckpointEvent {
-  type: CheckpointEventType;
-  checkpointId: string;
-  name?: string;
-  backupCheckpointId?: string;
-  error?: string;
-  timestamp: number;
-}
+    type: CheckpointEventType;
+    checkpointId: string;
+    name?: string;
+    backupCheckpointId?: string;
+    error?: string;
+    timestamp: number;
+} 

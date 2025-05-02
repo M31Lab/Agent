@@ -2,163 +2,151 @@ import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export class AnalyzeCodebaseCommand {
-  constructor(private context: ExtensionContext) {}
+    constructor(private context: ExtensionContext) {}
 
-  public register(): vscode.Disposable {
-    return vscode.commands.registerCommand('m31-agent.codeAnalysis.analyzeCodebase', async () => {
-      try {
-        const codebaseUnderstandingService = this.context.codebaseUnderstandingService;
-
-        if (!codebaseUnderstandingService) {
-          throw new Error('Codebase understanding service not initialized');
-        }
-
-        vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            title: 'Analyzing codebase...',
-            cancellable: false,
-          },
-          async (progress) => {
+    public register(): vscode.Disposable {
+        return vscode.commands.registerCommand('m31-agent.codeAnalysis.analyzeCodebase', async () => {
             try {
-              progress.report({ message: 'Starting analysis...' });
-
-              // Full codebase analysis
-              progress.report({ message: 'Analyzing codebase structure...' });
-              const analysisResult = await codebaseUnderstandingService.analyzeFullCodebase();
-
-              progress.report({ message: 'Generating overview...' });
-              const overview = await codebaseUnderstandingService.generateCodebaseOverview();
-
-              progress.report({ message: 'Extracting architecture...' });
-              const architecture =
-                await codebaseUnderstandingService.extractArchitecturalPatterns();
-
-              progress.report({ message: 'Building dependency graph...' });
-              const dependencyGraph = await codebaseUnderstandingService.getDependencyGraph();
-
-              // Display results in a webview
-              this.showAnalysisResults(overview, architecture, analysisResult, dependencyGraph);
-
-              return 'Codebase analysis complete';
+                const codebaseUnderstandingService = this.context.codebaseUnderstandingService;
+                
+                if (!codebaseUnderstandingService) {
+                    throw new Error('Codebase understanding service not initialized');
+                }
+                
+                vscode.window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: 'Analyzing codebase...',
+                        cancellable: false
+                    },
+                    async (progress) => {
+                        try {
+                            progress.report({ message: 'Starting analysis...' });
+                            
+                            // Full codebase analysis
+                            progress.report({ message: 'Analyzing codebase structure...' });
+                            const analysisResult = await codebaseUnderstandingService.analyzeFullCodebase();
+                            
+                            progress.report({ message: 'Generating overview...' });
+                            const overview = await codebaseUnderstandingService.generateCodebaseOverview();
+                            
+                            progress.report({ message: 'Extracting architecture...' });
+                            const architecture = await codebaseUnderstandingService.extractArchitecturalPatterns();
+                            
+                            progress.report({ message: 'Building dependency graph...' });
+                            const dependencyGraph = await codebaseUnderstandingService.getDependencyGraph();
+                            
+                            // Display results in a webview
+                            this.showAnalysisResults(overview, architecture, analysisResult, dependencyGraph);
+                            
+                            return 'Codebase analysis complete';
+                        } catch (error) {
+                            this.context.loggingService.error('Error analyzing codebase', error);
+                            throw error;
+                        }
+                    }
+                );
             } catch (error) {
-              this.context.loggingService.error('Error analyzing codebase', error);
-              throw error;
+                this.context.loggingService.error('Failed to run codebase analysis', error);
+                vscode.window.showErrorMessage(`Failed to analyze codebase: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
-          }
+        });
+    }
+
+    private showAnalysisResults(
+        overview: unknown,
+        architecture: unknown, 
+        analysisResult: unknown,
+        dependencyGraph: unknown
+    ): void {
+        // Create webview panel
+        const panel = vscode.window.createWebviewPanel(
+            'codebaseAnalysis',
+            'Codebase Analysis',
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true
+            }
         );
-      } catch (error) {
-        this.context.loggingService.error('Failed to run codebase analysis', error);
-        vscode.window.showErrorMessage(
-          `Failed to analyze codebase: ${error instanceof Error ? error.message : 'Unknown error'}`
+        
+        // Generate HTML content to display the analysis results
+        panel.webview.html = this.generateResultsHtml(overview, architecture, analysisResult, dependencyGraph);
+        
+        // Handle messages from the webview
+        panel.webview.onDidReceiveMessage(
+            message => {
+                switch (message.command) {
+                    case 'showFileDependencies':
+                        this.showFileDependencies(message.file);
+                        return;
+                    case 'showModuleInsights':
+                        this.showModuleInsights(message.module);
+                        return;
+                }
+            },
+            undefined,
+            this.context.subscriptions
         );
-      }
-    });
-  }
+    }
 
-  private showAnalysisResults(
-    overview: unknown,
-    architecture: unknown,
-    analysisResult: unknown,
-    dependencyGraph: unknown
-  ): void {
-    // Create webview panel
-    const panel = vscode.window.createWebviewPanel(
-      'codebaseAnalysis',
-      'Codebase Analysis',
-      vscode.ViewColumn.One,
-      {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-      }
-    );
-
-    // Generate HTML content to display the analysis results
-    panel.webview.html = this.generateResultsHtml(
-      overview,
-      architecture,
-      analysisResult,
-      dependencyGraph
-    );
-
-    // Handle messages from the webview
-    panel.webview.onDidReceiveMessage(
-      (message) => {
-        switch (message.command) {
-          case 'showFileDependencies':
-            this.showFileDependencies(message.file);
-            return;
-          case 'showModuleInsights':
-            this.showModuleInsights(message.module);
-            return;
+    private async showFileDependencies(filePath: string): Promise<void> {
+        try {
+            const codebaseUnderstandingService = this.context.codebaseUnderstandingService;
+            
+            if (!codebaseUnderstandingService) {
+                throw new Error('Codebase understanding service not initialized');
+            }
+            
+            const relationships = await codebaseUnderstandingService.findRelationships(filePath);
+            
+            // Create webview to show relationships
+            const panel = vscode.window.createWebviewPanel(
+                'fileDependencies',
+                `Dependencies: ${filePath}`,
+                vscode.ViewColumn.Two,
+                { enableScripts: true }
+            );
+            
+            panel.webview.html = this.generateFileDependenciesHtml(relationships);
+        } catch (error) {
+            this.context.loggingService.error(`Error showing file dependencies for ${filePath}`, error);
+            vscode.window.showErrorMessage(`Failed to analyze file dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-      },
-      undefined,
-      this.context.subscriptions
-    );
-  }
-
-  private async showFileDependencies(filePath: string): Promise<void> {
-    try {
-      const codebaseUnderstandingService = this.context.codebaseUnderstandingService;
-
-      if (!codebaseUnderstandingService) {
-        throw new Error('Codebase understanding service not initialized');
-      }
-
-      const relationships = await codebaseUnderstandingService.findRelationships(filePath);
-
-      // Create webview to show relationships
-      const panel = vscode.window.createWebviewPanel(
-        'fileDependencies',
-        `Dependencies: ${filePath}`,
-        vscode.ViewColumn.Two,
-        { enableScripts: true }
-      );
-
-      panel.webview.html = this.generateFileDependenciesHtml(relationships);
-    } catch (error) {
-      this.context.loggingService.error(`Error showing file dependencies for ${filePath}`, error);
-      vscode.window.showErrorMessage(
-        `Failed to analyze file dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
     }
-  }
 
-  private async showModuleInsights(modulePath: string): Promise<void> {
-    try {
-      const codebaseUnderstandingService = this.context.codebaseUnderstandingService;
-
-      if (!codebaseUnderstandingService) {
-        throw new Error('Codebase understanding service not initialized');
-      }
-
-      const insights = await codebaseUnderstandingService.getModuleInsights(modulePath);
-
-      // Create webview to show insights
-      const panel = vscode.window.createWebviewPanel(
-        'moduleInsights',
-        `Module Insights: ${modulePath}`,
-        vscode.ViewColumn.Two,
-        { enableScripts: true }
-      );
-
-      panel.webview.html = this.generateModuleInsightsHtml(insights);
-    } catch (error) {
-      this.context.loggingService.error(`Error showing module insights for ${modulePath}`, error);
-      vscode.window.showErrorMessage(
-        `Failed to analyze module insights: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+    private async showModuleInsights(modulePath: string): Promise<void> {
+        try {
+            const codebaseUnderstandingService = this.context.codebaseUnderstandingService;
+            
+            if (!codebaseUnderstandingService) {
+                throw new Error('Codebase understanding service not initialized');
+            }
+            
+            const insights = await codebaseUnderstandingService.getModuleInsights(modulePath);
+            
+            // Create webview to show insights
+            const panel = vscode.window.createWebviewPanel(
+                'moduleInsights',
+                `Module Insights: ${modulePath}`,
+                vscode.ViewColumn.Two,
+                { enableScripts: true }
+            );
+            
+            panel.webview.html = this.generateModuleInsightsHtml(insights);
+        } catch (error) {
+            this.context.loggingService.error(`Error showing module insights for ${modulePath}`, error);
+            vscode.window.showErrorMessage(`Failed to analyze module insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
-  }
 
-  private generateResultsHtml(
-    overview: unknown,
-    architecture: unknown,
-    analysisResult: unknown,
-    _dependencyGraph: unknown
-  ): string {
-    return `
+    private generateResultsHtml(
+        overview: unknown,
+        architecture: unknown,
+        analysisResult: unknown,
+        _dependencyGraph: unknown
+    ): string {
+        return `
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -254,18 +242,14 @@ export class AnalyzeCodebaseCommand {
                                 <th>Lines</th>
                                 <th>Percentage</th>
                             </tr>
-                            ${overview.languageSummary
-                              .map(
-                                (lang: Record<string, unknown>) => `
+                            ${overview.languageSummary.map((lang: Record<string, unknown>) => `
                                 <tr>
                                     <td>${lang.language}</td>
                                     <td>${lang.fileCount}</td>
                                     <td>${(lang.totalLines as number).toLocaleString()}</td>
                                     <td>${(lang.percentage as number).toFixed(1)}%</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                     </div>
                     
@@ -279,9 +263,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Files</th>
                                 <th>Actions</th>
                             </tr>
-                            ${overview.mainModules
-                              .map(
-                                (module: Record<string, unknown>) => `
+                            ${overview.mainModules.map((module: Record<string, unknown>) => `
                                 <tr>
                                     <td>${module.name}</td>
                                     <td>${module.path}</td>
@@ -293,9 +275,7 @@ export class AnalyzeCodebaseCommand {
                                         </span>
                                     </td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                     </div>
                     
@@ -308,10 +288,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Complexity</th>
                                 <th>Reason</th>
                             </tr>
-                            ${analysisResult.complexityHotspots
-                              .slice(0, 10)
-                              .map(
-                                (hotspot: Record<string, unknown>) => `
+                            ${analysisResult.complexityHotspots.slice(0, 10).map((hotspot: Record<string, unknown>) => `
                                 <tr class="hotspot">
                                     <td class="file-link" onclick="showFileDependencies('${hotspot.filePath}')">
                                         ${hotspot.filePath}
@@ -320,9 +297,7 @@ export class AnalyzeCodebaseCommand {
                                     <td>${hotspot.complexity}</td>
                                     <td>${hotspot.reason}</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                     </div>
                     
@@ -334,17 +309,13 @@ export class AnalyzeCodebaseCommand {
                                 <th>Confidence</th>
                                 <th>Locations</th>
                             </tr>
-                            ${architecture.patterns
-                              .map(
-                                (pattern: Record<string, unknown>) => `
+                            ${architecture.patterns.map((pattern: Record<string, unknown>) => `
                                 <tr>
                                     <td>${pattern.name}</td>
                                     <td>${((pattern.confidence as number) * 100).toFixed(0)}%</td>
                                     <td>${(pattern.locations as unknown[]).length} files</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                     </div>
                 </div>
@@ -369,10 +340,10 @@ export class AnalyzeCodebaseCommand {
             </body>
             </html>
         `;
-  }
+    }
 
-  private generateFileDependenciesHtml(relationships: unknown): string {
-    return `
+    private generateFileDependenciesHtml(relationships: unknown): string {
+        return `
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -424,15 +395,11 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Module/File</th>
                             </tr>
-                            ${relationships.imports
-                              .map(
-                                (imp: string) => `
+                            ${relationships.imports.map((imp: string) => `
                                 <tr>
                                     <td>${imp}</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                         
                         <h2>Imported By (${relationships.importedBy.length})</h2>
@@ -440,15 +407,11 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>File</th>
                             </tr>
-                            ${relationships.importedBy
-                              .map(
-                                (imp: string) => `
+                            ${relationships.importedBy.map((imp: string) => `
                                 <tr>
                                     <td>${imp}</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                         
                         <h2>Related Files</h2>
@@ -458,27 +421,23 @@ export class AnalyzeCodebaseCommand {
                                 <th>Relationship</th>
                                 <th>Strength</th>
                             </tr>
-                            ${relationships.relatedFiles
-                              .map(
-                                (related: Record<string, unknown>) => `
+                            ${relationships.relatedFiles.map((related: Record<string, unknown>) => `
                                 <tr>
                                     <td>${related.path}</td>
                                     <td>${related.relationReason}</td>
                                     <td>${related.relationStrength}</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                     </div>
                 </div>
             </body>
             </html>
         `;
-  }
+    }
 
-  private generateModuleInsightsHtml(insights: unknown): string {
-    return `
+    private generateModuleInsightsHtml(insights: unknown): string {
+        return `
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -564,15 +523,11 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Symbol</th>
                             </tr>
-                            ${insights.exportedSymbols
-                              .map(
-                                (symbol: string) => `
+                            ${insights.exportedSymbols.map((symbol: string) => `
                                 <tr>
                                     <td>${symbol}</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                         
                         <h2>Imported Modules</h2>
@@ -580,15 +535,11 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Module</th>
                             </tr>
-                            ${insights.importedModules
-                              .map(
-                                (module: string) => `
+                            ${insights.importedModules.map((module: string) => `
                                 <tr>
                                     <td>${module}</td>
                                 </tr>
-                            `
-                              )
-                              .join('')}
+                            `).join('')}
                         </table>
                         
                         <h2>Documentation</h2>
@@ -598,5 +549,5 @@ export class AnalyzeCodebaseCommand {
             </body>
             </html>
         `;
-  }
-}
+    }
+} 

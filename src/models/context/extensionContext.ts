@@ -19,69 +19,69 @@ import { CodeShareService } from '../../services/code/codeShareService';
 import { OptimizedCompletionService } from '../../services/codeCompletion/optimizedCompletionService';
 
 export class ExtensionContext {
-  private disposables: vscode.Disposable[] = [];
+    private disposables: vscode.Disposable[] = [];
+    
+    // Agent Services
+    public browserService?: BrowserService;
+    public terminalService?: TerminalService;
+    public checkpointService?: CheckpointService;
+    public contextToolsService?: ContextToolsService;
+    public customToolsService?: CustomToolsService;
+    public browserTestingService?: BrowserTestingService;
+    public checkpointComparisonService?: CheckpointComparisonService;
+    public webSearchService?: WebSearchService;
+    public mcpService?: McpService;
+    public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
+    public codebaseUnderstandingService?: CodebaseUnderstandingService;
+    public gitService?: GitService;
+    public codeShareService?: CodeShareService;
+    public optimizedCompletionService?: OptimizedCompletionService;
 
-  // Agent Services
-  public browserService?: BrowserService;
-  public terminalService?: TerminalService;
-  public checkpointService?: CheckpointService;
-  public contextToolsService?: ContextToolsService;
-  public customToolsService?: CustomToolsService;
-  public browserTestingService?: BrowserTestingService;
-  public checkpointComparisonService?: CheckpointComparisonService;
-  public webSearchService?: WebSearchService;
-  public mcpService?: McpService;
-  public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
-  public codebaseUnderstandingService?: CodebaseUnderstandingService;
-  public gitService?: GitService;
-  public codeShareService?: CodeShareService;
-  public optimizedCompletionService?: OptimizedCompletionService;
+    constructor(
+        public readonly vscodeContext: vscode.ExtensionContext,
+        public readonly configurationService: ConfigurationService,
+        public readonly loggingService: LoggingService,
+        public readonly telemetryService: TelemetryService,
+        public readonly authenticationService: AuthenticationService
+    ) {}
 
-  constructor(
-    public readonly vscodeContext: vscode.ExtensionContext,
-    public readonly configurationService: ConfigurationService,
-    public readonly loggingService: LoggingService,
-    public readonly telemetryService: TelemetryService,
-    public readonly authenticationService: AuthenticationService
-  ) {}
-
-  public registerDisposable(disposable: vscode.Disposable): void {
-    this.disposables.push(disposable);
-    this.vscodeContext.subscriptions.push(disposable);
-  }
-
-  public get extensionPath(): string {
-    return this.vscodeContext.extensionPath;
-  }
-
-  public get subscriptions(): vscode.Disposable[] {
-    return this.vscodeContext.subscriptions;
-  }
-
-  public get globalState(): vscode.Memento {
-    return this.vscodeContext.globalState;
-  }
-
-  public get workspaceState(): vscode.Memento {
-    return this.vscodeContext.workspaceState;
-  }
-
-  public get storagePath(): string | undefined {
-    return this.vscodeContext.storagePath;
-  }
-
-  public get logPath(): string {
-    return this.vscodeContext.logPath;
-  }
-
-  public get globalStoragePath(): string {
-    return this.vscodeContext.globalStoragePath;
-  }
-
-  public dispose(): void {
-    for (const disposable of this.disposables) {
-      disposable.dispose();
+    public registerDisposable(disposable: vscode.Disposable): void {
+        this.disposables.push(disposable);
+        this.vscodeContext.subscriptions.push(disposable);
     }
-    this.disposables = [];
-  }
-}
+
+    public get extensionPath(): string {
+        return this.vscodeContext.extensionPath;
+    }
+
+    public get subscriptions(): vscode.Disposable[] {
+        return this.vscodeContext.subscriptions;
+    }
+
+    public get globalState(): vscode.Memento {
+        return this.vscodeContext.globalState;
+    }
+
+    public get workspaceState(): vscode.Memento {
+        return this.vscodeContext.workspaceState;
+    }
+
+    public get storagePath(): string | undefined {
+        return this.vscodeContext.storagePath;
+    }
+
+    public get logPath(): string {
+        return this.vscodeContext.logPath;
+    }
+    
+    public get globalStoragePath(): string {
+        return this.vscodeContext.globalStoragePath;
+    }
+
+    public dispose(): void {
+        for (const disposable of this.disposables) {
+            disposable.dispose();
+        }
+        this.disposables = [];
+    }
+} 

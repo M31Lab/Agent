@@ -37,9 +37,13 @@ async function main() {
   log('Running postinstall script...');
 
   // Create necessary directories if they don't exist
-  const dirsToCreate = ['.benchmark-results', '.changes/unreleased', 'docs/api'];
+  const dirsToCreate = [
+    '.benchmark-results',
+    '.changes/unreleased',
+    'docs/api'
+  ];
 
-  dirsToCreate.forEach((dir) => {
+  dirsToCreate.forEach(dir => {
     const dirPath = path.join(rootDir, dir);
     if (!fs.existsSync(dirPath)) {
       log(`Creating directory: ${dir}`);
@@ -54,7 +58,7 @@ async function main() {
       if (fs.existsSync(path.join(rootDir, '.git'))) {
         log('Setting up git hooks with husky...');
         exec('npx husky install', true);
-
+        
         // Make sure the hook scripts are executable
         const huskyHooksDir = path.join(rootDir, '.husky');
         if (fs.existsSync(huskyHooksDir)) {
@@ -79,16 +83,16 @@ async function main() {
     'codespell',
     'husky',
     'semver',
-    'chalk',
+    'chalk'
   ];
 
   // Check if dependencies are already installed
   const packageJsonPath = path.join(rootDir, 'package.json');
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
   const devDeps = packageJson.devDependencies || {};
-
-  const missingDeps = additionalDevDeps.filter((dep) => !devDeps[dep]);
-
+  
+  const missingDeps = additionalDevDeps.filter(dep => !devDeps[dep]);
+  
   if (missingDeps.length > 0) {
     log(`Installing missing dev dependencies: ${missingDeps.join(', ')}`);
     exec(`npm install --save-dev ${missingDeps.join(' ')}`, true);
@@ -98,7 +102,7 @@ async function main() {
 }
 
 // Run the main function
-main().catch((error) => {
+main().catch(error => {
   log(`Postinstall failed: ${error.message}`);
   // Don't exit with error code, as we want npm install to succeed
-});
+}); 

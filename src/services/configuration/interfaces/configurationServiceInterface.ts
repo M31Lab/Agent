@@ -3,15 +3,15 @@ import { AIModelConfiguration } from '../../../models/settings/aiModelConfigurat
 import { LogLevel } from '../../../utils/logging/logLevel';
 
 export interface IConfigurationService {
-  initialize(): Promise<void>;
-  getConfiguration(): ExtensionConfiguration;
-  getApiKey(): string;
-  setApiKey(apiKey: string): Promise<void>;
-  getModelId(): string;
-  getLogLevel(): LogLevel;
-  isTelemetryEnabled(): boolean;
-  getMaxTokens(): number;
-  getTemperature(): number;
-  isConfirmationRequired(): boolean;
-  getAIModelConfiguration(): AIModelConfiguration;
-}
+    initialize(): Promise<void>;
+    getConfiguration(): ExtensionConfiguration;
+    getApiKey(): string;
+    setApiKey(apiKey: string): Promise<void>;
+    getModelId(): string;
+    getLogLevel(): LogLevel;
+    isTelemetryEnabled(): boolean;
+    getMaxTokens(): number;
+    getTemperature(): number;
+    isConfirmationRequired(): boolean;
+    getAIModelConfiguration(): AIModelConfiguration;
+} 

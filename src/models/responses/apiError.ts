@@ -1,73 +1,68 @@
 export class ApiError extends Error {
-  public readonly statusCode: number;
-  public readonly type: string;
-  public readonly rawError: unknown;
+    public readonly statusCode: number;
+    public readonly type: string;
+    public readonly rawError: unknown;
 
-  constructor(
-    statusCode: number,
-    message: string,
-    type: string = 'unknown',
-    rawError: unknown = null
-  ) {
-    super(message);
-    this.name = 'ApiError';
-    this.statusCode = statusCode;
-    this.type = type;
-    this.rawError = rawError;
-
-    Object.setPrototypeOf(this, ApiError.prototype);
-  }
-
-  public isAuthenticationError(): boolean {
-    return this.statusCode === 401 || this.statusCode === 403;
-  }
-
-  public isNetworkError(): boolean {
-    return this.statusCode === 0 || this.type === 'network_error';
-  }
-
-  public isRateLimitError(): boolean {
-    return this.statusCode === 429 || this.type === 'rate_limit_error';
-  }
-
-  public isTimeoutError(): boolean {
-    return this.type === 'timeout_error';
-  }
-
-  public isServerError(): boolean {
-    return this.statusCode >= 500 && this.statusCode < 600;
-  }
-
-  public getUserFriendlyMessage(): string {
-    if (this.isAuthenticationError()) {
-      return 'Authentication failed. Please check your API key in the settings.';
+    constructor(statusCode: number, message: string, type: string = 'unknown', rawError: unknown = null) {
+        super(message);
+        this.name = 'ApiError';
+        this.statusCode = statusCode;
+        this.type = type;
+        this.rawError = rawError;
+        
+        Object.setPrototypeOf(this, ApiError.prototype);
     }
 
-    if (this.isNetworkError()) {
-      return 'Network error. Please check your internet connection.';
+    public isAuthenticationError(): boolean {
+        return this.statusCode === 401 || this.statusCode === 403;
     }
 
-    if (this.isRateLimitError()) {
-      return 'Rate limit exceeded. Please try again later.';
+    public isNetworkError(): boolean {
+        return this.statusCode === 0 || this.type === 'network_error';
     }
 
-    if (this.isTimeoutError()) {
-      return 'Request timed out. Please try again later.';
+    public isRateLimitError(): boolean {
+        return this.statusCode === 429 || this.type === 'rate_limit_error';
     }
 
-    if (this.isServerError()) {
-      return 'Server error. Please try again later.';
+    public isTimeoutError(): boolean {
+        return this.type === 'timeout_error';
     }
 
-    return this.message || 'An unknown error occurred';
-  }
+    public isServerError(): boolean {
+        return this.statusCode >= 500 && this.statusCode < 600;
+    }
 
-  public toJSON(): object {
-    return {
-      name: this.name,
-      message: this.message,
-      statusCode: this.statusCode,
-      type: this.type,
-    };
-  }
-}
+    public getUserFriendlyMessage(): string {
+        if (this.isAuthenticationError()) {
+            return 'Authentication failed. Please check your API key in the settings.';
+        }
+
+        if (this.isNetworkError()) {
+            return 'Network error. Please check your internet connection.';
+        }
+
+        if (this.isRateLimitError()) {
+            return 'Rate limit exceeded. Please try again later.';
+        }
+
+        if (this.isTimeoutError()) {
+            return 'Request timed out. Please try again later.';
+        }
+
+        if (this.isServerError()) {
+            return 'Server error. Please try again later.';
+        }
+
+        return this.message || 'An unknown error occurred';
+    }
+
+    public toJSON(): object {
+        return {
+            name: this.name,
+            message: this.message,
+            statusCode: this.statusCode,
+            type: this.type
+        };
+    }
+} 

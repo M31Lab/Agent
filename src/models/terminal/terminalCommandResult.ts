@@ -1,6 +1,6 @@
 export interface TerminalCommandResult {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-  canceled: boolean;
-}
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    canceled: boolean;
+} 
