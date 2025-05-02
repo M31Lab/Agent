@@ -157,8 +157,8 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             const document = await vscode.workspace.openTextDocument(definition.uri);
             const functionRange = definition.range;
             
-            const functionText = document.getText(functionRange);
-            const _calls = await this.extractFunctionCalls(functionText, document, functionRange);
+            // Extract function calls first
+            await this.extractFunctionCalls(document.getText(), document);
             
             const callGraph = await this.buildCallGraph(functionName, definition);
             const dataFlow = await this.analyzeDataFlow(document, functionRange);
@@ -204,7 +204,6 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         position: vscode.Position
     ): Promise<vscode.CompletionItem[]> {
         try {
-            const linePrefix = document.lineAt(position.line).text.substring(0, position.character);
             const wordRange = document.getWordRangeAtPosition(position);
             const word = wordRange ? document.getText(wordRange) : '';
             
@@ -224,7 +223,6 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
                 try {
                     const importUri = await this.resolveImportPath(document.uri, importPath);
                     if (importUri) {
-                        const importDoc = await vscode.workspace.openTextDocument(importUri);
                         const importSymbols = await vscode.commands.executeCommand<vscode.SymbolInformation[]>(
                             'vscode.executeDocumentSymbolProvider', 
                             importUri
@@ -495,7 +493,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
                     importedModules.push(...fileImports);
                     
                     // Calculate complexity
-                    complexity += this.calculateFileComplexity(document);
+                    complexity += await this.calculateFileComplexity(document);
                     
                     // Find usage count
                     usageCount += await this.getFileUsageCount(file);
@@ -558,7 +556,11 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
 
     private isSymbolModified(lineText: string, symbolName: string, position: number): boolean {
         const beforeSymbol = lineText.substring(0, position);
-        return /=|\+=|-=|\*=|\/=|%=|\+\+|--/.test(beforeSymbol);
+        // Check if there's an assignment operator or increment/decrement before or after the symbol
+        const hasModifierBefore = /=|\+=|-=|\*=|\/=|%=|\+\+|--/.test(beforeSymbol);
+        const hasModifierAfter = lineText.substring(position).match(new RegExp(`${symbolName}\\s*(\\+\\+|--)`));
+        
+        return hasModifierBefore || !!hasModifierAfter;
     }
 
     private analyzeUsagePatterns(
@@ -569,15 +571,15 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         const patterns: string[] = [];
         
         if (modificationLocations.length === 0 && usageLocations.length > 0) {
-            patterns.push('Read-only usage');
+            patterns.push(`Read-only usage of "${symbolName}"`);
         }
         
         if (modificationLocations.length > 0 && usageLocations.length === 0) {
-            patterns.push('Write-only usage');
+            patterns.push(`Write-only usage of "${symbolName}"`);
         }
         
         if (modificationLocations.length > 0 && usageLocations.length > 0) {
-            patterns.push('Read-write usage');
+            patterns.push(`Read-write usage of "${symbolName}"`);
         }
         
         return patterns;
@@ -680,7 +682,6 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
                 return changes;
             }
             
-            const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
             const analysis = await this.codebaseAnalysis.analyzeWorkspace();
             
             for (const file of analysis.files) {
@@ -827,7 +828,14 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return hotspots.sort((a, b) => b.complexity - a.complexity);
     }
 
-    private calculateLanguageDistribution(analysis: CodeAnalysisResult): LanguageDistribution[] {
+    private calculateLanguageDistribution(analysis: {
+        files: { 
+            path: string;
+            language: string;
+            size: number;
+            lineCount: number;
+        }[];
+    }): LanguageDistribution[] {
         const languageDistribution: LanguageDistribution[] = [];
         const languageCounts = new Map<string, { files: number, lines: number }>();
         
@@ -1056,45 +1064,50 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
     private findEntryPoints(filePaths: string[], projectType: string): string[] {
         const entryPoints: string[] = [];
         
-        // Check for typical entry points based on project type
-        for (const filePath of filePaths) {
-            const fileName = path.basename(filePath).toLowerCase();
-            
-            if (fileName === 'index.js' || fileName === 'index.ts' || fileName === 'main.js' || fileName === 'main.ts') {
-                entryPoints.push(filePath);
-            }
-            
-            if (fileName === 'app.js' || fileName === 'app.ts' || fileName === 'server.js' || fileName === 'server.ts') {
-                entryPoints.push(filePath);
-            }
-            
-            if (fileName === 'program.cs' || fileName === 'app.py' || fileName === 'main.py') {
-                entryPoints.push(filePath);
-            }
-            
-            if (fileName === 'main.go' || fileName === 'main.rs' || fileName === 'main.java') {
-                entryPoints.push(filePath);
-            }
+        // Find common entry points based on project type
+        switch (projectType) {
+            case 'React':
+                entryPoints.push(...filePaths.filter(f => 
+                    f.endsWith('index.js') || f.endsWith('index.tsx') || f.endsWith('App.tsx') || f.endsWith('App.jsx')
+                ));
+                break;
+                
+            case 'Node.js':
+                entryPoints.push(...filePaths.filter(f => 
+                    f.endsWith('index.js') || f.endsWith('server.js') || f.endsWith('app.js')
+                ));
+                break;
+                
+            case 'Angular':
+                entryPoints.push(...filePaths.filter(f => 
+                    f.endsWith('main.ts') || f.endsWith('app.module.ts')
+                ));
+                break;
+                
+            case 'Vue.js':
+                entryPoints.push(...filePaths.filter(f => 
+                    f.endsWith('main.js') || f.endsWith('main.ts') || f.endsWith('App.vue')
+                ));
+                break;
+                
+            case 'VS Code Extension':
+                entryPoints.push(...filePaths.filter(f => 
+                    f.endsWith('extension.ts') || f.endsWith('extension.js') || f.endsWith('activationEvents.json')
+                ));
+                break;
+                
+            default:
+                // Generic entry point detection
+                entryPoints.push(...filePaths.filter(f => 
+                    f.endsWith('index.js') || f.endsWith('index.ts') || f.endsWith('main.js') || 
+                    f.endsWith('main.ts') || f.endsWith('app.js') || f.endsWith('app.ts') ||
+                    f.endsWith('program.cs') || f.endsWith('Main.java') || f.endsWith('main.py') ||
+                    f.endsWith('main.go') || f.endsWith('main.rs')
+                ));
+                break;
         }
         
-        // Look for package.json "main" field
-        for (const filePath of filePaths) {
-            if (path.basename(filePath) === 'package.json') {
-                try {
-                    const content = fs.readFileSync(filePath, 'utf-8');
-                    const packageData = JSON.parse(content);
-                    
-                    if (packageData.main) {
-                        const mainPath = path.resolve(path.dirname(filePath), packageData.main);
-                        entryPoints.push(mainPath);
-                    }
-                } catch (error) {
-                    this.context.loggingService.error(`Error parsing package.json: ${filePath}`, error);
-                }
-            }
-        }
-        
-        return [...new Set(entryPoints)]; // Remove duplicates
+        return entryPoints;
     }
 
     private async analyzeMainModules(entryPoints: string[]): Promise<ModuleSummary[]> {
@@ -1319,7 +1332,6 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             const files = await vscode.workspace.findFiles(importingFilesPattern, '**/node_modules/**');
             
             const fileName = path.basename(filePath, path.extname(filePath));
-            const fileDir = path.dirname(filePath);
             
             for (const file of files) {
                 // Skip the file itself
@@ -1463,8 +1475,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
 
     private async extractFunctionCalls(
         functionText: string,
-        document: vscode.TextDocument,
-        functionRange: vscode.Range
+        document: vscode.TextDocument
     ): Promise<string[]> {
         const calls: string[] = [];
         const languageId = document.languageId;
@@ -1564,7 +1575,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             const functionText = document.getText(location.range);
             
             // Extract function calls
-            const calls = await this.extractFunctionCalls(functionText, document, location.range);
+            const calls = await this.extractFunctionCalls(functionText, document);
             
             // Create node for this function
             const node: CallNode = {
@@ -2098,46 +2109,43 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
     }
 
     private determineArchitectureType(filePaths: string[]): string {
-        const fileNames = filePaths.map(f => path.basename(f).toLowerCase());
-        const folderNames = new Set(filePaths.map(f => {
-            const parts = f.split(path.sep);
-            return parts.length > 1 ? parts[parts.length - 2].toLowerCase() : '';
-        }));
+        const folderNames = filePaths.map(f => path.dirname(f).toLowerCase())
+            .filter(f => f !== '.' && f !== './');
         
         // Check for specific architecture patterns
-        if (folderNames.has('controllers') && folderNames.has('models') && folderNames.has('views')) {
+        if (folderNames.includes('controllers') && folderNames.includes('models') && folderNames.includes('views')) {
             return 'MVC';
         }
         
-        if (folderNames.has('components') && folderNames.has('containers')) {
+        if (folderNames.includes('components') && folderNames.includes('containers')) {
             return 'React Container/Component';
         }
         
-        if (folderNames.has('components') && folderNames.has('pages') && folderNames.has('stores')) {
+        if (folderNames.includes('components') && folderNames.includes('pages') && folderNames.includes('stores')) {
             return 'Flux/Redux';
         }
         
-        if (folderNames.has('services') && folderNames.has('components')) {
+        if (folderNames.includes('services') && folderNames.includes('components')) {
             return 'Service-Oriented';
         }
         
-        if (folderNames.has('api') && folderNames.has('components') && folderNames.has('hooks')) {
+        if (folderNames.includes('api') && folderNames.includes('components') && folderNames.includes('hooks')) {
             return 'Modern React w/ Hooks';
         }
         
-        if (folderNames.has('modules') && folderNames.has('services')) {
+        if (folderNames.includes('modules') && folderNames.includes('services')) {
             return 'Modular Architecture';
         }
         
-        if (folderNames.has('entities') && folderNames.has('repositories') && folderNames.has('services')) {
+        if (folderNames.includes('entities') && folderNames.includes('repositories') && folderNames.includes('services')) {
             return 'Domain-Driven Design';
         }
         
-        if (folderNames.has('handlers') && folderNames.has('models')) {
+        if (folderNames.includes('handlers') && folderNames.includes('models')) {
             return 'Event-Driven';
         }
         
-        if (folderNames.has('plugins') || folderNames.has('extensions')) {
+        if (folderNames.includes('plugins') || folderNames.includes('extensions')) {
             return 'Plugin-Based';
         }
         
@@ -2471,18 +2479,34 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
     private async getFileUsageCount(filePath: string): Promise<number> {
         try {
             const fileName = path.basename(filePath, path.extname(filePath));
-            const results = await vscode.workspace.findTextInFiles({
-                pattern: fileName,
-                excludes: '**/node_modules/**'
-            });
+            
+            // Use workspace.findFiles to find files that might contain references
+            const files = await vscode.workspace.findFiles('**/*.{js,jsx,ts,tsx,py,java,cs,go,rs,c,cpp,h,hpp}', '**/node_modules/**');
             
             let count = 0;
-            results.forEach(result => {
-                // Don't count the file itself
-                if (result.uri.fsPath !== filePath) {
-                    count += result.matches.length;
+            
+            // Check each file for references to the target file
+            for (const fileUri of files) {
+                // Skip the file itself
+                if (fileUri.fsPath === filePath) {
+                    continue;
                 }
-            });
+                
+                try {
+                    const document = await vscode.workspace.openTextDocument(fileUri);
+                    const content = document.getText();
+                    
+                    // Count occurrences in the file (rough estimate)
+                    const regex = new RegExp(fileName, 'g');
+                    const matches = content.match(regex);
+                    
+                    if (matches) {
+                        count += matches.length;
+                    }
+                } catch (error) {
+                    this.context.loggingService.error(`Error checking references in ${fileUri.fsPath}`, error);
+                }
+            }
             
             return count;
         } catch (error) {
