@@ -2,9 +2,25 @@ import { AIRequestOptions, AIResponse, OpenRouterApiClient } from '../api/client
 import { IOpenRouterCompletionRequest } from '../api/interfaces/requests/completionRequest';
 import { AuthenticationService } from '../services/authentication/authenticationService';
 import { ConfigurationService } from '../services/configuration/configurationService';
-import { _ExtensionContext } from '../models/context/extensionContext';
+// { _ExtensionContext } from '../models/context/extensionContext';
 
-export function useApiClient(): Promise<void> {
+export interface ApiClientHook {
+    getApiClient: () => OpenRouterApiClient | undefined;
+    sendRequest: (options: AIRequestOptions) => Promise<AIResponse>;
+    sendStreamingRequest: (
+        options: AIRequestOptions,
+        onChunk: (chunk: string) => void,
+        onComplete: (response: AIResponse) => void,
+        onError: (error: Error) => void
+    ) => Promise<void>;
+    sendCompletionRequest: (request: IOpenRouterCompletionRequest) => Promise<unknown>;
+    getModels: () => Promise<unknown>;
+    checkApiKey: () => Promise<boolean>;
+    setApiKey: (apiKey: string) => Promise<void>;
+    getModelId: () => string;
+}
+
+export function useApiClient(): ApiClientHook {
     const getApiClient = (): OpenRouterApiClient | undefined => {
         return OpenRouterApiClient.getInstance();
     };
@@ -32,7 +48,7 @@ export function useApiClient(): Promise<void> {
         await apiClient.streamRequest(options, onChunk, onComplete, onError);
     };
 
-    const sendCompletionRequest = async (request: IOpenRouterCompletionRequest): Promise<Promise<unknown>> => {
+    const sendCompletionRequest = async (request: IOpenRouterCompletionRequest): Promise<unknown> => {
         const apiClient = getApiClient();
         if (!apiClient) {
             throw new Error('API client not initialized');
@@ -41,7 +57,7 @@ export function useApiClient(): Promise<void> {
         return apiClient.createCompletion(request);
     };
 
-    const getModels = async (): Promise<Promise<unknown>> => {
+    const getModels = async (): Promise<unknown> => {
         const apiClient = getApiClient();
         if (!apiClient) {
             throw new Error('API client not initialized');
@@ -56,7 +72,7 @@ export function useApiClient(): Promise<void> {
             return false;
         }
 
-        return authService.hasApiKey();
+        return authService.isAuthenticated();
     };
 
     const setApiKey = async (apiKey: string): Promise<void> => {

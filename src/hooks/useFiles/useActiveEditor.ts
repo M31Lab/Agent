@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { _useLogging } from '../useLogging';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export interface FileInfo {
@@ -246,15 +245,23 @@ export function useActiveEditor(
         return editor.document.getText();
     }
 
-    const editorInfo = getCurrentEditorInfo();
-    const isActive = !!getActiveEditor();
+    const _editorInfo = getCurrentEditorInfo();
+    const _isActive = !!getActiveEditor();
 
     return {
         getActiveEditorInfo,
         getSelectedText,
         insertText,
-        replaceSelection,
-        getWordAtPosition,
+        replaceSelection: async (text: string): Promise<boolean> => {
+            const editor = getActiveEditor();
+            if (!editor) {
+                return false;
+            }
+            return _replaceText(text, editor.selection);
+        },
+        getWordAtPosition: (position?: vscode.Position): string => {
+            return getWordAtPosition(position) || '';
+        },
         getTextAroundPosition,
         getDocumentText
     };

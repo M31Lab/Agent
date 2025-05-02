@@ -108,7 +108,7 @@ export function useAiCompletion(
             logging.info('Starting streaming AI completion', { messageCount: messages.length });
             const mergedOptions = { ...defaultOptions, ...options };
 
-            const response = await apiClient.generateChatCompletion(messages, {
+            const _response = await apiClient.generateChatCompletion(messages, {
                 modelId: mergedOptions.modelId,
                 temperature: mergedOptions.temperature,
                 maxTokens: mergedOptions.maxTokens,

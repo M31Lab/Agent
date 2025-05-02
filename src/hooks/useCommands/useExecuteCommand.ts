@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
-import { _LoggingService } from '../../utils/logging/loggingService';
-import { _TelemetryService } from '../../services/telemetry/telemetryService';
+// { _LoggingService } from '../../utils/logging/loggingService';
+// { _TelemetryService } from '../../services/telemetry/telemetryService';
 
 export interface CommandExecutionOptions {
     args?: unknown[][];

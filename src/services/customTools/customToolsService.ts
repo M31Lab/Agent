@@ -189,7 +189,7 @@ export class CustomToolsService {
             throw new Error(`Endpoint ${endpointId} not found for tool ${tool.name}`);
         }
         
-        const invocation: CustomToolInvocation = {
+        const _invocation: CustomToolInvocation = {
             toolId,
             endpointId,
             parameters,

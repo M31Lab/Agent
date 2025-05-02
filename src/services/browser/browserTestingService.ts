@@ -482,7 +482,7 @@ export class BrowserTestingService implements vscode.Disposable {
     private async executeTestStep(
         browserId: string,
         step: BrowserTestStep,
-        options: BrowserTestingOptions
+        _options: BrowserTestingOptions
     ): Promise<BrowserTestResult> {
         const result = await this.browserService.executeAction(browserId, {
             type: step.action,

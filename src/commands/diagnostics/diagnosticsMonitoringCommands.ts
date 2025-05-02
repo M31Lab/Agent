@@ -22,7 +22,7 @@ export function registerDiagnosticsMonitoringCommands(
                 }
                 
                 const errorCount = diagnosticsService.getErrorCount();
-                const _totalIssues = errorCount.errors + errorCount.warnings + 
+                const __totalIssues = errorCount.errors + errorCount.warnings + 
                     errorCount.information + errorCount.hints;
                 
                 // Display diagnostics in a WebView

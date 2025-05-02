@@ -86,7 +86,7 @@ export function registerSettingsCommands(
                 { label: 'Google Gemini Pro', value: 'google/gemini-pro', description: 'Google\'s advanced large language model' }
             ];
             
-            const currentModel = context.configurationService.getModelId();
+            const _currentModel = context.configurationService.getModelId();
             
             const selectedModel = await vscode.window.showQuickPick(models, {
                 placeHolder: 'Select AI model',

@@ -2,87 +2,73 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const glob = require('glob');
 
-const fixAnyTypes = () => {
-    try {
-        console.log('Running ESLint to find explicit any types...');
-        const lintResult = execSync('npx eslint . --ext .ts,.tsx --format json', { encoding: 'utf8' });
-        const issues = JSON.parse(lintResult);
+// Get all TypeScript files in src directory
+const files = glob.sync(path.join('src', '**', '*.ts'));
 
-        const fileChanges = {};
+// Regex to match the ESLint explicit any type warnings
+const anyTypeRegex = /Unexpected any. Specify a different type/;
 
-        issues.forEach(file => {
-            const filePath = file.filePath;
-            const anyTypeMessages = file.messages.filter(
-                msg => msg.ruleId === '@typescript-eslint/no-explicit-any' && 
-                      msg.message.includes('Unexpected any. Specify a different type')
-            );
-
-            if (anyTypeMessages.length > 0) {
-                if (!fileChanges[filePath]) {
-                    fileChanges[filePath] = {
-                        content: fs.readFileSync(filePath, 'utf8'),
-                        changes: []
-                    };
-                }
-
-                anyTypeMessages.forEach(msg => {
-                    fileChanges[filePath].changes.push({
-                        line: msg.line,
-                        column: msg.column,
-                        endLine: msg.endLine,
-                        endColumn: msg.endColumn
-                    });
-                });
-            }
-        });
-
-        Object.keys(fileChanges).forEach(filePath => {
-            let content = fileChanges[filePath].content;
-            const changes = fileChanges[filePath].changes;
-
-            changes.sort((a, b) => {
-                if (a.line !== b.line) return b.line - a.line;
-                return b.column - a.column;
-            });
-
-            const lines = content.split('\n');
-            changes.forEach(change => {
-                const line = lines[change.line - 1];
-                
-                // Determine the appropriate replacement based on context
-                let replacementType = 'unknown';
-                
-                // Check for specific contexts to assign better types
-                if (line.includes('Record<string, any>')) {
-                    replacementType = 'unknown';
-                } else if (line.includes('[]') || line.includes('Array')) {
-                    replacementType = 'unknown[]';
-                } else if (line.includes('Promise<any>')) {
-                    replacementType = 'Promise<unknown>';
-                } else if (line.includes('Map<') || line.includes('Set<')) {
-                    replacementType = 'unknown';
-                } else if (line.includes('(') && line.includes(')')) {
-                    // Function parameters or return types
-                    if (line.includes('=>')) {
-                        replacementType = 'unknown';
-                    }
-                }
-                
-                // Replace 'any' with the determined type
-                const newLine = line.replace(/\bany\b/, replacementType);
-                lines[change.line - 1] = newLine;
-            });
-
-            fs.writeFileSync(filePath, lines.join('\n'));
-            console.log(`Fixed any types in: ${filePath}`);
-        });
-
-        console.log('Any types fixed successfully!');
-    } catch (error) {
-        console.error('Error:', error.message);
+// Run ESLint on each file and process the output
+files.forEach(file => {
+  const { execSync } = require('child_process');
+  
+  try {
+    // Run ESLint on the file
+    execSync(`npx eslint --no-eslintrc --config .eslintrc.js --rule '@typescript-eslint/no-explicit-any:["warn"]' ${file}`, { stdio: 'pipe' });
+  } catch (error) {
+    // ESLint will exit with code 1 if there are warnings
+    const output = error.stdout.toString();
+    
+    // Extract line numbers from the warnings
+    const lines = output.split('\n');
+    const anyTypeLines = [];
+    
+    lines.forEach(line => {
+      const match = line.match(/(\d+):\d+\s+warning\s+Unexpected any/);
+      if (match && match[1]) {
+        anyTypeLines.push(parseInt(match[1], 10));
+      }
+    });
+    
+    if (anyTypeLines.length > 0) {
+      // Read the file content
+      const content = fs.readFileSync(file, 'utf8');
+      const fileLines = content.split('\n');
+      
+      // Process each line with explicit any type
+      anyTypeLines.forEach(lineNum => {
+        const line = fileLines[lineNum - 1];
+        
+        // Replace explicit 'any' types with more specific types based on context
+        if (line.includes('any[]')) {
+          // Array of any - replace with unknown[]
+          fileLines[lineNum - 1] = line.replace(/any\[\]/g, 'unknown[]');
+        } else if (line.includes(': any')) {
+          // Simple any type - replace with unknown
+          fileLines[lineNum - 1] = line.replace(/: any\b/g, ': unknown');
+        } else if (line.includes('<any>') || line.includes('<any,')) {
+          // Generic parameter - replace with unknown
+          fileLines[lineNum - 1] = line.replace(/<any>/g, '<unknown>').replace(/<any,/g, '<unknown,');
+        } else if (line.includes('Record<string, any>')) {
+          // Record with any values - replace with Record<string, unknown>
+          fileLines[lineNum - 1] = line.replace(/Record<string, any>/g, 'Record<string, unknown>');
+        } else if (line.includes('Promise<any>')) {
+          // Promise of any - replace with Promise<unknown>
+          fileLines[lineNum - 1] = line.replace(/Promise<any>/g, 'Promise<unknown>');
+        } else if (line.includes('as any')) {
+          // Type assertion - replace with as unknown
+          fileLines[lineNum - 1] = line.replace(/as any\b/g, 'as unknown');
+        }
+      });
+      
+      // Write the modified content back to the file
+      fs.writeFileSync(file, fileLines.join('\n'), 'utf8');
+      
+      console.log(`Fixed ${anyTypeLines.length} explicit any types in ${file}`);
     }
-};
+  }
+});
 
-fixAnyTypes(); 
+console.log('Finished fixing explicit any types.'); 

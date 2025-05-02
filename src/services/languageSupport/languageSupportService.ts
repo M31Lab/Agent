@@ -95,7 +95,7 @@ export class LanguageSupportService implements vscode.Disposable {
         // Additional language-specific setup could be done here
     }
 
-    private async formatDocument(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
+    private async formatDocument(_document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
         // This would use specific formatting logic based on language
         // For now, it's just a stub that doesn't change the document
         return [];

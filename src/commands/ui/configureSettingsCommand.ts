@@ -101,7 +101,7 @@ async function selectAiModel(context: ExtensionContext): Promise<void> {
     ];
     
     // We're leaving this here for future reference but prefixing with underscore to indicate it's unused
-    const _currentModel = configService.getModelId();
+    const __currentModel = configService.getModelId();
     
     const selection = await vscode.window.showQuickPick(models, {
         placeHolder: 'Select an AI model',

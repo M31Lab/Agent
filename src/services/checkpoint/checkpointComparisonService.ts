@@ -400,8 +400,8 @@ export class CheckpointComparisonService implements vscode.Disposable {
             }
             
             // Create temporary URIs for diff editor
-            const fromUri = vscode.Uri.parse(`untitled:${filePath}.from-checkpoint`);
-            const toUri = vscode.Uri.parse(`untitled:${filePath}.to-checkpoint`);
+            const _fromUri = vscode.Uri.parse(`untitled:${filePath}.from-checkpoint`);
+            const _toUri = vscode.Uri.parse(`untitled:${filePath}.to-checkpoint`);
             
             // Create document contents
             const fromDoc = await vscode.workspace.openTextDocument({

@@ -1,4 +1,4 @@
-import { _useEffect, useRef } from 'react';
+import {  useRef } from 'react';
 
 interface VSCodeApi {
     postMessage: (message: unknown) => void;

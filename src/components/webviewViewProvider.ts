@@ -33,8 +33,8 @@ export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvi
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
-        token: vscode.CancellationToken
+        _context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken
     ): void | Thenable<void> {
         this.view = webviewView;
         
@@ -92,6 +92,10 @@ export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvi
 
     protected onViewHidden(): void {
         this.logging.debug(`WebView ${this.viewId} was hidden`);
+    }
+
+    protected onViewReady(_webviewView: vscode.WebviewView): void {
+        // Override in subclasses if needed
     }
 
     protected abstract getHtmlForWebview(webview: vscode.Webview): string;

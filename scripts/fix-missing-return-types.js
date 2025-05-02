@@ -2,125 +2,71 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
-const ts = require('typescript');
+const glob = require('glob');
 
-const fixReturnTypes = () => {
-    try {
-        console.log('Running ESLint to find missing return types...');
-        const lintResult = execSync('npx eslint . --ext .ts,.tsx --format json', { encoding: 'utf8' });
-        const issues = JSON.parse(lintResult);
+// Get all TypeScript files in src directory
+const files = glob.sync(path.join('src', '**', '*.ts'));
 
-        const fileChanges = {};
+// Regex to match the ESLint missing return type warnings
+const missingReturnTypeRegex = /Missing return type on function/;
+const functionLineRegex = /^\s*(public|private|protected)?\s*(async)?\s*(\w+)\s*\([^)]*\)(:.*)?(\s*{|\s*=>)/;
 
-        issues.forEach(file => {
-            const filePath = file.filePath;
-            const missingReturnTypeMessages = file.messages.filter(
-                msg => msg.ruleId === '@typescript-eslint/explicit-function-return-type' && 
-                      msg.message.includes('Missing return type on function')
-            );
-
-            if (missingReturnTypeMessages.length > 0) {
-                if (!fileChanges[filePath]) {
-                    fileChanges[filePath] = {
-                        content: fs.readFileSync(filePath, 'utf8'),
-                        changes: []
-                    };
-                }
-
-                missingReturnTypeMessages.forEach(msg => {
-                    fileChanges[filePath].changes.push({
-                        line: msg.line,
-                        column: msg.column,
-                        endLine: msg.endLine,
-                        endColumn: msg.endColumn
-                    });
-                });
+// Run ESLint on each file and process the output
+files.forEach(file => {
+  const { execSync } = require('child_process');
+  
+  try {
+    // Run ESLint on the file
+    execSync(`npx eslint --no-eslintrc --config .eslintrc.js --rule '@typescript-eslint/explicit-function-return-type:["warn"]' ${file}`, { stdio: 'pipe' });
+  } catch (error) {
+    // ESLint will exit with code 1 if there are warnings
+    const output = error.stdout.toString();
+    
+    // Extract line numbers from the warnings
+    const lines = output.split('\n');
+    const missingReturnLines = [];
+    
+    lines.forEach(line => {
+      const match = line.match(/(\d+):\d+\s+warning\s+Missing return type on function/);
+      if (match && match[1]) {
+        missingReturnLines.push(parseInt(match[1], 10));
+      }
+    });
+    
+    if (missingReturnLines.length > 0) {
+      // Read the file content
+      const content = fs.readFileSync(file, 'utf8');
+      const fileLines = content.split('\n');
+      
+      // Process each line with missing return type
+      missingReturnLines.forEach(lineNum => {
+        const line = fileLines[lineNum - 1];
+        const functionMatch = line.match(functionLineRegex);
+        
+        if (functionMatch) {
+          // Simple approach - add ': void' before the opening brace or arrow
+          const hasReturnType = line.includes('): ') || line.includes(') : ');
+          
+          if (!hasReturnType) {
+            // Find the position where to insert the return type
+            const closingParenPos = line.lastIndexOf(')');
+            if (closingParenPos !== -1) {
+              // Insert ': void' after the closing parenthesis
+              fileLines[lineNum - 1] = 
+                line.substring(0, closingParenPos + 1) + 
+                ': void' + 
+                line.substring(closingParenPos + 1);
             }
-        });
-
-        Object.keys(fileChanges).forEach(filePath => {
-            const sourceFile = ts.createSourceFile(
-                filePath,
-                fileChanges[filePath].content,
-                ts.ScriptTarget.Latest,
-                true
-            );
-
-            let content = fileChanges[filePath].content;
-            const changes = fileChanges[filePath].changes;
-
-            changes.sort((a, b) => {
-                if (a.line !== b.line) return b.line - a.line;
-                return b.column - a.column;
-            });
-
-            const typeChecker = inferReturnTypes(filePath, content);
-
-            const lines = content.split('\n');
-            changes.forEach(change => {
-                const line = lines[change.line - 1];
-                const functionMatch = line.match(/function\s+\w+\s*\(.*?\)(\s*\{)?/) || 
-                                      line.match(/\w+\s*=\s*(\(.*?\)|async\s*\(.*?\))(\s*=>)?/);
-                
-                if (functionMatch) {
-                    let returnType = 'void';
-                    // Attempt to use TypeScript's type checker if available
-                    if (typeChecker) {
-                        returnType = typeChecker;
-                    } else {
-                        // Simple heuristic for common return types
-                        if (content.includes('return') && content.includes('Promise')) {
-                            returnType = 'Promise<void>';
-                        } else if (content.includes('return true') || content.includes('return false')) {
-                            returnType = 'boolean';
-                        } else if (content.includes('return {')) {
-                            returnType = 'Record<string, unknown>';
-                        } else if (content.includes('return [')) {
-                            returnType = 'unknown[]';
-                        } else if (content.match(/return\s+\d+/)) {
-                            returnType = 'number';
-                        } else if (content.match(/return\s+['"`]/)) {
-                            returnType = 'string';
-                        }
-                    }
-
-                    // Insert return type
-                    let newLine;
-                    if (line.includes('=>')) {
-                        // Arrow function
-                        const arrowIndex = line.indexOf('=>');
-                        const closingParenIndex = line.lastIndexOf(')', arrowIndex);
-                        newLine = line.substring(0, closingParenIndex + 1) + ': ' + returnType + ' ' + line.substring(closingParenIndex + 1);
-                    } else if (line.includes('function')) {
-                        // Named function
-                        const openingParenIndex = line.indexOf('(');
-                        const closingParenIndex = line.lastIndexOf(')');
-                        newLine = line.substring(0, closingParenIndex + 1) + ': ' + returnType + line.substring(closingParenIndex + 1);
-                    } else {
-                        // Method or other function type
-                        const closingParenIndex = line.lastIndexOf(')');
-                        newLine = line.substring(0, closingParenIndex + 1) + ': ' + returnType + line.substring(closingParenIndex + 1);
-                    }
-                    
-                    lines[change.line - 1] = newLine;
-                }
-            });
-
-            fs.writeFileSync(filePath, lines.join('\n'));
-            console.log(`Fixed missing return types in: ${filePath}`);
-        });
-
-        console.log('Missing return types fixed successfully!');
-    } catch (error) {
-        console.error('Error:', error.message);
+          }
+        }
+      });
+      
+      // Write the modified content back to the file
+      fs.writeFileSync(file, fileLines.join('\n'), 'utf8');
+      
+      console.log(`Fixed ${missingReturnLines.length} missing return types in ${file}`);
     }
-};
+  }
+});
 
-function inferReturnTypes(filePath, content) {
-    // This is a simplified approach - would need a full TypeScript program
-    // with type checking for accurate inference
-    return null;
-}
-
-fixReturnTypes(); 
+console.log('Finished fixing missing return types.'); 

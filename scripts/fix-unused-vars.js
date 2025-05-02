@@ -2,83 +2,65 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const glob = require('glob');
 
-const findFiles = (dir, extensions) => {
-    let results = [];
-    const list = fs.readdirSync(dir);
-    list.forEach(file => {
-        const fullPath = path.join(dir, file);
-        const stat = fs.statSync(fullPath);
-        if (stat && stat.isDirectory() && !fullPath.includes('node_modules')) {
-            results = results.concat(findFiles(fullPath, extensions));
-        } else if (extensions.includes(path.extname(fullPath))) {
-            results.push(fullPath);
+// Get all TypeScript files in src directory
+const files = glob.sync(path.join('src', '**', '*.ts'));
+
+// Regex to match the ESLint unused variable warnings
+const unusedVarRegex = /'([a-zA-Z0-9]+)' is (?:defined|assigned a value) but never used/;
+
+// Run ESLint on each file and process the output
+files.forEach(file => {
+  const { execSync } = require('child_process');
+  
+  try {
+    // Run ESLint on the file
+    execSync(`npx eslint --no-eslintrc --config .eslintrc.js --rule '@typescript-eslint/no-unused-vars:["warn"]' ${file}`, { stdio: 'pipe' });
+  } catch (error) {
+    // ESLint will exit with code 1 if there are warnings
+    const output = error.stdout.toString();
+    
+    // Extract variable names from the warnings
+    const lines = output.split('\n');
+    const unusedVars = [];
+    
+    lines.forEach(line => {
+      const match = line.match(unusedVarRegex);
+      if (match && match[1]) {
+        const varName = match[1];
+        if (!varName.startsWith('_')) {
+          unusedVars.push(varName);
         }
+      }
     });
-    return results;
-};
-
-const fixUnusedVars = () => {
-    try {
-        console.log('Running ESLint to find unused variables...');
-        const lintResult = execSync('npx eslint . --ext .ts,.tsx --format json', { encoding: 'utf8' });
-        const issues = JSON.parse(lintResult);
-
-        const fileChanges = {};
-
-        issues.forEach(file => {
-            const filePath = file.filePath;
-            const unusedVarMessages = file.messages.filter(
-                msg => msg.ruleId === '@typescript-eslint/no-unused-vars' && 
-                       msg.message.includes('is defined but never used') &&
-                       !msg.message.includes('must match /^_/u')
-            );
-
-            if (unusedVarMessages.length > 0) {
-                if (!fileChanges[filePath]) {
-                    fileChanges[filePath] = {
-                        content: fs.readFileSync(filePath, 'utf8'),
-                        changes: []
-                    };
-                }
-
-                unusedVarMessages.forEach(msg => {
-                    const varName = msg.message.match(/['']([^'']+)[''] is defined but never used/)[1];
-                    fileChanges[filePath].changes.push({
-                        line: msg.line,
-                        column: msg.column,
-                        varName
-                    });
-                });
-            }
-        });
-
-        // Apply changes to files
-        Object.keys(fileChanges).forEach(filePath => {
-            let content = fileChanges[filePath].content;
-            const changes = fileChanges[filePath].changes;
-
-            changes.sort((a, b) => {
-                if (a.line !== b.line) return b.line - a.line;
-                return b.column - a.column;
-            });
-
-            const lines = content.split('\n');
-            changes.forEach(change => {
-                const line = lines[change.line - 1];
-                const newLine = line.substring(0, change.column - 1) + '_' + line.substring(change.column - 1);
-                lines[change.line - 1] = newLine;
-            });
-
-            fs.writeFileSync(filePath, lines.join('\n'));
-            console.log(`Fixed unused variables in: ${filePath}`);
-        });
-
-        console.log('Unused variables fixed successfully!');
-    } catch (error) {
-        console.error('Error:', error.message);
+    
+    if (unusedVars.length > 0) {
+      // Read the file content
+      let content = fs.readFileSync(file, 'utf8');
+      
+      // Replace each unused variable with a prefixed version
+      unusedVars.forEach(varName => {
+        // Use regex to replace the variable name with _variableName
+        // Be careful to only replace variable declarations, not all occurrences
+        const varDeclarationRegex = new RegExp(`(\\b(?:const|let|var|function|class|interface|type|enum|parameter)\\s+)(${varName}\\b)`, 'g');
+        content = content.replace(varDeclarationRegex, `$1_${varName}`);
+        
+        // Also handle function parameters and destructuring
+        const paramRegex = new RegExp(`(\\(|,\\s*)(${varName})(:|\\s*=|\\)|,)`, 'g');
+        content = content.replace(paramRegex, `$1_${varName}$3`);
+        
+        // Handle object destructuring
+        const destructuringRegex = new RegExp(`({\\s*.*?\\s*)(${varName})(\\s*}|\\s*,|\\s*:)`, 'g');
+        content = content.replace(destructuringRegex, `$1_${varName}$3`);
+      });
+      
+      // Write the modified content back to the file
+      fs.writeFileSync(file, content, 'utf8');
+      
+      console.log(`Fixed ${unusedVars.length} unused variables in ${file}`);
     }
-};
+  }
+});
 
-fixUnusedVars(); 
+console.log('Finished fixing unused variables.'); 

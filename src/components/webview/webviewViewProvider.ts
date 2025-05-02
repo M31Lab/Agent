@@ -73,7 +73,7 @@ export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvi
     
     protected abstract getHtmlContent(webview: vscode.Webview): string;
     
-    protected onViewReady(webviewView: vscode.WebviewView): void {
+    protected onViewReady(_webviewView: vscode.WebviewView): void {
         // Override in subclasses if needed
     }
     

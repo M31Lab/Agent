@@ -142,7 +142,7 @@ export class CheckpointService {
         }
         
         const currentChanges = await this.captureChanges();
-        const tempCheckpoint: Checkpoint = {
+        const _tempCheckpoint: Checkpoint = {
             id: 'current',
             name: 'Current State',
             timestamp: Date.now(),
@@ -210,7 +210,7 @@ export class CheckpointService {
             throw new Error(`Checkpoint ${checkpointId} not found`);
         }
         
-        const mergedOptions: CheckpointRestoreOptions = {
+        const _mergedOptions: CheckpointRestoreOptions = {
             ...defaultCheckpointRestoreOptions,
             ...options
         };

@@ -9,7 +9,6 @@ import { BrowserService } from './browser/browserService';
 import { CheckpointService } from './checkpoint/checkpointService';
 import { ContextToolsService } from './contextTools/contextToolsService';
 import { CustomToolsService } from './customTools/customToolsService';
-import { _DiagnosticsMonitoringService } from './diagnostics/diagnosticsMonitoringService';
 import { GitService } from './git/gitService';
 import { CodeShareService } from './code/codeShareService';
 import { OptimizedCompletionService } from './codeCompletion/optimizedCompletionService';
@@ -56,7 +55,7 @@ export async function initializeServices(context: ExtensionContext): Promise<voi
         context.checkpointService = checkpointService;
         
         // Initialize context tools service
-        const contextToolsService = new ContextToolsService();
+        const contextToolsService = new ContextToolsService(context);
         context.registerDisposable(contextToolsService);
         context.contextToolsService = contextToolsService;
         

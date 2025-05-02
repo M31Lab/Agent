@@ -568,7 +568,7 @@ Don't explain the similarities, just list them.`;
                 return [];
             }
             
-            const workspaceRoot = workspaceFolders[0].uri.fsPath;
+            const _workspaceRoot = workspaceFolders[0].uri.fsPath;
             
             // Find all relevant files using workspace search API
             let searchResults: SearchResult[] = [];
@@ -669,7 +669,7 @@ Don't explain the similarities, just list them.`;
         }
     }
 
-    private async findFuzzyMatches(searchQuery: string, maxResults: number): Promise<SearchResult[]> {
+    private async findFuzzyMatches(searchQuery: string, _maxResults: number): Promise<SearchResult[]> {
         try {
             const workspaceFolders = vscode.workspace.workspaceFolders;
             if (!workspaceFolders) {

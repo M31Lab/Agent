@@ -78,7 +78,7 @@ export function useExtensionContext(
     };
 }
 
-let globalExtensionContext: ExtensionContext | undefined;
+let _globalExtensionContext: ExtensionContext | undefined;
 
 export function initializeExtensionContext(context: ExtensionContext): void {
     globalExtensionContext = context;

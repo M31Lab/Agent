@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as cheerio from 'cheerio';
 import axios from 'axios';
-import { v4 as _uuidv4 } from 'uuid';
+import * as cheerio from 'cheerio';
+import { v4 as uuidv4 } from 'uuid';
 import { 
     ContextTool,
     ContextToolType,
@@ -17,11 +17,42 @@ import {
 } from '../../models/contextTools';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { LoggingService } from '../../utils/logging/loggingService';
-import { _FileSystemService } from '../fileSystem/fileSystemService';
+import { TelemetryService } from '../../services/telemetry/telemetryService';
+import { CodeSnippet, FileContext } from '../../models/codebase/codeContext';
+// { _FileSystemService } from '../fileSystem/fileSystemService';
+
+export interface UrlContextInput {
+    url: string;
+    maxTokens?: number;
+    includeImages?: boolean;
+}
+
+export interface FileContextInput {
+    filePath: string;
+    selection?: {
+        startLine: number;
+        endLine: number;
+    };
+}
+
+export interface FolderContextInput {
+    folderPath: string;
+    includePatterns?: string[];
+    excludePatterns?: string[];
+    maxDepth?: number;
+    maxFiles?: number;
+}
+
+export interface ProblemsContextInput {
+    severity?: 'all' | 'error' | 'warning' | 'info';
+    maxProblems?: number;
+}
 
 export interface ContextToolEvent {
     type: 'toolExecuted' | 'toolFailed';
     toolType: ContextToolType;
+    input?: UrlContextInput | FileContextInput | FolderContextInput | ProblemsContextInput;
+    result?: ContextToolResult;
     content?: string;
     error?: string;
     timestamp: number;
@@ -670,7 +701,7 @@ export class ContextToolsService {
         excludePatterns: string[],
         maxDepth: number
     ): Promise<string[]> {
-        const folderUri = vscode.Uri.file(folderPath);
+        const _folderUri = vscode.Uri.file(folderPath);
         
         // Convert patterns to glob patterns for VS Code
         const includeGlob = `{${includePatterns.map(p => path.join(folderPath, p)).join(',')}}`;

@@ -3,6 +3,7 @@ import { ExtensionContext } from '../../models/context/extensionContext';
 import { LoggingService } from '../../utils/logging/loggingService';
 import { TelemetryService } from '../../services/telemetry/telemetryService';
 import { TerminalService } from '../../services/terminal/terminalService';
+import { TerminalCommandResult } from '../../models/terminalExecution';
 
 export class CodeExecutionCommands {
     private readonly _extensionContext: ExtensionContext;
@@ -10,6 +11,7 @@ export class CodeExecutionCommands {
     private readonly _telemetry: TelemetryService;
     private readonly _terminalService: TerminalService;
     private readonly _disposables: vscode.Disposable[] = [];
+    private readonly _sessionId: string;
 
     constructor(
         extensionContext: ExtensionContext,
@@ -19,6 +21,7 @@ export class CodeExecutionCommands {
         this._logging = extensionContext.loggingService;
         this._telemetry = extensionContext.telemetryService;
         this._terminalService = terminalService;
+        this._sessionId = this._terminalService.createSession();
 
         this.registerCommands();
     }
@@ -34,7 +37,7 @@ export class CodeExecutionCommands {
         this._logging.info('Registered code execution commands');
     }
 
-    private async runCommand(command?: string): Promise<string> {
+    private async runCommand(command?: string): Promise<TerminalCommandResult | undefined> {
         if (!command) {
             command = await vscode.window.showInputBox({
                 placeHolder: 'Enter command to run',
@@ -43,7 +46,7 @@ export class CodeExecutionCommands {
         }
 
         if (!command) {
-            return '';
+            return undefined;
         }
 
         this._logging.info(`Running command: ${command}`);
@@ -59,16 +62,18 @@ export class CodeExecutionCommands {
 
             if (confirmation !== 'Yes') {
                 this._logging.info('Command execution cancelled by user');
-                return '';
+                return undefined;
             }
         }
 
         try {
-            return await this._terminalService.executeCommand(command, true);
+            return await this._terminalService.executeCommand(this._sessionId, command, {
+                requireConfirmation: false
+            });
         } catch (error) {
             this._logging.error(`Error executing command: ${error}`);
             vscode.window.showErrorMessage(`Failed to execute command: ${error}`);
-            return '';
+            return undefined;
         }
     }
 
@@ -171,7 +176,6 @@ export class CodeExecutionCommands {
             this._telemetry.trackEvent('file_created', { language });
 
             // Create a new untitled file
-            const _extension = this.getExtensionForLanguage(language);
             const document = await vscode.workspace.openTextDocument({
                 content,
                 language
@@ -236,7 +240,9 @@ export class CodeExecutionCommands {
             return;
         }
 
-        await this._terminalService.runInTerminal(text);
+        await this._terminalService.executeCommand(this._sessionId, text, {
+            requireConfirmation: false
+        });
         this._logging.info('Command executed in terminal');
         this._telemetry.trackEvent('command_executed', { commandType: 'terminal_direct' });
     }
