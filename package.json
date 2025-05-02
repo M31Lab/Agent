@@ -29,6 +29,31 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "m31-agent-sidebar",
+          "title": "M31 Agent",
+          "icon": "resources/icons/sidebar-icon.png"
+        }
+      ]
+    },
+    "views": {
+      "m31-agent-sidebar": [
+        {
+          "id": "m31-agent.chatView",
+          "name": "AI Chat"
+        },
+        {
+          "id": "m31-agent.codebaseView",
+          "name": "Codebase Navigation"
+        },
+        {
+          "id": "m31-agent.diagnosticsView",
+          "name": "Diagnostics"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "m31-agent.showChat",

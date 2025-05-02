@@ -15,6 +15,10 @@ import { CheckpointComparisonService } from './services/checkpoint/checkpointCom
 import { WebSearchService } from './services/search/webSearchService';
 import { McpService } from './services/mcp/mcpService';
 import { DiagnosticsMonitoringService } from './services/diagnostics/diagnosticsMonitoringService';
+// Import sidebar view providers
+import { ChatViewProvider } from './views/chatView';
+import { CodebaseViewProvider } from './views/codebaseView';
+import { DiagnosticsViewProvider } from './views/diagnosticsView';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     try {
@@ -65,6 +69,35 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         extensionContext.registerDisposable(extensionContext.webSearchService!);
         extensionContext.registerDisposable(extensionContext.mcpService!);
         extensionContext.registerDisposable(extensionContext.diagnosticsMonitoringService!);
+
+        // Register sidebar views
+        const chatViewProvider = new ChatViewProvider(context.extensionUri);
+        const codebaseViewProvider = new CodebaseViewProvider();
+        const diagnosticsViewProvider = new DiagnosticsViewProvider();
+
+        // Register tree data providers
+        context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+                ChatViewProvider.viewType,
+                chatViewProvider,
+                { webviewOptions: { retainContextWhenHidden: true } }
+            ),
+            vscode.window.registerTreeDataProvider(
+                'm31-agent.codebaseView',
+                codebaseViewProvider
+            ),
+            vscode.window.registerTreeDataProvider(
+                'm31-agent.diagnosticsView',
+                diagnosticsViewProvider
+            ),
+            // Register commands for the views
+            vscode.commands.registerCommand('m31-agent.codebaseView.refresh', () => {
+                codebaseViewProvider.refresh();
+            }),
+            vscode.commands.registerCommand('m31-agent.diagnosticsView.refresh', () => {
+                diagnosticsViewProvider.refresh();
+            })
+        );
 
         // Add diagnostics status bar indicator
         const diagnosticsStatusBar = vscode.window.createStatusBarItem(
