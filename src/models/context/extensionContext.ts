@@ -14,6 +14,9 @@ import { WebSearchService } from '../../services/search/webSearchService';
 import { McpService } from '../../services/mcp/mcpService';
 import { DiagnosticsMonitoringService } from '../../services/diagnostics/diagnosticsMonitoringService';
 import { CodebaseUnderstandingService } from '../../services/codeAnalysis/codebaseUnderstandingService';
+import { GitService } from '../../services/git/gitService';
+import { CodeShareService } from '../../services/code/codeShareService';
+import { OptimizedCompletionService } from '../../services/codeCompletion/optimizedCompletionService';
 
 export class ExtensionContext {
     private disposables: vscode.Disposable[] = [];
@@ -30,6 +33,9 @@ export class ExtensionContext {
     public mcpService?: McpService;
     public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
     public codebaseUnderstandingService?: CodebaseUnderstandingService;
+    public gitService?: GitService;
+    public codeShareService?: CodeShareService;
+    public optimizedCompletionService?: OptimizedCompletionService;
 
     constructor(
         public readonly vscodeContext: vscode.ExtensionContext,

@@ -12,6 +12,7 @@ import { registerCheckpointComparisonCommands } from './checkpoint/checkpointCom
 import { registerDiagnosticsMonitoringCommands } from './diagnostics/diagnosticsMonitoringCommands';
 import { registerMcpCommands } from './mcp/mcpToolCommands';
 import { registerCodeAnalysisCommands } from './codeAnalysis/codeAnalysisCommands';
+import { registerGitCommands } from './git/gitCommands';
 
 export interface CommandDependencies {
     statusBarManager: StatusBarManager;
@@ -39,6 +40,28 @@ export function registerAllCommands(
     registerDiagnosticsMonitoringCommands(context);
     registerMcpCommands(context);
     registerCodeAnalysisCommands(context);
+
+    // Register Git commands
+    registerGitCommands(context).forEach(disposable => {
+        context.registerDisposable(disposable);
+    });
+    
+    // Register code feature commands (add logs, share code)
+    try {
+        const codeCommandsPath = './code/codeCommands';
+        // Dynamic import to avoid circular dependencies
+        import(codeCommandsPath).then(module => {
+            const codeCommands = module.registerCodeCommands(context);
+            codeCommands.forEach(disposable => {
+                context.registerDisposable(disposable);
+            });
+            context.loggingService.debug('Registered code feature commands');
+        }).catch(error => {
+            context.loggingService.error('Failed to register code feature commands', error);
+        });
+    } catch (error) {
+        context.loggingService.error('Failed to import code commands module', error);
+    }
 
     context.loggingService.info('All extension commands registered');
     context.telemetryService.trackEvent('commands_registered');

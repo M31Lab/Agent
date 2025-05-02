@@ -9,6 +9,10 @@ import { BrowserService } from './browser/browserService';
 import { CheckpointService } from './checkpoint/checkpointService';
 import { ContextToolsService } from './contextTools/contextToolsService';
 import { CustomToolsService } from './customTools/customToolsService';
+import { DiagnosticsMonitoringService } from './diagnostics/diagnosticsMonitoringService';
+import { GitService } from './git/gitService';
+import { CodeShareService } from './code/codeShareService';
+import { OptimizedCompletionService } from './codeCompletion/optimizedCompletionService';
 
 /**
  * Initializes all services in the correct order to handle dependencies
@@ -61,6 +65,36 @@ export async function initializeServices(context: ExtensionContext): Promise<voi
         context.registerDisposable(customToolsService);
         context.customToolsService = customToolsService;
         
+        // Initialize Git Service
+        try {
+            const gitService = new GitService(context);
+            context.gitService = gitService;
+            context.registerDisposable(gitService);
+            context.loggingService.info('Git service initialized');
+        } catch (error) {
+            context.loggingService.error('Failed to initialize Git service', error);
+        }
+        
+        // Initialize Code Share Service
+        try {
+            const codeShareService = new CodeShareService(context);
+            context.codeShareService = codeShareService;
+            context.registerDisposable(codeShareService);
+            context.loggingService.info('Code Share service initialized');
+        } catch (error) {
+            context.loggingService.error('Failed to initialize Code Share service', error);
+        }
+        
+        // Initialize Optimized Completion Service
+        try {
+            const optimizedCompletionService = new OptimizedCompletionService(context);
+            context.optimizedCompletionService = optimizedCompletionService;
+            context.registerDisposable(optimizedCompletionService);
+            context.loggingService.info('Optimized Completion service initialized');
+        } catch (error) {
+            context.loggingService.error('Failed to initialize Optimized Completion service', error);
+        }
+
         // Track telemetry
         context.telemetryService.trackEvent('services_initialized');
         context.loggingService.info('Extension services successfully initialized');

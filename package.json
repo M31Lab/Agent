@@ -125,6 +125,21 @@
         "command": "m31-agent.mcp.listTools",
         "title": "M31-Agent: Manage Custom Tools",
         "category": "M31-Agent"
+      },
+      {
+        "command": "m31-agent.git.generateCommitMessage",
+        "title": "Generate Commit Message",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.code.addLogs",
+        "title": "Add Logs to Selection",
+        "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.code.shareCode",
+        "title": "Share Code Link",
+        "category": "M31 Agent"
       }
     ],
     "keybindings": [
@@ -287,6 +302,27 @@
         {
           "command": "m31-agent.generateCode",
           "group": "m31-agent"
+        },
+        {
+          "command": "m31-agent.git.generateCommitMessage",
+          "group": "m31-agent"
+        },
+        {
+          "command": "m31-agent.code.addLogs",
+          "when": "editorHasSelection",
+          "group": "m31-agent"
+        },
+        {
+          "command": "m31-agent.code.shareCode",
+          "when": "editorHasSelection",
+          "group": "m31-agent"
+        }
+      ],
+      "scm/title": [
+        {
+          "command": "m31-agent.git.generateCommitMessage",
+          "group": "navigation",
+          "when": "scmProvider == git"
         }
       ]
     }
@@ -356,6 +392,7 @@
     "puppeteer-core": "^21.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "lru-cache": "^7.14.1"
   }
 }
