@@ -1,7 +1,21 @@
 import * as vscode from 'vscode';
 import { FileSystemService } from '../services/fileSystem/fileSystemService';
 
-export function useFileSystem(): Promise<void> {
+// Define an interface for the return type of useFileSystem
+export interface FileSystemHook {
+    getFileSystemService: () => FileSystemService | undefined;
+    readFile: (filePath: string) => Promise<string>;
+    writeFile: (filePath: string, content: string) => Promise<void>;
+    listDirectory: (directoryPath: string) => Promise<string[]>;
+    exists: (path: string) => Promise<boolean>;
+    isDirectory: (path: string) => Promise<boolean>;
+    isFile: (path: string) => Promise<boolean>;
+    getWorkspaceRootPath: () => string | undefined;
+    findFilesInWorkspace: (globPattern: string, excludePattern?: string) => Promise<vscode.Uri[]>;
+    resolveWorkspacePath: (relativePath: string) => string | undefined;
+}
+
+export function useFileSystem(): FileSystemHook {
     const getFileSystemService = (): FileSystemService | undefined => {
         return FileSystemService.getInstance();
     };

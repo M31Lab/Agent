@@ -1,5 +1,14 @@
 import { AIRequestType } from './aiRequestType';
-import {  ChatCompletionTool } from 'openai/resources';
+
+// Define our own ChatCompletionTool interface instead of importing from openai
+export interface ChatCompletionTool {
+    type: 'function';
+    function: {
+        name: string;
+        description?: string;
+        parameters?: Record<string, unknown>;
+    };
+}
 
 export interface AIMessage {
     role: 'user' | 'assistant' | 'system' | 'function';
@@ -17,4 +26,4 @@ export interface AIRequestParams {
     modelOverride?: string;
     maxTokensOverride?: number;
     temperatureOverride?: number;
-} 
+}

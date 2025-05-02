@@ -1,6 +1,7 @@
 import { ActionType } from '../actions/actionTypes';
 import { Action } from '../actions/actionCreators';
 import { AppState, initialState } from '../context/StateContext';
+import { ChatMessage, ChatSession } from '../../models/ai/chatTypes';
 
 export function rootReducer(state: AppState = initialState, action: Action): AppState {
     switch (action.type) {
@@ -65,7 +66,7 @@ export function rootReducer(state: AppState = initialState, action: Action): App
                 ...state,
                 chat: {
                     ...state.chat,
-                    messages: action.payload as unknown[][]
+                    messages: action.payload as ChatMessage[]
                 }
             };
             
@@ -74,7 +75,7 @@ export function rootReducer(state: AppState = initialState, action: Action): App
                 ...state,
                 chat: {
                     ...state.chat,
-                    messages: [...state.chat.messages, action.payload]
+                    messages: [...state.chat.messages, action.payload as ChatMessage]
                 }
             };
             
@@ -101,8 +102,8 @@ export function rootReducer(state: AppState = initialState, action: Action): App
                 ...state,
                 chat: {
                     ...state.chat,
-                    sessions: [...state.chat.sessions, action.payload],
-                    activeSessionId: (action.payload as unknown).id
+                    sessions: [...state.chat.sessions, action.payload as ChatSession],
+                    activeSessionId: (action.payload as ChatSession).id
                 }
             };
             

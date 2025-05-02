@@ -2,25 +2,52 @@
 import { vscode } from './utils/vscode';
 import './styles/index.css';
 
+// Define interfaces for message types
+interface ChatMessage {
+    role: string;
+    content: string;
+}
+
+interface InitialData {
+    messages?: ChatMessage[];
+}
+
+// Define interface for VS Code messages
+interface VSCodeMessage {
+    command: string;
+    data?: InitialData;
+    message?: ChatMessage | string;
+    isProcessing?: boolean;
+    text?: string;
+}
+
 // Initialize message passing with VS Code
 const messageHandler = (event: MessageEvent): void  => {
-    const message = event.data;
+    const message = event.data as VSCodeMessage;
     
     switch (message.command) {
         case 'initialize':
-            renderApp(message.data);
+            if (message.data) {
+                renderApp(message.data);
+            }
             break;
         case 'receiveMessage':
-            addMessage(message.message);
+            if (message.message && typeof message.message !== 'string') {
+                addMessage(message.message);
+            }
             break;
         case 'clearChat':
             clearMessages();
             break;
         case 'setProcessing':
-            setProcessingState(message.isProcessing);
+            if (message.isProcessing !== undefined) {
+                setProcessingState(message.isProcessing);
+            }
             break;
         case 'showError':
-            showError(message.message);
+            if (message.message && typeof message.message === 'string') {
+                showError(message.message);
+            }
             break;
     }
 };
@@ -38,7 +65,7 @@ const errorContainer = document.getElementById('error-container') as HTMLDivElem
 const handleSubmit = (): void  => {
     const messageText = messageInput.value.trim();
     if (messageText) {
-        const userMessage = {
+        const userMessage: ChatMessage = {
             role: 'user',
             content: messageText
         };
@@ -70,16 +97,16 @@ messageInput.addEventListener('keydown', (e) => {
 });
 
 // Render the chat interface
-function renderApp(initialData: unknown): void {
+function renderApp(initialData: InitialData): void {
     if (initialData.messages && initialData.messages.length) {
-        initialData.messages.forEach((message: unknown) => {
+        initialData.messages.forEach((message: ChatMessage) => {
             addMessage(message);
         });
     }
 }
 
 // Add a message to the chat
-function addMessage(message: unknown): void {
+function addMessage(message: ChatMessage): void {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(message.role);

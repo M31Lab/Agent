@@ -2,7 +2,35 @@ import * as vscode from 'vscode';
 import { WebviewProvider } from '../webview/webviewProvider';
 import { ChatMessage } from '../webview/interfaces/messageHandlers';
 
-export function useWebview(): Promise<void> {
+interface WebviewUtils {
+    getWebviewProvider: () => WebviewProvider | undefined;
+    createWebviewPanel: (
+        viewType: string,
+        title: string,
+        showOptions: vscode.ViewColumn,
+        options: vscode.WebviewPanelOptions & vscode.WebviewOptions
+    ) => vscode.WebviewPanel | undefined;
+    renderTemplate: (
+        webview: vscode.Webview,
+        data?: Record<string, string>
+    ) => Promise<string | undefined>;
+    getWebviewResourceUri: (
+        webview: vscode.Webview,
+        ...pathSegments: string[]
+    ) => vscode.Uri | undefined;
+    postMessageToWebview: (webview: vscode.Webview, message: unknown) => void;
+    registerWebviewMessageHandler: (
+        webviewPanel: vscode.WebviewPanel,
+        handler: (message: unknown) => void
+    ) => vscode.Disposable | undefined;
+    sendChatMessage: (webview: vscode.Webview, message: ChatMessage) => void;
+    clearChat: (webview: vscode.Webview) => void;
+    setProcessingState: (webview: vscode.Webview, isProcessing: boolean) => void;
+    showError: (webview: vscode.Webview, message: string) => void;
+    initialize: (webview: vscode.Webview, data: unknown) => void;
+}
+
+export function useWebview(): WebviewUtils {
     const getWebviewProvider = (): WebviewProvider | undefined => {
         return WebviewProvider.getInstance();
     };

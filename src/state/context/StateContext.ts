@@ -1,4 +1,4 @@
-import * as _vscode from 'vscode';
+// import * as _vscode from 'vscode';
 import { Action } from '../actions/actionCreators';
 import { ChatMessage, ChatSession } from '../../models/ai/chatTypes';
 import { AIModel } from '../../models/ai/aiModels';

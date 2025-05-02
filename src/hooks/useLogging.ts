@@ -49,7 +49,7 @@ export function useLogging(): Record<string, unknown> {
             return;
         }
 
-        logger.showOutputChannel();
+        logger.show();
     };
 
     const getLogLevel = (): LogLevel => {

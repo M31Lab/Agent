@@ -1,6 +1,12 @@
 import { TerminalService } from '../services/terminal/terminalService';
 
-export function useTerminal(): Promise<void> {
+
+
+export function useTerminal(): {
+    getTerminalService: () => TerminalService | undefined;
+    executeCommand: (command: string) => Promise<void>;
+    executeCommandWithResult: (command: string) => Promise<string>;
+} {
     const getTerminalService = (): TerminalService | undefined => {
         return TerminalService.getInstance();
     };
@@ -11,7 +17,14 @@ export function useTerminal(): Promise<void> {
             throw new Error('Terminal service not initialized');
         }
 
-        return terminal.executeCommand(command);
+        // Create a session and execute the command
+        const sessionId = terminal.createSession();
+        try {
+            await terminal.executeCommand(sessionId, command);
+        } finally {
+            // Clean up the session when done
+            terminal.closeSession(sessionId);
+        }
     };
 
     const executeCommandWithResult = async (command: string): Promise<string> => {
@@ -20,7 +33,8 @@ export function useTerminal(): Promise<void> {
             throw new Error('Terminal service not initialized');
         }
 
-        return terminal.executeCommandWithResult(command);
+        const result = await terminal.executeCommandWithOutput(command);
+        return result.output;
     };
 
     return {
@@ -28,4 +42,4 @@ export function useTerminal(): Promise<void> {
         executeCommand,
         executeCommandWithResult
     };
-} 
+}

@@ -18,14 +18,14 @@ export const useVsCodeApi = (): VSCodeApi => {
             console.error('Failed to acquire VS Code API:', error);
             
             vscodeApiRef.current = {
-                postMessage: (message: unknown) => {
+                postMessage: (message: unknown): void => {
                     console.error('VS Code API not available for message:', message);
                 },
-                getState: () => {
+                getState: (): unknown => {
                     console.error('VS Code API not available for getState');
                     return {};
                 },
-                setState: (state: unknown) => {
+                setState: (state: unknown): void => {
                     console.error('VS Code API not available for setState:', state);
                 }
             };

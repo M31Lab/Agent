@@ -23,7 +23,7 @@ export class TerminalService {
     private readonly eventEmitter = new vscode.EventEmitter<TerminalEvent>();
     private readonly disposables: vscode.Disposable[] = [];
     
-    public static getInstance(context?: any): TerminalService {
+    public static getInstance(_context?: vscode.ExtensionContext): TerminalService {
         if (!TerminalService.instance) {
             TerminalService.instance = new TerminalService();
         }

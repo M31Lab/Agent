@@ -17,7 +17,7 @@ export interface LogEntry {
 }
 
 export class LoggingService {
-    private static instance: LoggingService;
+    private static instance: LoggingService | null = null;
     private outputChannel: vscode.OutputChannel;
     private logLevel: LogLevel = LogLevel.Info;
     private logs: LogEntry[] = [];
@@ -159,6 +159,6 @@ export class LoggingService {
 
     public dispose(): void {
         this.outputChannel.dispose();
-        LoggingService.instance = undefined as unknown;
+        LoggingService.instance = null;
     }
 } 

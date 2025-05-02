@@ -18,7 +18,15 @@ export const useMessageHandler = ({
     onShowError,
     onUpdateModels,
     onUpdateSettings
-}: MessageHandlerProps) => {
+}: MessageHandlerProps): {
+    handleMessage: (event: MessageEvent) => void;
+    sendMessage: (text: string) => void;
+    clearChat: () => void;
+    webviewReady: () => void;
+    copyToClipboard: (text: string) => void;
+    insertCode: (code: string) => void;
+    requestModels: () => void;
+} => {
     const vscode = useVsCodeApi();
     
     const handleMessage = useCallback((event: MessageEvent) => {

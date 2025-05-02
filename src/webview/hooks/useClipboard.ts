@@ -9,7 +9,13 @@ export interface UseClipboardOptions {
     onError?: (error: Error) => void;
 }
 
-export const useClipboard = (options: UseClipboardOptions = {}): boolean  => {
+export interface UseClipboardResult {
+    copyToClipboard: (text: string) => boolean;
+    insertToEditor: (code: string) => boolean;
+    hasCopied: boolean;
+}
+
+export const useClipboard = (options: UseClipboardOptions = {}): UseClipboardResult  => {
     const [hasCopied, setHasCopied] = useState(false);
     const vscode = useVsCodeApi();
     

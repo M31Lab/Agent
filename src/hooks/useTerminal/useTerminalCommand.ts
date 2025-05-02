@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { TerminalService } from '../../services/terminal/terminalService';
-import { TerminalCommandResult } from '../../models/terminalExecution';
 
 // Define the CommandResult interface for this hook
 export interface CommandResult {
@@ -11,7 +10,6 @@ export interface CommandResult {
 
 export interface TerminalExecutionOptions {
     showTerminal?: boolean;
-    captureOutput?: boolean;
     name?: string;
     cwd?: string;
     env?: Record<string, string>;
@@ -25,20 +23,19 @@ export function useTerminalCommand(
     executeCommandWithResult: (command: string, options?: TerminalExecutionOptions) => Promise<CommandResult>;
     runInTerminal: (text: string, terminalName?: string) => Promise<void>;
     killProcess: () => Promise<void>;
-    createTerminal: (name?: string, cwd?: string, env?: Record<string, string>) => vscode.Terminal;
+    createTerminal: (name?: string, _cwd?: string, _env?: Record<string, string>) => vscode.Terminal;
 } {
     const logging = extensionContext.loggingService;
     const telemetry = extensionContext.telemetryService;
     const configService = extensionContext.configurationService;
     
     // Get the terminal service instance
-    const terminalService = TerminalService.getInstance(extensionContext);
+    // Pass the vscodeContext from our custom ExtensionContext
+    const terminalService = TerminalService.getInstance(extensionContext.vscodeContext);
 
     async function executeCommand(command: string, options: TerminalExecutionOptions = {}): Promise<string> {
         const { 
             showTerminal = true, 
-            captureOutput = true, 
-            name = 'M31 Agent', 
             requireConfirmation
         } = options;
         
@@ -77,8 +74,7 @@ export function useTerminalCommand(
     
     async function executeCommandWithResult(command: string, options: TerminalExecutionOptions = {}): Promise<CommandResult> {
         const { 
-            requireConfirmation, 
-            captureOutput = true,
+            requireConfirmation,
             showTerminal = true
         } = options;
         
@@ -116,7 +112,7 @@ export function useTerminalCommand(
     
     async function runInTerminal(text: string, terminalName?: string): Promise<void> {
         try {
-            await terminalService.runInTerminal(text);
+            await terminalService.runInTerminal(text, terminalName);
             logging.debug(`Text executed in terminal: ${text.length} characters`);
             
             telemetry.trackEvent('text_executed_in_terminal', {
@@ -137,7 +133,7 @@ export function useTerminalCommand(
         }
     }
     
-    function createTerminal(name?: string, cwd?: string, env?: Record<string, string>): vscode.Terminal {
+    function createTerminal(name?: string, _cwd?: string, _env?: Record<string, string>): vscode.Terminal {
         const terminal = terminalService.createTerminal(name || 'M31 Agent');
         logging.debug(`Created terminal: ${name || 'M31 Agent'}`);
         
