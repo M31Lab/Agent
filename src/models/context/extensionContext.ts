@@ -17,6 +17,8 @@ import { CodebaseUnderstandingService } from '../../services/codeAnalysis/codeba
 import { GitService } from '../../services/git/gitService';
 import { CodeShareService } from '../../services/code/codeShareService';
 import { OptimizedCompletionService } from '../../services/codeCompletion/optimizedCompletionService';
+import { ApiClient } from '../../api/apiClient';
+import { PerformanceMonitoringService } from '../../services/performance/performanceMonitoringService';
 
 export class ExtensionContext {
     private disposables: vscode.Disposable[] = [];
@@ -36,6 +38,8 @@ export class ExtensionContext {
     public gitService?: GitService;
     public codeShareService?: CodeShareService;
     public optimizedCompletionService?: OptimizedCompletionService;
+    public apiClient?: ApiClient;
+    public performanceMonitoringService?: PerformanceMonitoringService;
 
     constructor(
         public readonly vscodeContext: vscode.ExtensionContext,

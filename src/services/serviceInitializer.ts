@@ -12,6 +12,8 @@ import { CustomToolsService } from './customTools/customToolsService';
 import { GitService } from './git/gitService';
 import { CodeShareService } from './code/codeShareService';
 import { OptimizedCompletionService } from './codeCompletion/optimizedCompletionService';
+import { PerformanceMonitoringService } from './performance/performanceMonitoringService';
+import { OpenRouterApiClient } from '../api/client/openRouterApiClient';
 
 /**
  * Initializes all services in the correct order to handle dependencies
@@ -20,6 +22,32 @@ export async function initializeServices(context: ExtensionContext): Promise<voi
     context.loggingService.info('Initializing extension services');
     
     try {
+        // Initialize API client
+        try {
+            const apiClient = new OpenRouterApiClient(
+                context.configurationService,
+                context.authenticationService,
+                context.loggingService,
+                context
+            );
+            apiClient.initialize();
+            context.apiClient = apiClient;
+            context.registerDisposable(apiClient);
+            context.loggingService.info('API client initialized');
+        } catch (error) {
+            context.loggingService.error('Failed to initialize API client', error);
+        }
+        
+        // Initialize performance monitoring service
+        try {
+            const performanceMonitoringService = PerformanceMonitoringService.getInstance(context);
+            context.performanceMonitoringService = performanceMonitoringService;
+            context.registerDisposable(performanceMonitoringService);
+            context.loggingService.info('Performance monitoring service initialized');
+        } catch (error) {
+            context.loggingService.error('Failed to initialize Performance monitoring service', error);
+        }
+        
         // Initialize and register core services
         const languageSupportService = new LanguageSupportService(context);
         await languageSupportService.initialize();

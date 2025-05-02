@@ -20,6 +20,11 @@ import { WelcomeService } from './services/welcome/welcomeService';
 import { ChatViewProvider } from './views/chatView';
 import { CodebaseViewProvider } from './views/codebaseView';
 import { DiagnosticsViewProvider } from './views/diagnosticsView';
+import { DashboardViewProvider } from './views/dashboardView';
+import { CodeExplorerViewProvider } from './views/codeExplorerView';
+import { ModelConfigViewProvider } from './views/modelConfigView';
+import { PerformanceViewProvider } from './views/performanceView';
+import { PanelManager } from './components/panelManager';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     console.log('M31-Agent: Starting activation...');
@@ -91,29 +96,49 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const chatViewProvider = new ChatViewProvider(context.extensionUri);
         const codebaseViewProvider = new CodebaseViewProvider();
         const diagnosticsViewProvider = new DiagnosticsViewProvider();
+        const dashboardViewProvider = new DashboardViewProvider(context.extensionUri);
+        const codeExplorerViewProvider = new CodeExplorerViewProvider(context.extensionUri);
+        const modelConfigViewProvider = new ModelConfigViewProvider(context.extensionUri);
+        const performanceViewProvider = new PerformanceViewProvider(context.extensionUri, extensionContext);
         
         // Connect the chat view provider to the chat panel provider
         chatViewProvider.setChatPanelProvider(chatPanelProvider);
+        
+        // Connect dashboard view to panel manager
+        dashboardViewProvider.setPanelManager(new PanelManager(extensionContext));
 
-        // Register tree data providers
+        // Register tree data providers and webview providers
         context.subscriptions.push(
             vscode.window.registerWebviewViewProvider(
                 ChatViewProvider.viewType,
                 chatViewProvider,
                 { webviewOptions: { retainContextWhenHidden: true } }
             ),
-            vscode.window.registerTreeDataProvider(
-                'm31-agent.codebaseView',
-                codebaseViewProvider
+            vscode.window.registerWebviewViewProvider(
+                DashboardViewProvider.viewType,
+                dashboardViewProvider,
+                { webviewOptions: { retainContextWhenHidden: true } }
+            ),
+            vscode.window.registerWebviewViewProvider(
+                CodeExplorerViewProvider.viewType,
+                codeExplorerViewProvider,
+                { webviewOptions: { retainContextWhenHidden: true } }
+            ),
+            vscode.window.registerWebviewViewProvider(
+                ModelConfigViewProvider.viewType,
+                modelConfigViewProvider,
+                { webviewOptions: { retainContextWhenHidden: true } }
+            ),
+            vscode.window.registerWebviewViewProvider(
+                PerformanceViewProvider.viewType,
+                performanceViewProvider,
+                { webviewOptions: { retainContextWhenHidden: true } }
             ),
             vscode.window.registerTreeDataProvider(
                 'm31-agent.diagnosticsView',
                 diagnosticsViewProvider
             ),
             // Register commands for the views
-            vscode.commands.registerCommand('m31-agent.codebaseView.refresh', () => {
-                codebaseViewProvider.refresh();
-            }),
             vscode.commands.registerCommand('m31-agent.diagnosticsView.refresh', () => {
                 diagnosticsViewProvider.refresh();
             })

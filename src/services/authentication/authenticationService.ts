@@ -4,7 +4,7 @@ import { ConfigurationService } from '../configuration/configurationService';
 import { ApiError } from '../../models/responses/apiError';
 
 export class AuthenticationService {
-    private static instance: AuthenticationService;
+    private static instance: AuthenticationService | undefined;
     private readonly secretStorageKey = 'openRouterApiKey';
     private readonly tokenStorageKey = 'openRouterApiToken';
     private apiKey: string | undefined;
@@ -120,6 +120,6 @@ export class AuthenticationService {
     }
 
     public dispose(): void {
-        AuthenticationService.instance = undefined as unknown;
+        AuthenticationService.instance = undefined;
     }
 } 

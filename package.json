@@ -42,14 +42,29 @@
     "views": {
       "m31-agent-sidebar": [
         {
+          "id": "m31-agent.dashboardView",
+          "name": "Dashboard",
+          "icon": "resources/icons/commands/dashboard-view.svg"
+        },
+        {
           "id": "m31-agent.chatView",
           "name": "AI Chat",
           "icon": "resources/icons/commands/chat-view.svg"
         },
         {
-          "id": "m31-agent.codebaseView",
-          "name": "Codebase Navigation",
+          "id": "m31-agent.codeExplorerView",
+          "name": "Code Explorer",
           "icon": "resources/icons/commands/codebase-view.svg"
+        },
+        {
+          "id": "m31-agent.modelConfigView",
+          "name": "AI Models",
+          "icon": "resources/icons/commands/settings.svg"
+        },
+        {
+          "id": "m31-agent.performanceView",
+          "name": "Performance",
+          "icon": "resources/icons/commands/performance-view.svg"
         },
         {
           "id": "m31-agent.diagnosticsView",

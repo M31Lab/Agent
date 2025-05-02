@@ -272,9 +272,12 @@ interface BrowserProvider {
     dispose(): void;
 }
 
+// Import types from puppeteer-core
+import type { Browser, Page, ConsoleMessage, HTTPRequest } from 'puppeteer-core';
+
 class ChromiumBrowserProvider implements BrowserProvider {
-    private browser: any = null;
-    private page: any = null;
+    private browser: Browser | null = null;
+    private page: Page | null = null;
     private consoleLogs: Array<{ level: string; message: string }> = [];
 
     async initialize(options: BrowserOptions): Promise<void> {
@@ -314,7 +317,7 @@ class ChromiumBrowserProvider implements BrowserProvider {
     private async setupConsoleLogging(): Promise<void> {
         if (this.page) {
             // Listen for console messages
-            this.page.on('console', (msg: any) => {
+            this.page.on('console', (msg: ConsoleMessage) => {
                 this.consoleLogs.push({
                     level: msg.type(),
                     message: msg.text()
@@ -330,7 +333,7 @@ class ChromiumBrowserProvider implements BrowserProvider {
             });
             
             // Listen for request failures
-            this.page.on('requestfailed', (request: any) => {
+            this.page.on('requestfailed', (request: HTTPRequest) => {
                 this.consoleLogs.push({
                     level: 'error',
                     message: `Request failed: ${request.url()} (${request.failure().errorText})`

@@ -15,7 +15,7 @@ import {
     ElementInteraction,
     ElementInteractionType
 } from '../../models/browserTesting';
-import { BrowserActionType } from '../../models/browserInteraction';
+import { BrowserActionType, BrowserAction } from '../../models/browserInteraction';
 
 export interface BrowserTestingEvent {
     type: BrowserTestingEventType;
@@ -71,7 +71,7 @@ export class BrowserTestingService implements vscode.Disposable {
                     this.emitEvent({
                         type: BrowserTestingEventType.ScreenshotCaptured,
                         executionId,
-                        screenshot: event.data?.screenshot as string,
+                        screenshot: (event.data as { screenshot: string })?.screenshot,
                         stepId: data.execution.steps[data.currentStepIndex]?.stepId
                     });
                 }
@@ -87,8 +87,8 @@ export class BrowserTestingService implements vscode.Disposable {
                         type: BrowserTestingEventType.ConsoleMessage,
                         executionId,
                         consoleMessage: {
-                            type: event.data?.type as string,
-                            message: event.data?.message as string
+                            type: (event.data as { type: string })?.type,
+                            message: (event.data as { message: string })?.message
                         }
                     });
                 }
@@ -491,9 +491,29 @@ export class BrowserTestingService implements vscode.Disposable {
             switch (step.action) {
                 case BrowserActionType.Click:
                 case BrowserActionType.Type:
-                case BrowserActionType.WaitForSelector:
+                case BrowserActionType.WaitForSelector: {
                     // Handle element interaction steps
-                    interaction = step.parameters as ElementInteraction;
+                    if (!step.parameters || 
+                        typeof step.parameters !== 'object' || 
+                        !('type' in step.parameters) || 
+                        !('selector' in step.parameters)) {
+                        return {
+                            success: false,
+                            error: `Invalid parameters for ${step.action} action: missing required properties`,
+                            timestamp: Date.now()
+                        };
+                    }
+                    
+                    // Safely cast to ElementInteraction after validation
+                    const params = step.parameters as Record<string, unknown>;
+                    interaction = {
+                        type: params.type as ElementInteractionType,
+                        selector: params.selector as string,
+                        value: params.value as string | undefined,
+                        position: params.position as { x: number; y: number } | undefined,
+                        frameSelector: params.frameSelector as string | undefined,
+                        options: params.options as ElementInteraction['options'] | undefined
+                    };
                     
                     action = {
                         type: step.action,
@@ -502,6 +522,7 @@ export class BrowserTestingService implements vscode.Disposable {
                         timeout: step.parameters?.timeout as number
                     };
                     break;
+                }
                     
                 case BrowserActionType.Navigate:
                     action = {
@@ -559,7 +580,7 @@ export class BrowserTestingService implements vscode.Disposable {
     ): Promise<string | undefined> {
         try {
             const result = await this.browserService.executeAction(browserId, {
-                type: BrowserActionType.CaptureScreenshot
+                type: BrowserActionType.Screenshot
             });
             
             if (result.success && result.screenshot) {

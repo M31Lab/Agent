@@ -15,6 +15,7 @@ import { AIModel, AIProvider } from '../../models/ai/aiModels';
 import { OpenRouterChatRequest, OpenRouterChatResponse, OpenRouterModelsResponse } from '../../models/ai/openRouterTypes';
 import { ApiError } from '../../models/responses/apiError';
 import { ChatMessage, ChatRole } from '../../models/ai/chatTypes';
+import { ApiClient } from '../apiClient';
 
 export interface AIMessage {
     role: 'system' | 'user' | 'assistant';
@@ -37,7 +38,7 @@ export interface AIResponse {
     totalTokens: number;
 }
 
-export class OpenRouterApiClient implements vscode.Disposable {
+export class OpenRouterApiClient implements ApiClient {
     private static instance: OpenRouterApiClient;
     private client: AxiosInstance;
     private baseUrl = 'https://openrouter.ai/api/v1';
@@ -46,6 +47,14 @@ export class OpenRouterApiClient implements vscode.Disposable {
     private configService: ConfigurationService;
     private authService: AuthenticationService;
     private loggingService: LoggingService;
+    
+    // API usage tracking
+    private totalApiCalls: number = 0;
+    private totalTokenUsage: number = 0;
+    private lastCheckedApiCalls: number = 0;
+    private lastCheckedTokenUsage: number = 0;
+    private apiCallHistory: number[] = [];
+    private tokenUsageHistory: number[] = [];
 
     constructor(
         configService: ConfigurationService,
@@ -71,6 +80,9 @@ export class OpenRouterApiClient implements vscode.Disposable {
     }
 
     public static getInstance(): OpenRouterApiClient {
+        if (!OpenRouterApiClient.instance) {
+            throw new Error('OpenRouterApiClient has not been initialized');
+        }
         return OpenRouterApiClient.instance;
     }
 
@@ -102,7 +114,7 @@ export class OpenRouterApiClient implements vscode.Disposable {
 
         return {
             'Authorization': `Bearer ${this.apiKey}`,
-            'HTTP-Referer': 'https://github.com/m31-ai/m31-agent-vscode',
+            'HTTP-Referer': 'https://github.com/M31Lab/Agent',
             'X-Title': 'M31-Agent VS Code Extension'
         };
     }
@@ -137,6 +149,10 @@ export class OpenRouterApiClient implements vscode.Disposable {
             };
 
             const response = await this.client.post<IOpenRouterCompletionResponse>('/chat/completions', request, config);
+            
+            // Track API usage
+            const totalTokens = response.data.usage?.total_tokens || 0;
+            this.trackApiUsage(totalTokens);
             
             this.loggingService.debug('Received completion response from OpenRouter');
             this.loggingService.trackEvent('api_completion_response', {
@@ -209,6 +225,10 @@ export class OpenRouterApiClient implements vscode.Disposable {
 
             stream.on('end', () => {
                 this.loggingService.debug('Streaming completion ended');
+                
+                // Track API usage for streaming completion
+                this.trackApiUsage(totalTokens);
+                
                 this.loggingService.trackEvent('api_streaming_complete', {
                     model: request.model,
                     approximateTokens: totalTokens.toString()
@@ -272,6 +292,10 @@ export class OpenRouterApiClient implements vscode.Disposable {
                 throw new Error('No response received from the AI service');
             }
 
+            // Track API usage
+            const totalTokens = data.usage.total_tokens || 0;
+            this.trackApiUsage(totalTokens);
+            
             return {
                 content: data.choices[0].message.content,
                 model: data.model,
@@ -375,12 +399,17 @@ export class OpenRouterApiClient implements vscode.Disposable {
             });
 
             response.data.on('end', () => {
+                const totalTokens = promptTokens + completionTokens;
+                
+                // Track API usage for streaming request
+                this.trackApiUsage(totalTokens);
+                
                 onComplete({
                     content: fullContent,
                     model: model,
                     promptTokens: promptTokens,
                     completionTokens: completionTokens,
-                    totalTokens: promptTokens + completionTokens
+                    totalTokens: totalTokens
                 });
             });
 
@@ -656,4 +685,51 @@ export class OpenRouterApiClient implements vscode.Disposable {
             content
         };
     }
-} 
+
+    // Methods to implement ApiClient interface
+    public getApiCallsSinceLastCheck(): number {
+        const callsSinceLastCheck = this.totalApiCalls - this.lastCheckedApiCalls;
+        this.lastCheckedApiCalls = this.totalApiCalls;
+        return callsSinceLastCheck;
+    }
+
+    public getTokenUsageSinceLastCheck(): number {
+        const tokensSinceLastCheck = this.totalTokenUsage - this.lastCheckedTokenUsage;
+        this.lastCheckedTokenUsage = this.totalTokenUsage;
+        return tokensSinceLastCheck;
+    }
+
+    public getTotalApiCalls(): number {
+        return this.totalApiCalls;
+    }
+
+    public getTotalTokenUsage(): number {
+        return this.totalTokenUsage;
+    }
+
+    public getApiCallHistory(): number[] {
+        return [...this.apiCallHistory];
+    }
+
+    public getTokenUsageHistory(): number[] {
+        return [...this.tokenUsageHistory];
+    }
+
+    // Helper method to track API calls and token usage
+    private trackApiUsage(tokens: number = 0): void {
+        this.totalApiCalls++;
+        this.totalTokenUsage += tokens;
+        
+        // Add to history (limited to last 100 entries)
+        this.apiCallHistory.push(this.totalApiCalls);
+        this.tokenUsageHistory.push(tokens);
+        
+        if (this.apiCallHistory.length > 100) {
+            this.apiCallHistory.shift();
+        }
+        
+        if (this.tokenUsageHistory.length > 100) {
+            this.tokenUsageHistory.shift();
+        }
+    }
+}
