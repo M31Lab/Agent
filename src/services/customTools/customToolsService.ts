@@ -7,9 +7,8 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import {
     CustomTool,
-    _CustomToolAuth,
+    CustomToolAuth,
     CustomToolEndpoint,
-    CustomToolInvocation,
     CustomToolResponse,
     ToolManifest
 } from '../../models/customTool';
@@ -188,13 +187,6 @@ export class CustomToolsService {
         if (!endpoint) {
             throw new Error(`Endpoint ${endpointId} not found for tool ${tool.name}`);
         }
-        
-        const _invocation: CustomToolInvocation = {
-            toolId,
-            endpointId,
-            parameters,
-            timestamp: Date.now()
-        };
         
         this.emitEvent({
             type: 'invocationStarted',
@@ -396,19 +388,20 @@ export class CustomToolsService {
         }
         
         const headers: Record<string, string> = {};
+        const auth: CustomToolAuth = tool.auth;
         
-        switch (tool.auth.type) {
+        switch (auth.type) {
             case 'apiKey':
-                if (tool.auth.headerName && tool.auth.keyName) {
-                    headers[tool.auth.headerName] = tool.auth.keyName;
+                if (auth.headerName && auth.keyName) {
+                    headers[auth.headerName] = auth.keyName;
                 }
                 break;
             case 'bearer':
-                headers['Authorization'] = `Bearer ${tool.auth.keyName || ''}`;
+                headers['Authorization'] = `Bearer ${auth.keyName || ''}`;
                 break;
             case 'basic':
-                if (tool.auth.keyName) {
-                    headers['Authorization'] = `Basic ${Buffer.from(tool.auth.keyName).toString('base64')}`;
+                if (auth.keyName) {
+                    headers['Authorization'] = `Basic ${Buffer.from(auth.keyName).toString('base64')}`;
                 }
                 break;
         }

@@ -6,6 +6,16 @@ import { LanguageSupportService } from '../languageSupport/languageSupportServic
 import { CodebaseAnalysisService } from './codebaseAnalysisService';
 import { ICodebaseUnderstandingService, CodebaseAnalysisResult, CodebaseOverview, FileRelationshipMap, CodeFlowAnalysis, ArchitecturalPatternMap, RelevantFileResult, SymbolUsageAnalysis, DependencyGraphResult, ModuleInsights, FileChange, ComplexityHotspot, LanguageDistribution, DependencyInsight, ModuleSummary, CallNode, DataFlowNode, ExecutionPath } from './interfaces/codebaseUnderstandingInterface';
 
+// Define a more specific type for package.json structure
+interface PackageJson {
+    name?: string;
+    version?: string;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
+    [key: string]: unknown; // Allow for other fields
+}
+
 export class CodebaseUnderstandingService implements ICodebaseUnderstandingService, vscode.Disposable {
     private context: ExtensionContext;
     private subscriptions: vscode.Disposable[] = [];
@@ -631,7 +641,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return `file:${path}`;
     }
 
-    private async findMainPackageJson(): Promise<unknown | null> {
+    private async findMainPackageJson(): Promise<PackageJson | null> {
         if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
             return null;
         }
@@ -641,7 +651,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         
         try {
             const content = await this.readFile(packageJsonPath);
-            return JSON.parse(content);
+            return JSON.parse(content) as PackageJson;
         } catch (error) {
             return null;
         }
@@ -874,7 +884,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
             for (const packageJsonUri of packageJsonFiles) {
                 try {
                     const content = await this.readFile(packageJsonUri.fsPath);
-                    const packageData = JSON.parse(content);
+                    const packageData = JSON.parse(content) as PackageJson;
                     
                     // Process dependencies
                     const allDeps = {
@@ -943,7 +953,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
                         for (const line of lines) {
                             const match = line.match(/^(\w+)\s*=\s*"([^"]+)"/);
                             if (match) {
-                                const [_, name, version] = match;
+                                const [, name, version] = match;
                                 
                                 dependencies.push({
                                     name,
@@ -990,7 +1000,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return 'Unknown';
     }
 
-    private determineProjectType(filePaths: string[], packageJson: unknown[] | null): string {
+    private determineProjectType(filePaths: string[], packageJson: PackageJson | null): string {
         if (packageJson) {
             // Check for framework-specific dependencies
             const allDeps = {
@@ -2219,7 +2229,11 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return filesByFolder;
     }
 
-    private async detectPatterns(filesByFolder: Record<string, string[]>): Promise<unknown[][]> {
+    private async detectPatterns(filesByFolder: Record<string, string[]>): Promise<Array<{
+        name: string;
+        confidence: number;
+        locations: Array<{file: string; startLine: number; endLine: number;}>;
+    }>> {
         // Simplistic pattern detection based on folder structure and naming patterns
         const patterns: Array<{
             name: string;

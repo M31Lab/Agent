@@ -92,7 +92,7 @@ export class CheckpointComparisonService implements vscode.Disposable {
             toCheckpoint?.changes || [];
         
         // Compare the changes to generate a diff
-        const diff = this.generateDiff(fromChanges, toChanges, comparisonOptions);
+        const diff = this.generateDiff(fromChanges, toChanges, comparisonOptions, fromCheckpointId, toCheckpointId);
         
         // Generate summary
         const summary = {
@@ -191,9 +191,16 @@ export class CheckpointComparisonService implements vscode.Disposable {
     private generateDiff(
         fromChanges: FileChange[],
         toChanges: FileChange[],
-        options: CheckpointComparisonOptions
+        options: CheckpointComparisonOptions,
+        fromCheckpointId: string,
+        toCheckpointId: string
     ): CheckpointDiff {
         const diff: CheckpointDiff = {
+            id: `diff_${fromCheckpointId}_${toCheckpointId}_${Date.now()}`,
+            fromCheckpointId: fromCheckpointId,
+            toCheckpointId: toCheckpointId,
+            timestamp: Date.now(),
+            fileChanges: [],
             changedFiles: [],
             createdFiles: [],
             deletedFiles: []
@@ -224,7 +231,8 @@ export class CheckpointComparisonService implements vscode.Disposable {
                 // File was created
                 diff.createdFiles.push({
                     path: filePath,
-                    content: toChange.newContent
+                    content: toChange.newContent,
+                    type: 'added'
                 });
                 processedCount++;
             } else if (fromChange.newContent !== toChange.newContent) {
@@ -245,7 +253,8 @@ export class CheckpointComparisonService implements vscode.Disposable {
                         oldContent: fromChange.newContent,
                         newContent: toChange.newContent,
                         additions,
-                        deletions
+                        deletions,
+                        type: 'modified'
                     });
                     processedCount++;
                 }
@@ -255,7 +264,8 @@ export class CheckpointComparisonService implements vscode.Disposable {
                     path: filePath,
                     oldContent: fromChange.newContent,
                     newContent: toChange.newContent,
-                    unchanged: true
+                    unchanged: true,
+                    type: 'modified'
                 });
                 processedCount++;
             }
@@ -271,11 +281,19 @@ export class CheckpointComparisonService implements vscode.Disposable {
                 // File was deleted
                 diff.deletedFiles.push({
                     path: filePath,
-                    content: fromChange.newContent
+                    content: fromChange.newContent,
+                    type: 'deleted'
                 });
                 processedCount++;
             }
         }
+        
+        // Populate fileChanges array with all changes
+        diff.fileChanges = [
+            ...diff.changedFiles,
+            ...diff.createdFiles,
+            ...diff.deletedFiles
+        ];
         
         return diff;
     }
@@ -399,10 +417,6 @@ export class CheckpointComparisonService implements vscode.Disposable {
                     }
                 }
             }
-            
-            // Create temporary URIs for diff editor
-            const _fromUri = vscode.Uri.parse(`untitled:${filePath}.from-checkpoint`);
-            const _toUri = vscode.Uri.parse(`untitled:${filePath}.to-checkpoint`);
             
             // Create document contents
             const fromDoc = await vscode.workspace.openTextDocument({

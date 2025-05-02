@@ -130,4 +130,5 @@ export interface CheckpointEvent {
     backupCheckpointId?: string;
     error?: string;
     timestamp: number;
+    options?: CheckpointRestoreOptions;
 } 

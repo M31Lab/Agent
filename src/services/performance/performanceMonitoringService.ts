@@ -32,6 +32,19 @@ interface SystemMetrics {
   uptime: number;
 }
 
+interface EndpointMetrics {
+  calls: number;
+  tokens: number;
+  totalLatency: number;
+  minLatency: number;
+  maxLatency: number;
+  avgLatency: number;
+}
+
+interface DetailedMetricsStore {
+  [endpoint: string]: EndpointMetrics;
+}
+
 export class PerformanceMonitoringService implements vscode.Disposable {
   private static instance: PerformanceMonitoringService;
   private loggingService: LoggingService;
@@ -47,7 +60,8 @@ export class PerformanceMonitoringService implements vscode.Disposable {
   private previousCpuInfo: os.CpuInfo[] = os.cpus();
   private onMetricsUpdatedEmitter = new vscode.EventEmitter<PerformanceMetrics>();
   private startTime = Date.now();
-  private detailedMetrics: Record<string, any> = {};
+  private detailedMetrics: DetailedMetricsStore = {};
+  private averageLatency = 0;
   private peakValues = {
     cpu: 0,
     memory: 0,
@@ -102,7 +116,7 @@ export class PerformanceMonitoringService implements vscode.Disposable {
       api: {
         callCount: latest.apiCalls || 0,
         tokenUsage: latest.tokenUsage || 0,
-        latency: this.detailedMetrics.averageLatency || 0
+        latency: this.averageLatency || 0
       }
     };
   }
@@ -137,13 +151,15 @@ export class PerformanceMonitoringService implements vscode.Disposable {
     apiCallHistory: number[];
     tokenUsageHistory: number[];
     performanceHistory: PerformanceMetrics[];
-    detailedMetrics: Record<string, any>;
+    detailedMetrics: DetailedMetricsStore;
+    averageLatency: number;
   } {
     return {
       apiCallHistory: this.apiCallHistory,
       tokenUsageHistory: this.tokenUsageHistory,
       performanceHistory: this.metricsHistory,
-      detailedMetrics: this.detailedMetrics
+      detailedMetrics: this.detailedMetrics,
+      averageLatency: this.averageLatency
     };
   }
 
@@ -152,12 +168,13 @@ export class PerformanceMonitoringService implements vscode.Disposable {
     this.totalTokens += tokenCount;
     
     // Record detailed metrics for this call
-    const endpointMetrics = this.detailedMetrics[endpoint] || {
+    const endpointMetrics: EndpointMetrics = this.detailedMetrics[endpoint] || {
       calls: 0,
       tokens: 0,
       totalLatency: 0,
       minLatency: Number.MAX_VALUE,
-      maxLatency: 0
+      maxLatency: 0,
+      avgLatency: 0
     };
     
     endpointMetrics.calls++;
@@ -171,12 +188,14 @@ export class PerformanceMonitoringService implements vscode.Disposable {
     
     // Update average latency across all endpoints
     const totalCalls = Object.values(this.detailedMetrics)
-      .reduce((sum, metrics: any) => sum + metrics.calls, 0);
+      .filter((metrics): metrics is EndpointMetrics => 'calls' in metrics)
+      .reduce((sum, metrics) => sum + metrics.calls, 0);
     
     const totalLatency = Object.values(this.detailedMetrics)
-      .reduce((sum, metrics: any) => sum + metrics.totalLatency, 0);
+      .filter((metrics): metrics is EndpointMetrics => 'totalLatency' in metrics)
+      .reduce((sum, metrics) => sum + metrics.totalLatency, 0);
     
-    this.detailedMetrics.averageLatency = totalLatency / totalCalls;
+    this.averageLatency = totalLatency / totalCalls;
     
     this.loggingService.debug(`Recorded API call: ${endpoint}, ${tokenCount} tokens, ${latencyMs}ms latency`);
   }
@@ -267,28 +286,20 @@ export class PerformanceMonitoringService implements vscode.Disposable {
         return 0;
       }
       
-      let totalUser = 0;
-      let totalSystem = 0;
       let totalIdle = 0;
       let totalTick = 0;
       
-      let prevTotalUser = 0;
-      let prevTotalSystem = 0;
       let prevTotalIdle = 0;
       let prevTotalTick = 0;
       
       // Calculate current values
       for (const cpu of currentCpuInfo) {
-        totalUser += cpu.times.user;
-        totalSystem += cpu.times.sys;
         totalIdle += cpu.times.idle;
         totalTick += cpu.times.user + cpu.times.sys + cpu.times.idle + cpu.times.nice + cpu.times.irq;
       }
       
       // Calculate previous values
       for (const cpu of this.previousCpuInfo) {
-        prevTotalUser += cpu.times.user;
-        prevTotalSystem += cpu.times.sys;
         prevTotalIdle += cpu.times.idle;
         prevTotalTick += cpu.times.user + cpu.times.sys + cpu.times.idle + cpu.times.nice + cpu.times.irq;
       }

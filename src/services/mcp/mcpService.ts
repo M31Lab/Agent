@@ -2,14 +2,12 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as http from 'http';
-import _axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import {
     McpToolDefinition,
     McpEndpoint,
     McpParameter,
-    _McpToolInvocation,
     McpToolResponse,
     McpServerConfig,
     McpEventType,
@@ -24,6 +22,11 @@ export interface McpEvent {
     data?: unknown;
     error?: string;
     timestamp: number;
+}
+
+export interface McpInvocation {
+    endpointId: string;
+    parameters?: Record<string, unknown>;
 }
 
 export class McpService implements vscode.Disposable {
@@ -159,7 +162,8 @@ export class McpService implements vscode.Disposable {
         this.emitEvent({
             type: McpEventType.ToolCreated,
             toolId: tool.id,
-            data: tool
+            data: tool,
+            timestamp: Date.now()
         });
         
         return tool.id;
@@ -178,7 +182,8 @@ export class McpService implements vscode.Disposable {
             
             this.emitEvent({
                 type: McpEventType.ToolDeleted,
-                toolId
+                toolId,
+                timestamp: Date.now()
             });
             
             return true;
@@ -199,7 +204,8 @@ export class McpService implements vscode.Disposable {
         this.emitEvent({
             type: McpEventType.ToolUpdated,
             toolId: tool.id,
-            data: tool
+            data: tool,
+            timestamp: Date.now()
         });
     }
     
@@ -243,7 +249,8 @@ export class McpService implements vscode.Disposable {
             type: McpEventType.EndpointAdded,
             toolId,
             endpointId,
-            data: endpoint
+            data: endpoint,
+            timestamp: Date.now()
         });
         
         return endpointId;
@@ -267,7 +274,8 @@ export class McpService implements vscode.Disposable {
         this.emitEvent({
             type: McpEventType.EndpointRemoved,
             toolId,
-            endpointId
+            endpointId,
+            timestamp: Date.now()
         });
         
         return true;
@@ -307,7 +315,8 @@ export class McpService implements vscode.Disposable {
         this.emitEvent({
             type: McpEventType.ServerCreated,
             serverId,
-            data: config
+            data: config,
+            timestamp: Date.now()
         });
         
         return serverId;
@@ -380,7 +389,8 @@ export class McpService implements vscode.Disposable {
             this.emitEvent({
                 type: McpEventType.ServerStarted,
                 serverId,
-                data: { port: config.port }
+                data: { port: config.port },
+                timestamp: Date.now()
             });
         } catch (error) {
             this.context.loggingService.error(`Error starting server ${serverId}:`, error);
@@ -408,7 +418,8 @@ export class McpService implements vscode.Disposable {
         
         this.emitEvent({
             type: McpEventType.ServerStopped,
-            serverId
+            serverId,
+            timestamp: Date.now()
         });
     }
     
@@ -467,16 +478,22 @@ export class McpService implements vscode.Disposable {
             }
             
             // Extract invocation details from request body
-            const invocation = await this.readRequestBody(req);
-            if (!invocation || typeof invocation !== 'object') {
+            const invocationData = await this.readRequestBody(req);
+            if (!invocationData || typeof invocationData !== 'object') {
                 res.writeHead(400);
                 res.end(JSON.stringify({ error: 'Invalid invocation data' }));
                 return;
             }
             
+            const invocation = invocationData as McpInvocation;
             const endpointId = invocation.endpointId;
-            const endpoint = tool.endpoints.find(e => e.id === endpointId);
+            if (!endpointId) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Missing endpointId in invocation data' }));
+                return;
+            }
             
+            const endpoint = tool.endpoints.find(e => e.id === endpointId);
             if (!endpoint) {
                 res.writeHead(404);
                 res.end(JSON.stringify({ error: `Endpoint ${endpointId} not found` }));
@@ -507,7 +524,8 @@ export class McpService implements vscode.Disposable {
                     data: {
                         params,
                         result
-                    }
+                    },
+                    timestamp: Date.now()
                 });
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
@@ -519,7 +537,8 @@ export class McpService implements vscode.Disposable {
                     type: McpEventType.ToolInvocationFailed,
                     toolId,
                     endpointId,
-                    error: errorMessage
+                    error: errorMessage,
+                    timestamp: Date.now()
                 });
             }
             
@@ -531,7 +550,7 @@ export class McpService implements vscode.Disposable {
         res.end(JSON.stringify({ error: 'Not found' }));
     }
     
-    private async readRequestBody(req: http.IncomingMessage): Promise<Promise<unknown>> {
+    private readRequestBody(req: http.IncomingMessage): Promise<unknown> {
         return new Promise((resolve, reject) => {
             const chunks: Buffer[] = [];
             

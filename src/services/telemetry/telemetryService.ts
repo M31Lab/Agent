@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as _os from 'os';
+// import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigurationService } from '../configuration/configurationService';
 import { LoggingService } from '../../utils/logging/loggingService';
@@ -111,6 +111,6 @@ export class TelemetryService {
     }
 
     public dispose(): void {
-        TelemetryService.instance = undefined as unknown;
+        TelemetryService.instance = undefined as unknown as TelemetryService;
     }
 } 

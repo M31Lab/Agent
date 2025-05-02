@@ -265,15 +265,19 @@ Don't explain the similarities, just list them.`;
         const lines = text.split('\n');
         
         const languageService = LanguageSupportService.getInstance();
-        const languageDef = languageService.getLanguageDefinitionForDocument(document);
+        if (!languageService) {
+            return this.getBasicSummary(lines);
+        }
+        
+        const languageDef = languageService.getLanguageFeatures(document.languageId);
         
         if (!languageDef) {
             return this.getBasicSummary(lines);
         }
         
-        const lineCommentToken = languageDef.lineCommentToken;
-        const blockCommentStart = languageDef.blockCommentStart;
-        const blockCommentEnd = languageDef.blockCommentEnd;
+        const lineComment = languageDef.lineComment;
+        const blockCommentStart = languageDef.commentStart;
+        const blockCommentEnd = languageDef.commentEnd;
         
         let linesOfCode = 0;
         let functionCount = 0;
@@ -318,7 +322,7 @@ Don't explain the similarities, just list them.`;
             }
             
             // Skip lines that are just comments
-            if (lineCommentToken && line.startsWith(lineCommentToken)) {
+            if (lineComment && line.startsWith(lineComment)) {
                 commentCount++;
                 continue;
             }
@@ -568,8 +572,6 @@ Don't explain the similarities, just list them.`;
                 return [];
             }
             
-            const _workspaceRoot = workspaceFolders[0].uri.fsPath;
-            
             // Find all relevant files using workspace search API
             let searchResults: SearchResult[] = [];
             
@@ -616,10 +618,23 @@ Don't explain the similarities, just list them.`;
                 }
                 
                 // Use VS Code's search API to find matches in content
-                const contentMatches = await vscode.workspace.findTextInFiles(
-                    { pattern: term },
-                    { maxResults: maxResults * 2 }
-                );
+                // First find files that might contain the term
+                const files = await vscode.workspace.findFiles('**/*', '**/node_modules/**', maxResults * 2);
+                
+                // Then search for the term in each file
+                const contentMatches = [];
+                for (const uri of files) {
+                    try {
+                        const document = await vscode.workspace.openTextDocument(uri);
+                        const content = document.getText();
+                        if (content.toLowerCase().includes(term.toLowerCase())) {
+                            contentMatches.push({ uri });
+                        }
+                    } catch (error) {
+                        // Skip files that can't be opened
+                        continue;
+                    }
+                }
                 
                 // Convert results to our format
                 for (const match of contentMatches) {

@@ -184,26 +184,58 @@ export class CodebaseAnalysisService implements vscode.Disposable {
             const searchOptions = { ...defaultOptions, ...options };
             
             // Use VS Code's built-in search API
-            const results = await vscode.workspace.findTextInFiles(
-                {
-                    pattern: searchTerm,
-                    caseSensitive: searchOptions.caseSensitive,
-                    includes: searchOptions.includePattern,
-                    excludes: searchOptions.excludePattern
-                },
-                {
-                    maxResults: searchOptions.maxResults
-                }
+            // First find files that match the include/exclude patterns
+            const files = await vscode.workspace.findFiles(
+                searchOptions.includePattern || '**/*',
+                searchOptions.excludePattern,
+                searchOptions.maxResults
             );
+            
+            // Then search for the term in each file
+            const results = [];
+            for (const uri of files) {
+                try {
+                    const document = await vscode.workspace.openTextDocument(uri);
+                    const content = document.getText();
+                    
+                    // Perform the search based on case sensitivity
+                    const searchMethod = searchOptions.caseSensitive 
+                        ? (content: string): boolean => content.includes(searchTerm)
+                        : (content: string): boolean => content.toLowerCase().includes(searchTerm.toLowerCase());
+                    
+                    if (searchMethod(content)) {
+                        // Find all occurrences of the search term
+                        const lines = content.split('\n');
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = searchOptions.caseSensitive 
+                                ? lines[i]
+                                : lines[i].toLowerCase();
+                            const searchTermToUse = searchOptions.caseSensitive 
+                                ? searchTerm
+                                : searchTerm.toLowerCase();
+                            
+                            if (line.includes(searchTermToUse)) {
+                                const startChar = line.indexOf(searchTermToUse);
+                                const range = new vscode.Range(
+                                    new vscode.Position(i, startChar),
+                                    new vscode.Position(i, startChar + searchTerm.length)
+                                );
+                                results.push({ uri, range });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    // Skip files that can't be opened
+                    continue;
+                }
+            }
             
             const locations: vscode.Location[] = [];
             
             // Convert results to Locations
-            results.forEach(result => {
-                result.ranges.forEach(range => {
-                    locations.push(new vscode.Location(result.uri, range));
-                });
-            });
+            for (const result of results) {
+                locations.push(new vscode.Location(result.uri, result.range));
+            }
             
             this.context.loggingService.info(`Codebase search for "${searchTerm}" found ${locations.length} results`);
             

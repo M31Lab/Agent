@@ -5,12 +5,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { 
     Checkpoint, 
     FileChange, 
+    FileChangeDiff,
     CheckpointDiff,
     CheckpointMetrics,
     CheckpointRestoreOptions,
-    defaultCheckpointRestoreOptions
+    defaultCheckpointRestoreOptions,
+    CheckpointEvent
 } from '../../models/checkpoint';
-import { ExtensionContext } from '../../models/extensionContext';
+import { ExtensionContext } from '../../models/context/extensionContext';
 
 export class CheckpointService implements vscode.Disposable {
     private static instance: CheckpointService;
@@ -19,6 +21,7 @@ export class CheckpointService implements vscode.Disposable {
     private readonly workspaceRoot: string;
     private readonly eventEmitter = new vscode.EventEmitter<CheckpointEvent>();
     private readonly disposables: vscode.Disposable[] = [];
+    private readonly context: ExtensionContext;
     
     public readonly onCheckpointEvent = this.eventEmitter.event;
     
@@ -68,11 +71,16 @@ export class CheckpointService implements vscode.Disposable {
         const checkpoint: Checkpoint = {
             id: checkpointId,
             name,
-            description,
+            description: description || '',
             timestamp,
             changes,
-            taskId,
-            taskStep
+            taskState: taskId ? {
+                id: taskId,
+                currentStep: taskStep || 0,
+                steps: [],
+                startTime: timestamp,
+                lastUpdateTime: timestamp
+            } : undefined
         };
         
         this.checkpoints.set(checkpointId, checkpoint);
@@ -104,7 +112,7 @@ export class CheckpointService implements vscode.Disposable {
             throw new Error(`Checkpoint ${toCheckpointId} not found`);
         }
         
-        const fileChanges: FileChange[] = [];
+        const tempFileChanges: FileChange[] = [];
         const processedFiles = new Set<string>();
         
         // Process changes from source checkpoint
@@ -114,19 +122,19 @@ export class CheckpointService implements vscode.Disposable {
             
             if (!toChange) {
                 // File was deleted or not present in the target checkpoint
-                fileChanges.push({
+                tempFileChanges.push({
                     path: fromChange.path,
                     oldContent: fromChange.newContent,
-                    changeType: 'delete',
+                    type: 'delete',
                     timestamp: toCheckpoint.timestamp
                 });
             } else if (fromChange.newContent !== toChange.newContent) {
                 // File was modified
-                fileChanges.push({
+                tempFileChanges.push({
                     path: fromChange.path,
                     oldContent: fromChange.newContent,
                     newContent: toChange.newContent,
-                    changeType: 'modify',
+                    type: 'modify',
                     timestamp: toChange.timestamp
                 });
             }
@@ -135,20 +143,49 @@ export class CheckpointService implements vscode.Disposable {
         // Process files that are only in the target checkpoint (new files)
         for (const toChange of toCheckpoint.changes) {
             if (!processedFiles.has(toChange.path)) {
-                fileChanges.push({
+                tempFileChanges.push({
                     path: toChange.path,
                     newContent: toChange.newContent,
-                    changeType: 'create',
+                    type: 'create',
                     timestamp: toChange.timestamp
                 });
             }
         }
+        
+        // Convert FileChange[] to FileChangeDiff[]
+        const fileChanges: FileChangeDiff[] = tempFileChanges.map(change => {
+            const diffChange: FileChangeDiff = {
+                path: change.path,
+                type: change.type === 'create' ? 'added' : 
+                      change.type === 'modify' ? 'modified' : 'deleted',
+                oldContent: change.oldContent,
+                newContent: change.newContent
+            };
+            return diffChange;
+        });
+        
+        // Separate changes by type
+        const createdFiles = fileChanges.filter(change => change.type === 'added');
+        const deletedFiles = fileChanges.filter(change => change.type === 'deleted');
+        const changedFiles = fileChanges.filter(change => change.type === 'modified').map(change => {
+            // Calculate additions and deletions if needed
+            const oldLines = change.oldContent?.split('\n').length || 0;
+            const newLines = change.newContent?.split('\n').length || 0;
+            return {
+                ...change,
+                additions: newLines > oldLines ? newLines - oldLines : 0,
+                deletions: oldLines > newLines ? oldLines - newLines : 0
+            };
+        });
         
         const diff: CheckpointDiff = {
             id: uuidv4(),
             fromCheckpointId,
             toCheckpointId,
             fileChanges,
+            changedFiles,
+            createdFiles,
+            deletedFiles,
             timestamp: Date.now()
         };
         
@@ -163,14 +200,8 @@ export class CheckpointService implements vscode.Disposable {
         }
         
         const currentChanges = await this.captureChanges();
-        const _tempCheckpoint: Checkpoint = {
-            id: 'current',
-            name: 'Current State',
-            timestamp: Date.now(),
-            changes: currentChanges
-        };
         
-        const fileChanges: FileChange[] = [];
+        const tempFileChanges: FileChange[] = [];
         const processedFiles = new Set<string>();
         
         // Process changes from checkpoint
@@ -180,19 +211,19 @@ export class CheckpointService implements vscode.Disposable {
             
             if (!currentChange) {
                 // File was deleted since checkpoint
-                fileChanges.push({
+                tempFileChanges.push({
                     path: checkpointChange.path,
                     oldContent: checkpointChange.newContent,
-                    changeType: 'delete',
+                    type: 'delete',
                     timestamp: Date.now()
                 });
             } else if (checkpointChange.newContent !== currentChange.newContent) {
                 // File was modified
-                fileChanges.push({
+                tempFileChanges.push({
                     path: checkpointChange.path,
                     oldContent: checkpointChange.newContent,
                     newContent: currentChange.newContent,
-                    changeType: 'modify',
+                    type: 'modify',
                     timestamp: currentChange.timestamp
                 });
             }
@@ -201,20 +232,49 @@ export class CheckpointService implements vscode.Disposable {
         // Process files that are only in the current state (new files)
         for (const currentChange of currentChanges) {
             if (!processedFiles.has(currentChange.path)) {
-                fileChanges.push({
+                tempFileChanges.push({
                     path: currentChange.path,
                     newContent: currentChange.newContent,
-                    changeType: 'create',
+                    type: 'create',
                     timestamp: currentChange.timestamp
                 });
             }
         }
+        
+        // Convert FileChange[] to FileChangeDiff[]
+        const fileChanges: FileChangeDiff[] = tempFileChanges.map(change => {
+            const diffChange: FileChangeDiff = {
+                path: change.path,
+                type: change.type === 'create' ? 'added' : 
+                      change.type === 'modify' ? 'modified' : 'deleted',
+                oldContent: change.oldContent,
+                newContent: change.newContent
+            };
+            return diffChange;
+        });
+        
+        // Separate changes by type
+        const createdFiles = fileChanges.filter(change => change.type === 'added');
+        const deletedFiles = fileChanges.filter(change => change.type === 'deleted');
+        const changedFiles = fileChanges.filter(change => change.type === 'modified').map(change => {
+            // Calculate additions and deletions if needed
+            const oldLines = change.oldContent?.split('\n').length || 0;
+            const newLines = change.newContent?.split('\n').length || 0;
+            return {
+                ...change,
+                additions: newLines > oldLines ? newLines - oldLines : 0,
+                deletions: oldLines > newLines ? oldLines - newLines : 0
+            };
+        });
         
         const diff: CheckpointDiff = {
             id: uuidv4(),
             fromCheckpointId: checkpointId,
             toCheckpointId: 'current',
             fileChanges,
+            changedFiles,
+            createdFiles,
+            deletedFiles,
             timestamp: Date.now()
         };
         
@@ -231,7 +291,7 @@ export class CheckpointService implements vscode.Disposable {
             throw new Error(`Checkpoint ${checkpointId} not found`);
         }
         
-        const _mergedOptions: CheckpointRestoreOptions = {
+        const mergedOptions: CheckpointRestoreOptions = {
             ...defaultCheckpointRestoreOptions,
             ...options
         };
@@ -270,12 +330,31 @@ export class CheckpointService implements vscode.Disposable {
                 }
             }
             
+            // Restore task state if option is enabled
+            if (mergedOptions.restoreTaskState && checkpoint.taskState) {
+                // Task state restoration logic would go here
+                this.context.loggingService.debug('Restoring task state from checkpoint', checkpoint.taskState);
+            }
+            
+            // Restore terminal state if option is enabled
+            if (mergedOptions.restoreTerminalState) {
+                // Terminal state restoration logic would go here
+                this.context.loggingService.debug('Restoring terminal state from checkpoint');
+            }
+            
+            // Restore editor state if option is enabled
+            if (mergedOptions.restoreEditorState) {
+                // Editor state restoration logic would go here
+                this.context.loggingService.debug('Restoring editor state from checkpoint');
+            }
+            
             this.emitEvent({
                 type: 'checkpointRestored',
                 checkpointId,
                 name: checkpoint.name,
                 backupCheckpointId: backupId,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                options: mergedOptions
             });
             
             return true;
@@ -330,8 +409,8 @@ export class CheckpointService implements vscode.Disposable {
     
     public getTaskCheckpoints(taskId: string): Checkpoint[] {
         return this.getAllCheckpoints()
-            .filter(checkpoint => checkpoint.taskId === taskId)
-            .sort((a, b) => (a.taskStep ?? 0) - (b.taskStep ?? 0));
+            .filter(checkpoint => checkpoint.taskState?.id === taskId)
+            .sort((a, b) => (a.taskState?.currentStep ?? 0) - (b.taskState?.currentStep ?? 0));
     }
     
     public getCheckpointMetrics(checkpointId: string): CheckpointMetrics {
@@ -369,12 +448,13 @@ export class CheckpointService implements vscode.Disposable {
         }
         
         return {
-            filesChanged: filesCreated + filesDeleted + filesModified,
-            linesAdded,
-            linesRemoved,
-            filesCreated,
-            filesDeleted,
-            filesModified
+            totalFiles: filesCreated + filesDeleted + filesModified,
+            addedLines: linesAdded,
+            removedLines: linesRemoved,
+            createdFiles: filesCreated,
+            deletedFiles: filesDeleted,
+            modifiedFiles: filesModified,
+            totalLines: linesAdded + linesRemoved
         };
     }
     
@@ -417,7 +497,7 @@ export class CheckpointService implements vscode.Disposable {
                 changes.push({
                     path: relativePath,
                     newContent: content,
-                    changeType: 'modify',
+                    type: 'modify',
                     timestamp: Date.now()
                 });
             } catch (error) {
@@ -431,6 +511,11 @@ export class CheckpointService implements vscode.Disposable {
     private saveCheckpoint(checkpoint: Checkpoint): void {
         const filePath = path.join(this.storageDir, `${checkpoint.id}.json`);
         fs.writeFileSync(filePath, JSON.stringify(checkpoint, null, 2), 'utf8');
+    }
+    
+    private async initialize(): Promise<void> {
+        // Any initialization logic can go here
+        // For now, this is just a placeholder since the method is called in the constructor
     }
     
     private loadCheckpoints(): void {
@@ -463,18 +548,3 @@ export class CheckpointService implements vscode.Disposable {
         this.disposables.forEach(d => d.dispose());
     }
 }
-
-export type CheckpointEventType = 
-    | 'checkpointCreated'
-    | 'checkpointRestored'
-    | 'checkpointDeleted'
-    | 'error';
-
-export interface CheckpointEvent {
-    type: CheckpointEventType;
-    checkpointId: string;
-    name?: string;
-    backupCheckpointId?: string;
-    error?: string;
-    timestamp: number;
-} 

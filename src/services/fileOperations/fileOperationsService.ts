@@ -278,7 +278,7 @@ export class FileOperationsService implements vscode.Disposable {
             const files = await vscode.workspace.fs.readDirectory(uri);
             
             // Return just the file paths
-            return files.map(([name, type]) => {
+            return files.map(([name, _type]) => {
                 const fullPath = path.join(dirPath, name);
                 return fullPath;
             });

@@ -35,6 +35,26 @@ export interface SearchEvent {
     timestamp: number;
 }
 
+// Define interfaces for search provider result items
+interface BingSearchResultItem {
+    name: string;
+    url: string;
+    snippet: string;
+}
+
+interface GoogleSearchResultItem {
+    title: string;
+    link: string;
+    snippet: string;
+}
+
+interface CustomSearchResultItem {
+    title: string;
+    url: string;
+    description?: string;
+    snippet?: string;
+}
+
 export const defaultSearchOptions: WebSearchOptions = {
     maxResults: 5,
     safeSearch: true
@@ -172,6 +192,8 @@ export class WebSearchService implements vscode.Disposable {
         }
     }
     
+    // Use the Bing search result item interface defined at module level
+
     private async searchWithBing(
         query: string,
         options: WebSearchOptions
@@ -204,11 +226,12 @@ export class WebSearchService implements vscode.Disposable {
             
             // Process results
             const results = response.data.webPages.value.map((item: unknown) => {
+                const typedItem = item as BingSearchResultItem;
                 return {
                     id: uuidv4(),
-                    title: item.name,
-                    url: item.url,
-                    description: item.snippet,
+                    title: typedItem.name,
+                    url: typedItem.url,
+                    description: typedItem.snippet,
                     source: 'Bing',
                     timestamp: Date.now()
                 };
@@ -223,6 +246,8 @@ export class WebSearchService implements vscode.Disposable {
         }
     }
     
+    // Use the Google search result item interface defined at module level
+
     private async searchWithGoogle(
         query: string,
         options: WebSearchOptions
@@ -255,11 +280,12 @@ export class WebSearchService implements vscode.Disposable {
             
             // Process results
             const results = response.data.items.map((item: unknown) => {
+                const typedItem = item as GoogleSearchResultItem;
                 return {
                     id: uuidv4(),
-                    title: item.title,
-                    url: item.link,
-                    description: item.snippet,
+                    title: typedItem.title,
+                    url: typedItem.link,
+                    description: typedItem.snippet,
                     source: 'Google',
                     timestamp: Date.now()
                 };
@@ -333,6 +359,8 @@ export class WebSearchService implements vscode.Disposable {
         }
     }
     
+    // Use the Custom search result item interface defined at module level
+
     private async searchWithCustomEndpoint(
         query: string,
         options: WebSearchOptions
@@ -368,11 +396,12 @@ export class WebSearchService implements vscode.Disposable {
             // Process results - assumes a standard format
             // Custom endpoints should return an array of objects with at least title, url, and description
             const results = response.data.results.map((item: unknown) => {
+                const typedItem = item as CustomSearchResultItem;
                 return {
                     id: uuidv4(),
-                    title: item.title,
-                    url: item.url,
-                    description: item.description || item.snippet,
+                    title: typedItem.title,
+                    url: typedItem.url,
+                    description: typedItem.description || typedItem.snippet || '',
                     source: 'Custom',
                     timestamp: Date.now()
                 };

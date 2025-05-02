@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { CheckpointService } from '../services/checkpoint/checkpointService';
-import { CheckpointRestoreOptions } from '../models/checkpoint';
+import { Checkpoint, CheckpointRestoreOptions } from '../models/checkpoint';
 
 export function registerCheckpointCommands(
     context: vscode.ExtensionContext,
@@ -322,7 +322,7 @@ export function registerCheckpointCommands(
     return disposables;
 }
 
-function formatDiffSummary(diff: unknown, fromLabel: string, toLabel: string): string {
+function formatDiffSummary(diff: { fileChanges: { changeType?: string; path: string }[] }, fromLabel: string, toLabel: string): string {
     let content = `# Checkpoint Comparison: ${fromLabel} → ${toLabel}\n\n`;
     
     content += `Comparison created: ${new Date().toLocaleString()}\n\n`;
@@ -368,7 +368,7 @@ function formatDiffSummary(diff: unknown, fromLabel: string, toLabel: string): s
     return content;
 }
 
-function formatCheckpointsList(checkpoints: unknown[][]): string {
+function formatCheckpointsList(checkpoints: Checkpoint[]): string {
     let content = `# Checkpoints (${checkpoints.length})\n\n`;
     
     for (const cp of checkpoints) {
@@ -382,15 +382,15 @@ function formatCheckpointsList(checkpoints: unknown[][]): string {
         
         const metrics = getCheckpointMetricsData(cp);
         
-        content += `- Files changed: ${metrics.filesChanged}\n`;
-        content += `- Files created: ${metrics.filesCreated}\n`;
-        content += `- Files modified: ${metrics.filesModified}\n`;
-        content += `- Files deleted: ${metrics.filesDeleted}\n`;
+        content += `- Files changed: ${metrics.totalFiles}\n`;
+        content += `- Files created: ${metrics.createdFiles}\n`;
+        content += `- Files modified: ${metrics.modifiedFiles}\n`;
+        content += `- Files deleted: ${metrics.deletedFiles}\n`;
         
-        if (cp.taskId) {
-            content += `- Task ID: ${cp.taskId}\n`;
-            if (cp.taskStep !== undefined) {
-                content += `- Task Step: ${cp.taskStep}\n`;
+        if (cp.taskState?.id) {
+            content += `- Task ID: ${cp.taskState.id}\n`;
+            if (cp.taskState.currentStep !== undefined) {
+                content += `- Task Step: ${cp.taskState.currentStep}\n`;
             }
         }
         
@@ -400,25 +400,25 @@ function formatCheckpointsList(checkpoints: unknown[][]): string {
     return content;
 }
 
-function getCheckpointMetricsData(checkpoint: unknown): unknown {
+function getCheckpointMetricsData(checkpoint: Checkpoint): { totalFiles: number, createdFiles: number, deletedFiles: number, modifiedFiles: number } {
     let filesCreated = 0;
     let filesDeleted = 0;
     let filesModified = 0;
     
     for (const change of checkpoint.changes) {
-        if (change.changeType === 'create' || (change.oldContent === undefined && change.newContent !== undefined)) {
+        if (change.changeType === 'create' || change.type === 'create' || (change.oldContent === undefined && change.newContent !== undefined)) {
             filesCreated++;
-        } else if (change.changeType === 'delete' || (change.oldContent !== undefined && change.newContent === undefined)) {
+        } else if (change.changeType === 'delete' || change.type === 'delete' || (change.oldContent !== undefined && change.newContent === undefined)) {
             filesDeleted++;
-        } else if (change.changeType === 'modify' || (change.oldContent !== undefined && change.newContent !== undefined)) {
+        } else if (change.changeType === 'modify' || change.type === 'modify' || (change.oldContent !== undefined && change.newContent !== undefined)) {
             filesModified++;
         }
     }
     
     return {
-        filesChanged: filesCreated + filesDeleted + filesModified,
-        filesCreated,
-        filesDeleted,
-        filesModified
+        totalFiles: filesCreated + filesDeleted + filesModified,
+        createdFiles: filesCreated,
+        deletedFiles: filesDeleted,
+        modifiedFiles: filesModified
     };
 } 

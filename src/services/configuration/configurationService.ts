@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 
 export class ConfigurationService {
-    private static instance: ConfigurationService;
+    private static instance: ConfigurationService | undefined;
     private config: vscode.WorkspaceConfiguration;
     private readonly extensionId = 'm31-agent';
     private readonly onConfigChangedEmitter = new EventEmitter();
@@ -37,7 +37,7 @@ export class ConfigurationService {
     public onConfigChanged(listener: () => void): vscode.Disposable {
         this.onConfigChangedEmitter.on('changed', listener);
         return {
-            dispose: () => {
+            dispose: (): void => {
                 this.onConfigChangedEmitter.removeListener('changed', listener);
             }
         };
@@ -146,6 +146,6 @@ export class ConfigurationService {
             this.configChangeListener.dispose();
         }
         
-        ConfigurationService.instance = undefined as unknown;
+        ConfigurationService.instance = undefined;
     }
 } 

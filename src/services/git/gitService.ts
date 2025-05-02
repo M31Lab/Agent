@@ -5,7 +5,7 @@ import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { ChatRole } from '../../models/ai/chatTypes';
 
 // Define the Repository interface as it's not exported by VS Code types
-interface _Repository {
+interface Repository {
     state: {
         indexChanges: {
             resourceUri: vscode.Uri;
@@ -56,7 +56,7 @@ export class GitService implements vscode.Disposable {
     /**
      * Get the Git repository for the current workspace
      */
-    public async getRepository(): Promise<vscode.Repository | undefined> {
+    public async getRepository(): Promise<Repository | undefined> {
         const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
         if (!gitExtension) {
             return undefined;
@@ -72,7 +72,7 @@ export class GitService implements vscode.Disposable {
         }
         
         // Return the first repository in the workspace
-        return api.repositories[0];
+        return api.repositories[0] as Repository;
     }
     
     /**
