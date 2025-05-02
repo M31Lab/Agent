@@ -4,7 +4,7 @@ import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { ChatRole } from '../../models/ai/chatTypes';
 import LRUCache from 'lru-cache';
 
-interface CompletionCacheKey {
+interface _CompletionCacheKey {
     prefix: string;
     language: string;
     contextHash: string;

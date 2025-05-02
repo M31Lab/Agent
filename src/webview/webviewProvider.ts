@@ -77,7 +77,7 @@ export class WebviewProvider implements vscode.Disposable {
     /**
      * Posts a message to the webview
      */
-    public postMessageToWebview(webview: vscode.Webview, message: any): void {
+    public postMessageToWebview(webview: vscode.Webview, message: unknown): void {
         webview.postMessage(message);
     }
 
@@ -86,7 +86,7 @@ export class WebviewProvider implements vscode.Disposable {
      */
     public registerWebviewMessageHandler(
         webviewPanel: vscode.WebviewPanel,
-        handler: (message: any) => void
+        handler: (message: unknown) => void
     ): vscode.Disposable {
         const disposable = webviewPanel.webview.onDidReceiveMessage(handler);
         this.disposables.push(disposable);

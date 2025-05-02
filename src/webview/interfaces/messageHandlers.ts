@@ -3,7 +3,7 @@
  */
 export interface WebviewToExtensionMessage {
     command: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**
@@ -11,7 +11,7 @@ export interface WebviewToExtensionMessage {
  */
 export interface ExtensionToWebviewMessage {
     command: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**

@@ -65,7 +65,7 @@ export function rootReducer(state: AppState = initialState, action: Action): App
                 ...state,
                 chat: {
                     ...state.chat,
-                    messages: action.payload as any[]
+                    messages: action.payload as unknown[][]
                 }
             };
             
@@ -102,7 +102,7 @@ export function rootReducer(state: AppState = initialState, action: Action): App
                 chat: {
                     ...state.chat,
                     sessions: [...state.chat.sessions, action.payload],
-                    activeSessionId: (action.payload as any).id
+                    activeSessionId: (action.payload as unknown).id
                 }
             };
             

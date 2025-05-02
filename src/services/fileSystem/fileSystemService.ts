@@ -118,7 +118,7 @@ export class FileSystemService implements vscode.Disposable {
         }
     }
 
-    public async getFileStructure(directoryPath: string, maxDepth: number = 3): Promise<{ [key: string]: any }> {
+    public async getFileStructure(directoryPath: string, maxDepth: number = 3): Promise<{ [key: string]: unknown }> {
         return this.buildFileStructure(directoryPath, 0, maxDepth);
     }
 
@@ -126,14 +126,14 @@ export class FileSystemService implements vscode.Disposable {
         currentPath: string, 
         currentDepth: number, 
         maxDepth: number
-    ): Promise<{ [key: string]: any }> {
+    ): Promise<{ [key: string]: unknown }> {
         if (currentDepth >= maxDepth) {
             return {};
         }
 
         try {
             const items = await readdirAsync(currentPath);
-            const result: { [key: string]: any } = {};
+            const result: { [key: string]: unknown } = {};
 
             for (const item of items) {
                 const itemPath = path.join(currentPath, item);

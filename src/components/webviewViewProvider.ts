@@ -5,11 +5,11 @@ import { WebviewUtilities } from './webviewUtilities';
 
 export interface WebviewMessage {
     command: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface WebviewState {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvider, vscode.Disposable {

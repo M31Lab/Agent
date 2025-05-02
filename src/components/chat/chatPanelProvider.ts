@@ -347,7 +347,7 @@ export class ChatPanelProvider {
             </html>`;
     }
 
-    private async handleWebviewMessage(message: any): Promise<void> {
+    private async handleWebviewMessage(message: unknown): Promise<void> {
         switch (message.command) {
             case 'ready':
                 await this.updateWebview();

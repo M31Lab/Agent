@@ -19,8 +19,8 @@ export interface McpParameter {
     description: string;
     type: 'string' | 'number' | 'boolean' | 'object' | 'array';
     required: boolean;
-    defaultValue?: any;
-    schema?: Record<string, any>;
+    defaultValue?: unknown;
+    schema?: Record<string, unknown>;
 }
 
 export interface McpEndpoint {
@@ -28,7 +28,7 @@ export interface McpEndpoint {
     name: string;
     description: string;
     parameters: McpParameter[];
-    returnSchema?: Record<string, any>;
+    returnSchema?: Record<string, unknown>;
 }
 
 export interface McpToolDefinition {
@@ -57,12 +57,12 @@ export interface McpServerConfig {
 export interface McpToolInvocation {
     toolId: string;
     endpointId: string;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
     timestamp: number;
 }
 
 export interface McpToolResponse {
-    result?: any;
+    result?: unknown;
     error?: string;
 }
 
@@ -122,8 +122,8 @@ export function createNewMcpParameter(
     description: string,
     type: 'string' | 'number' | 'boolean' | 'object' | 'array',
     required: boolean = false,
-    defaultValue?: any,
-    schema?: Record<string, any>
+    defaultValue?: unknown,
+    schema?: Record<string, unknown>
 ): McpParameter {
     return {
         name,

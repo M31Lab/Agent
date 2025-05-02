@@ -7,8 +7,8 @@ export type MessageHandlerProps = {
     onClearChat?: () => void;
     onSetProcessing?: (isProcessing: boolean) => void;
     onShowError?: (error: string) => void;
-    onUpdateModels?: (models: any[]) => void;
-    onUpdateSettings?: (settings: any) => void;
+    onUpdateModels?: (models: unknown[][]) => void;
+    onUpdateSettings?: (settings: unknown) => void;
 };
 
 export const useMessageHandler = ({

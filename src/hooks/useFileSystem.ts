@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { FileSystemService } from '../services/fileSystem/fileSystemService';
 
-export function useFileSystem() {
+export function useFileSystem(): Promise<void> {
     const getFileSystemService = (): FileSystemService | undefined => {
         return FileSystemService.getInstance();
     };

@@ -10,7 +10,7 @@ export type PanelVisibilityChangeEvent = {
 
 export type PanelMessageEvent = {
     panelId: string;
-    message: any;
+    message: unknown;
 };
 
 export type PanelOptions = {
@@ -111,7 +111,7 @@ export class PanelManager implements vscode.Disposable {
         }
     }
 
-    public sendMessageToPanel(id: string, message: any): void {
+    public sendMessageToPanel(id: string, message: unknown): void {
         const panel = this._panels.get(id);
         if (panel) {
             panel.webview.postMessage(message);

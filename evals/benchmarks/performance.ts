@@ -9,13 +9,13 @@ interface BenchmarkResult {
   name: string;
   duration: number;
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 async function runBenchmark(
   name: string,
-  fn: () => Promise<any>,
-  metadata?: Record<string, any>
+  fn: () => Promise<Promise<unknown>>,
+  metadata?: Record<string, unknown>
 ): Promise<BenchmarkResult> {
   const start = performance.now();
   await fn();
@@ -41,7 +41,7 @@ async function saveResults(results: BenchmarkResult[]): Promise<void> {
   console.log(`Benchmark results saved to ${filePath}`);
 }
 
-async function main() {
+async function main(): Promise<void> {
   const results: BenchmarkResult[] = [];
   
   // Test extension activation time

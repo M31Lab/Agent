@@ -7,7 +7,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import {
     CustomTool,
-    CustomToolAuth,
+    _CustomToolAuth,
     CustomToolEndpoint,
     CustomToolInvocation,
     CustomToolResponse,
@@ -177,7 +177,7 @@ export class CustomToolsService {
     public async invokeTool(
         toolId: string,
         endpointId: string,
-        parameters: Record<string, any>
+        parameters: Record<string, unknown>
     ): Promise<CustomToolResponse> {
         const tool = this.tools.get(toolId);
         if (!tool) {
@@ -525,8 +525,8 @@ export interface CustomToolEvent {
     name?: string;
     url?: string;
     endpoint?: string;
-    parameters?: Record<string, any>;
-    result?: any;
+    parameters?: Record<string, unknown>;
+    result?: unknown;
     executionTime?: number;
     error?: string;
     timestamp: number;

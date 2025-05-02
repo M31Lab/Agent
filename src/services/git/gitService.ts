@@ -5,7 +5,7 @@ import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { ChatRole } from '../../models/ai/chatTypes';
 
 // Define the Repository interface as it's not exported by VS Code types
-interface Repository {
+interface _Repository {
     state: {
         indexChanges: {
             resourceUri: vscode.Uri;

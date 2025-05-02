@@ -2,7 +2,7 @@ import { ActionType } from './actionTypes';
 import { ChatMessage } from '../../models/ai/chatTypes';
 import { ChatSession } from '../../models/ai/chatTypes';
 
-export interface Action<T = any> {
+export interface Action<T = unknown> {
     type: ActionType;
     payload?: T;
 }

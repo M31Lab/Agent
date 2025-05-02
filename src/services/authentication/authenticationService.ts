@@ -120,6 +120,6 @@ export class AuthenticationService {
     }
 
     public dispose(): void {
-        AuthenticationService.instance = undefined as any;
+        AuthenticationService.instance = undefined as unknown;
     }
 } 

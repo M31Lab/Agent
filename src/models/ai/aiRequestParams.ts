@@ -1,11 +1,11 @@
 import { AIRequestType } from './aiRequestType';
-import { ChatCompletionMessageParam, ChatCompletionTool } from 'openai/resources';
+import { _ChatCompletionMessageParam, ChatCompletionTool } from 'openai/resources';
 
 export interface AIMessage {
     role: 'user' | 'assistant' | 'system' | 'function';
     content: string;
     name?: string;
-    functionCall?: any;
+    functionCall?: unknown;
 }
 
 export interface AIRequestParams {

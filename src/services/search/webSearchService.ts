@@ -203,7 +203,7 @@ export class WebSearchService implements vscode.Disposable {
             });
             
             // Process results
-            const results = response.data.webPages.value.map((item: any) => {
+            const results = response.data.webPages.value.map((item: unknown) => {
                 return {
                     id: uuidv4(),
                     title: item.name,
@@ -254,7 +254,7 @@ export class WebSearchService implements vscode.Disposable {
             });
             
             // Process results
-            const results = response.data.items.map((item: any) => {
+            const results = response.data.items.map((item: unknown) => {
                 return {
                     id: uuidv4(),
                     title: item.title,
@@ -367,7 +367,7 @@ export class WebSearchService implements vscode.Disposable {
             
             // Process results - assumes a standard format
             // Custom endpoints should return an array of objects with at least title, url, and description
-            const results = response.data.results.map((item: any) => {
+            const results = response.data.results.map((item: unknown) => {
                 return {
                     id: uuidv4(),
                     title: item.title,

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { useLogging } from '../useLogging';
+import { _useLogging } from '../useLogging';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export interface FileInfo {
@@ -140,7 +140,7 @@ export function useActiveEditor(
         }
     }
 
-    async function replaceText(text: string, range?: vscode.Range): Promise<boolean> {
+    async function _replaceText(text: string, range?: vscode.Range): Promise<boolean> {
         const editor = getActiveEditor();
         if (!editor) {
             logging.warning('No active editor to replace text in');

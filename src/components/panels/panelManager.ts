@@ -107,6 +107,6 @@ export class PanelManager {
 
     public dispose(): void {
         this.closeAllPanels();
-        PanelManager.instance = undefined as any;
+        PanelManager.instance = undefined as unknown;
     }
 } 

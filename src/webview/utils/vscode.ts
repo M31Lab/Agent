@@ -2,28 +2,28 @@
 declare global {
     interface Window {
         acquireVsCodeApi: () => {
-            postMessage(message: any): void;
-            getState(): any;
-            setState(state: any): void;
+            postMessage(message: unknown): void;
+            getState(): unknown;
+            setState(state: unknown): void;
         };
     }
 }
 
 // Acquire the VS Code API object
-let vsCodeApi: any;
+let vsCodeApi: unknown;
 try {
     vsCodeApi = window.acquireVsCodeApi();
 } catch (error) {
     // Handle the case when running outside of VS Code
     console.error('Failed to acquire VS Code API', error);
     vsCodeApi = {
-        postMessage: (message: any) => {
+        postMessage: (message: unknown) => {
             console.log('VS Code message:', message);
         },
         getState: () => {
             return {};
         },
-        setState: (state: any) => {
+        setState: (state: unknown) => {
             console.log('VS Code state:', state);
         }
     };

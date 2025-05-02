@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as _vscode from 'vscode';
 import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { OpenRouterChatResponse } from '../../models/ai/openRouterTypes';
 import { ChatMessage } from '../../models/ai/chatTypes';

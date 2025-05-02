@@ -2,14 +2,14 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as http from 'http';
-import axios from 'axios';
+import _axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import {
     McpToolDefinition,
     McpEndpoint,
     McpParameter,
-    McpToolInvocation,
+    _McpToolInvocation,
     McpToolResponse,
     McpServerConfig,
     McpEventType,
@@ -21,7 +21,7 @@ export interface McpEvent {
     toolId?: string;
     endpointId?: string;
     serverId?: string;
-    data?: any;
+    data?: unknown;
     error?: string;
     timestamp: number;
 }
@@ -531,7 +531,7 @@ export class McpService implements vscode.Disposable {
         res.end(JSON.stringify({ error: 'Not found' }));
     }
     
-    private async readRequestBody(req: http.IncomingMessage): Promise<any> {
+    private async readRequestBody(req: http.IncomingMessage): Promise<Promise<unknown>> {
         return new Promise((resolve, reject) => {
             const chunks: Buffer[] = [];
             
@@ -561,7 +561,7 @@ export class McpService implements vscode.Disposable {
     private async executeEndpoint(
         tool: McpToolDefinition,
         endpoint: McpEndpoint,
-        params: Record<string, any>
+        params: Record<string, unknown>
     ): Promise<McpToolResponse> {
         // This is where you would implement custom logic for executing endpoints
         // For now, we'll just echo back the parameters

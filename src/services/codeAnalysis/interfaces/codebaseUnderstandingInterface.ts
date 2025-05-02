@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { CodeContext } from '../../../models/codebase/codeContext';
-import { CodeSummary } from '../codeAnalysisService';
-import { CodeAnalysisResult, FileContext, CodeSnippet } from '../codebaseAnalysisService';
+import { _CodeContext } from '../../../models/codebase/codeContext';
+import { _CodeSummary } from '../codeAnalysisService';
+import { CodeAnalysisResult, _FileContext, _CodeSnippet } from '../codebaseAnalysisService';
 
 export interface ICodebaseUnderstandingService {
     analyzeFullCodebase(): Promise<CodebaseAnalysisResult>;

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { WebviewProvider } from '../webview/webviewProvider';
 import { ChatMessage } from '../webview/interfaces/messageHandlers';
 
-export function useWebview() {
+export function useWebview(): Promise<void> {
     const getWebviewProvider = (): WebviewProvider | undefined => {
         return WebviewProvider.getInstance();
     };
@@ -45,7 +45,7 @@ export function useWebview() {
         return provider.getWebviewResourceUri(webview, ...pathSegments);
     };
 
-    const postMessageToWebview = (webview: vscode.Webview, message: any): void => {
+    const postMessageToWebview = (webview: vscode.Webview, message: unknown): void => {
         const provider = getWebviewProvider();
         if (!provider) {
             return;
@@ -56,7 +56,7 @@ export function useWebview() {
 
     const registerWebviewMessageHandler = (
         webviewPanel: vscode.WebviewPanel,
-        handler: (message: any) => void
+        handler: (message: unknown) => void
     ): vscode.Disposable | undefined => {
         const provider = getWebviewProvider();
         if (!provider) {
@@ -93,7 +93,7 @@ export function useWebview() {
         });
     };
 
-    const initialize = (webview: vscode.Webview, data: any): void => {
+    const initialize = (webview: vscode.Webview, data: unknown): void => {
         postMessageToWebview(webview, {
             command: 'initialize',
             data

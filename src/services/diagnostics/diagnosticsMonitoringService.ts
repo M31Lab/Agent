@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
+import * as _path from 'path';
 import minimatch from 'minimatch';
 import { v4 as uuidv4 } from 'uuid';
 import { ExtensionContext } from '../../models/context/extensionContext';

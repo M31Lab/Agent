@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
+import * as _path from 'path';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export function getNonce(): string {
@@ -92,8 +92,8 @@ export function postMessageToWebview<T>(panel: vscode.WebviewPanel, type: string
 export function getMessageHandler<T, R>(
     handler: (message: T) => R | Promise<R>,
     responseType: string
-): (message: any, panel: vscode.WebviewPanel) => Promise<void> {
-    return async (message: any, panel: vscode.WebviewPanel) => {
+): (message: unknown, panel: vscode.WebviewPanel) => Promise<void> {
+    return async (message: unknown, panel: vscode.WebviewPanel) => {
         try {
             const response = await handler(message);
             panel.webview.postMessage({
@@ -113,7 +113,7 @@ export function getMessageHandler<T, R>(
 
 export function createWebviewMessageBus(
     panel: vscode.WebviewPanel,
-    handlers: Record<string, (message: any) => any>
+    handlers: Record<string, (message: unknown) => unknown>
 ): vscode.Disposable {
     const messageListener = panel.webview.onDidReceiveMessage(async (message) => {
         const { type, data, requestId } = message;

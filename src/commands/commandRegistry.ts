@@ -70,12 +70,12 @@ export function registerAllCommands(
 export function registerCommand(
     context: ExtensionContext,
     commandId: string,
-    callback: (...args: any[]) => any,
-    thisArg?: any
+    callback: (...args: unknown[][]) => unknown[],
+    thisArg?: unknown
 ): vscode.Disposable {
     context.loggingService.debug(`Registering command: ${commandId}`);
     
-    const wrappedCallback = async (...args: any[]) => {
+    const wrappedCallback = async (...args: unknown[][]): Promise<void>  => {
         try {
             context.loggingService.debug(`Executing command: ${commandId}`);
             context.telemetryService.trackEvent('command_executed', { command: commandId });
@@ -95,8 +95,8 @@ export function registerCommand(
 
 export async function executeVSCodeCommand(
     commandId: string, 
-    ...args: any[]
-): Promise<any> {
+    ...args: unknown[][]
+): Promise<Promise<unknown>> {
     try {
         return await vscode.commands.executeCommand(commandId, ...args);
     } catch (error) {

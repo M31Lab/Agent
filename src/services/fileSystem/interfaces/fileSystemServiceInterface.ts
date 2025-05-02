@@ -39,7 +39,7 @@ export interface IFileSystemService {
     /**
      * Gets the file structure of a directory up to a certain depth
      */
-    getFileStructure(directoryPath: string, maxDepth?: number): Promise<{ [key: string]: any }>;
+    getFileStructure(directoryPath: string, maxDepth?: number): Promise<{ [key: string]: unknown }>;
 
     /**
      * Gets all workspace folders

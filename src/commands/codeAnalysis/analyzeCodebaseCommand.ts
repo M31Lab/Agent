@@ -54,10 +54,10 @@ export class AnalyzeCodebaseCommand {
     }
 
     private showAnalysisResults(
-        overview: any,
-        architecture: any, 
-        analysisResult: any,
-        dependencyGraph: any
+        overview: unknown,
+        architecture: unknown, 
+        analysisResult: unknown,
+        dependencyGraph: unknown
     ): void {
         // Create webview panel
         const panel = vscode.window.createWebviewPanel(
@@ -141,10 +141,10 @@ export class AnalyzeCodebaseCommand {
     }
 
     private generateResultsHtml(
-        overview: any,
-        architecture: any,
-        analysisResult: any,
-        _dependencyGraph: any
+        overview: unknown,
+        architecture: unknown,
+        analysisResult: unknown,
+        _dependencyGraph: unknown
     ): string {
         return `
             <!DOCTYPE html>
@@ -342,7 +342,7 @@ export class AnalyzeCodebaseCommand {
         `;
     }
 
-    private generateFileDependenciesHtml(relationships: any): string {
+    private generateFileDependenciesHtml(relationships: unknown): string {
         return `
             <!DOCTYPE html>
             <html lang="en">
@@ -436,7 +436,7 @@ export class AnalyzeCodebaseCommand {
         `;
     }
 
-    private generateModuleInsightsHtml(insights: any): string {
+    private generateModuleInsightsHtml(insights: unknown): string {
         return `
             <!DOCTYPE html>
             <html lang="en">

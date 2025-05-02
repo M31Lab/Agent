@@ -10,7 +10,7 @@ export interface CustomTool {
     serverUrl: string;
     endpoints: CustomToolEndpoint[];
     auth?: CustomToolAuth;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     createdAt: number;
     updatedAt: number;
 }
@@ -22,7 +22,7 @@ export interface CustomToolEndpoint {
     path: string;
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     parameters?: CustomToolParameter[];
-    responseSchema?: Record<string, any>;
+    responseSchema?: Record<string, unknown>;
     requiresAuth: boolean;
 }
 
@@ -31,8 +31,8 @@ export interface CustomToolParameter {
     description: string;
     type: 'string' | 'number' | 'boolean' | 'object' | 'array';
     required: boolean;
-    defaultValue?: any;
-    options?: any[];
+    defaultValue?: unknown;
+    options?: unknown[][];
 }
 
 export interface CustomToolAuth {
@@ -44,13 +44,13 @@ export interface CustomToolAuth {
 export interface CustomToolInvocation {
     toolId: string;
     endpointId: string;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
     timestamp: number;
 }
 
 export interface CustomToolResponse {
     status: number;
-    data: any;
+    data: unknown;
     error?: string;
     executionTime: number;
 }
@@ -63,7 +63,7 @@ export interface ToolManifest {
         [key: string]: {
             description: string;
             parameters: Record<string, CustomToolParameter>;
-            returnSchema: Record<string, any>;
+            returnSchema: Record<string, unknown>;
         }
     };
 } 

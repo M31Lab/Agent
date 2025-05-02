@@ -238,7 +238,7 @@ export function registerTerminalCommands(
     return disposables;
 }
 
-function formatTerminalOutput(session: any): string {
+function formatTerminalOutput(session: unknown): string {
     let output = `# Terminal Session: ${session.id}\n\n`;
     output += `Status: ${session.status}\n`;
     output += `Created: ${new Date(session.createdAt).toLocaleString()}\n`;
@@ -249,12 +249,12 @@ function formatTerminalOutput(session: any): string {
     if (session.history.length === 0) {
         output += 'No commands executed yet.\n\n';
     } else {
-        session.history.forEach((cmd: any, index: number) => {
+        session.history.forEach((cmd: unknown, index: number) => {
             output += `### ${index + 1}. \`${cmd.command}\`\n\n`;
             output += `- Executed at: ${new Date(cmd.createdAt).toLocaleString()}\n`;
             output += `- Background: ${cmd.isBackground ? 'Yes' : 'No'}\n`;
             
-            const result = (session as any).getCommandResult?.(cmd.id);
+            const result = (session as unknown).getCommandResult?.(cmd.id);
             if (result) {
                 output += `- Exit Code: ${result.exitCode !== null ? result.exitCode : 'Still running'}\n`;
                 output += `- Duration: ${result.endTime ? ((result.endTime - result.startTime) / 1000) + 's' : 'Still running'}\n`;

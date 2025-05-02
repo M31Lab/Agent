@@ -32,7 +32,7 @@ export interface TaskStep {
     status: 'pending' | 'running' | 'completed' | 'failed';
     startTime?: number;
     endTime?: number;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
 }
 
 export interface TerminalState {

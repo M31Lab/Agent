@@ -23,7 +23,7 @@ export function useConfiguration(): {
             return defaultValue;
         }
 
-        return ((configService as any).getConfiguration)(key, defaultValue);
+        return ((configService as unknown).getConfiguration)(key, defaultValue);
     };
 
     const updateConfiguration = async (
@@ -81,7 +81,7 @@ export function useConfiguration(): {
             return true;
         }
 
-        return (configService as any).isTelemetryEnabled();
+        return (configService as unknown).isTelemetryEnabled();
     };
 
     const getLogLevel = (): string => {

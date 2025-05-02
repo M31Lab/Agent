@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { CodeContext } from '../models/codebase/codeContext';
 import { CodeAnalysisService } from '../services/codeAnalysis/codeAnalysisService';
 
-export function useCodeContext() {
+export function useCodeContext(): Promise<void> {
     const getCurrentCodeContext = async (): Promise<CodeContext | undefined> => {
         try {
             const codeAnalysisService = CodeAnalysisService.getInstance();

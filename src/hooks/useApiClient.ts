@@ -2,9 +2,9 @@ import { AIRequestOptions, AIResponse, OpenRouterApiClient } from '../api/client
 import { IOpenRouterCompletionRequest } from '../api/interfaces/requests/completionRequest';
 import { AuthenticationService } from '../services/authentication/authenticationService';
 import { ConfigurationService } from '../services/configuration/configurationService';
-import { ExtensionContext } from '../models/context/extensionContext';
+import { _ExtensionContext } from '../models/context/extensionContext';
 
-export function useApiClient() {
+export function useApiClient(): Promise<void> {
     const getApiClient = (): OpenRouterApiClient | undefined => {
         return OpenRouterApiClient.getInstance();
     };
@@ -32,7 +32,7 @@ export function useApiClient() {
         await apiClient.streamRequest(options, onChunk, onComplete, onError);
     };
 
-    const sendCompletionRequest = async (request: IOpenRouterCompletionRequest): Promise<any> => {
+    const sendCompletionRequest = async (request: IOpenRouterCompletionRequest): Promise<Promise<unknown>> => {
         const apiClient = getApiClient();
         if (!apiClient) {
             throw new Error('API client not initialized');
@@ -41,7 +41,7 @@ export function useApiClient() {
         return apiClient.createCompletion(request);
     };
 
-    const getModels = async (): Promise<any> => {
+    const getModels = async (): Promise<Promise<unknown>> => {
         const apiClient = getApiClient();
         if (!apiClient) {
             throw new Error('API client not initialized');

@@ -12,7 +12,7 @@ export interface WebviewViewOptions {
     description?: string;
     iconPath?: vscode.Uri | { light: vscode.Uri; dark: vscode.Uri };
     retainContextWhenHidden?: boolean;
-    messageHandlers?: Record<string, (message: any) => any>;
+    messageHandlers?: Record<string, (message: unknown) => unknown>;
 }
 
 export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvider {
@@ -44,11 +44,11 @@ export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvi
         this.context.registerDisposable(disposable);
     }
 
-    public resolveWebviewView(
+    async resolveWebviewView(
         webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext<unknown>,
-        token: vscode.CancellationToken
-    ): void | Thenable<void> {
+        _context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken
+    ): Promise<void> {
         this.view = webviewView;
         
         webviewView.webview.options = {
@@ -102,6 +102,10 @@ export abstract class BaseWebviewViewProvider implements vscode.WebviewViewProvi
         
         this.disposables.forEach(d => d.dispose());
         this.disposables = [];
+    }
+
+    private onWebviewViewDidChangeVisibility(_webviewView: vscode.WebviewView): void {
+        // Implementation needed
     }
 }
 

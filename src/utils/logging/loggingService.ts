@@ -13,7 +13,7 @@ export interface LogEntry {
     level: LogLevel;
     message: string;
     timestamp: Date;
-    data?: any;
+    data?: unknown;
 }
 
 export class LoggingService {
@@ -68,23 +68,23 @@ export class LoggingService {
         return this.logLevel;
     }
 
-    public debug(message: string, data?: any): void {
+    public debug(message: string, data?: unknown): void {
         this.log(LogLevel.Debug, message, data);
     }
 
-    public info(message: string, data?: any): void {
+    public info(message: string, data?: unknown): void {
         this.log(LogLevel.Info, message, data);
     }
 
-    public warning(message: string, data?: any): void {
+    public warning(message: string, data?: unknown): void {
         this.log(LogLevel.Warning, message, data);
     }
 
-    public error(message: string, data?: any): void {
+    public error(message: string, data?: unknown): void {
         this.log(LogLevel.Error, message, data);
     }
 
-    private log(level: LogLevel, message: string, data?: any): void {
+    private log(level: LogLevel, message: string, data?: unknown): void {
         if (level < this.logLevel) {
             return;
         }
@@ -155,6 +155,6 @@ export class LoggingService {
 
     public dispose(): void {
         this.outputChannel.dispose();
-        LoggingService.instance = undefined as any;
+        LoggingService.instance = undefined as unknown;
     }
 } 

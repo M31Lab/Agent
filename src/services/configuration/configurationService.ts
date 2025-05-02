@@ -146,6 +146,6 @@ export class ConfigurationService {
             this.configChangeListener.dispose();
         }
         
-        ConfigurationService.instance = undefined as any;
+        ConfigurationService.instance = undefined as unknown;
     }
 } 

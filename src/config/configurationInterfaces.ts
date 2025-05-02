@@ -69,5 +69,5 @@ export interface ExtensionConfiguration {
 
 export type ConfigurationUpdateEvent = {
     section: keyof ExtensionConfiguration;
-    value: any;
+    value: unknown;
 }; 

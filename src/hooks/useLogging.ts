@@ -1,12 +1,12 @@
 import { LoggingService, LogLevel } from '../utils/logging/loggingService';
 import { useConfiguration } from './useConfiguration';
 
-export function useLogging() {
+export function useLogging(): Record<string, unknown> {
     const getLoggingService = (): LoggingService | undefined => {
         return LoggingService.getInstance();
     };
 
-    const debug = (message: string, data?: any): void => {
+    const debug = (message: string, data?: unknown): void => {
         const logger = getLoggingService();
         if (!logger) {
             return;
@@ -15,7 +15,7 @@ export function useLogging() {
         logger.debug(message, data);
     };
 
-    const info = (message: string, data?: any): void => {
+    const info = (message: string, data?: unknown): void => {
         const logger = getLoggingService();
         if (!logger) {
             return;
@@ -24,7 +24,7 @@ export function useLogging() {
         logger.info(message, data);
     };
 
-    const warning = (message: string, data?: any): void => {
+    const warning = (message: string, data?: unknown): void => {
         const logger = getLoggingService();
         if (!logger) {
             return;
@@ -33,7 +33,7 @@ export function useLogging() {
         logger.warning(message, data);
     };
 
-    const error = (message: string, error?: any): void => {
+    const error = (message: string, error?: unknown): void => {
         const logger = getLoggingService();
         if (!logger) {
             console.error(message, error);

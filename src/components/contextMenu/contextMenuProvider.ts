@@ -76,8 +76,8 @@ export class ContextMenuProvider {
 
     public registerContextMenuCommand(
         commandId: string,
-        callback: (...args: any[]) => any,
-        when: string
+        callback: (...args: unknown[][]) => unknown[],
+        _when: string
     ): vscode.Disposable {
         const disposable = vscode.commands.registerCommand(`${commandId}.context`, callback);
         this.disposables.push(disposable);
@@ -87,6 +87,6 @@ export class ContextMenuProvider {
     public dispose(): void {
         this.disposables.forEach(d => d.dispose());
         this.disposables = [];
-        ContextMenuProvider.instance = undefined as any;
+        ContextMenuProvider.instance = undefined as unknown;
     }
 } 

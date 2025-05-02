@@ -31,7 +31,7 @@ export interface BrowserTestStep {
     id: string;
     name: string;
     action: BrowserActionType;
-    parameters?: Record<string, any>;
+    parameters?: Record<string, unknown>;
     waitForSelector?: string;
     waitForNavigation?: boolean;
     screenshot?: boolean;

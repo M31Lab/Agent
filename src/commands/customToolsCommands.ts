@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as _path from 'path';
 import { CustomToolsService } from '../services/customTools/customToolsService';
 import { CustomToolEndpoint } from '../models/customTool';
 
@@ -9,7 +9,7 @@ interface EndpointQuickPickItem extends vscode.QuickPickItem {
 }
 
 interface ToolQuickPickItem extends vscode.QuickPickItem {
-    tool: any;
+    tool: unknown;
 }
 
 export function registerCustomToolsCommands(
@@ -270,7 +270,7 @@ export function registerCustomToolsCommands(
     return disposables;
 }
 
-async function viewToolDetails(tool: any): Promise<void> {
+async function viewToolDetails(tool: unknown): Promise<void> {
     const content = formatToolDetails(tool);
     
     const document = await vscode.workspace.openTextDocument({
@@ -281,7 +281,7 @@ async function viewToolDetails(tool: any): Promise<void> {
     await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
 }
 
-async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: any): Promise<void> {
+async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: unknown): Promise<void> {
     try {
         if (tool.endpoints.length === 0) {
             vscode.window.showErrorMessage('This tool has no endpoints.');
@@ -306,7 +306,7 @@ async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: 
         const endpoint = endpointPick.endpoint;
         
         // For simplicity, we'll just handle simple parameter types here
-        const parameters: Record<string, any> = {};
+        const parameters: Record<string, unknown> = {};
         
         if (endpoint.parameters && endpoint.parameters.length > 0) {
             for (const param of endpoint.parameters) {
@@ -355,7 +355,7 @@ async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: 
     }
 }
 
-function formatToolDetails(tool: any): string {
+function formatToolDetails(tool: unknown): string {
     let content = `# Custom Tool: ${tool.name}\n\n`;
     
     content += `**Description:** ${tool.description}\n\n`;
@@ -388,7 +388,7 @@ function formatToolDetails(tool: any): string {
                 }
                 
                 if (param.options && param.options.length > 0) {
-                    content += `  - Options: ${param.options.map((o: any) => `\`${o}\``).join(', ')}\n`;
+                    content += `  - Options: ${param.options.map((o: unknown) => `\`${o}\``).join(', ')}\n`;
                 }
             }
         }
@@ -399,7 +399,7 @@ function formatToolDetails(tool: any): string {
     return content;
 }
 
-function formatToolResult(endpoint: any, parameters: Record<string, any>, result: any): string {
+function formatToolResult(endpoint: unknown, parameters: Record<string, unknown>, result: unknown): string {
     let content = '# Tool Invocation Result\n\n';
     
     content += `**Endpoint:** ${endpoint.name} (${endpoint.method} ${endpoint.path})\n\n`;

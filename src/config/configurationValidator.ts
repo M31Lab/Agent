@@ -25,7 +25,7 @@ export class ConfigurationValidator {
 
     public static validateLoggingConfiguration(config: Partial<LoggingConfiguration>): LoggingConfiguration {
         return {
-            logLevel: this.validateLogLevel(config.logLevel, DEFAULT_LOG_LEVEL as any),
+            logLevel: this.validateLogLevel(config.logLevel, DEFAULT_LOG_LEVEL as unknown),
             includeTimestamps: this.validateBoolean(config.includeTimestamps, true),
             outputChannel: this.validateString(config.outputChannel, 'M31 Agent Logs'),
             logToFile: this.validateBoolean(config.logToFile, false),
@@ -85,48 +85,48 @@ export class ConfigurationValidator {
         };
     }
 
-    private static validateString(value: any, defaultValue: string): string {
+    private static validateString(value: unknown, defaultValue: string): string {
         if (typeof value !== 'string') {
             return defaultValue;
         }
         return value;
     }
 
-    private static validateNumber(value: any, defaultValue: number, min: number, max: number): number {
+    private static validateNumber(value: unknown, defaultValue: number, min: number, max: number): number {
         if (typeof value !== 'number' || isNaN(value)) {
             return defaultValue;
         }
         return Math.min(Math.max(value, min), max);
     }
 
-    private static validateBoolean(value: any, defaultValue: boolean): boolean {
+    private static validateBoolean(value: unknown, defaultValue: boolean): boolean {
         if (typeof value !== 'boolean') {
             return defaultValue;
         }
         return value;
     }
 
-    private static validateLogLevel(value: any, defaultValue: 'debug' | 'info' | 'warning' | 'error' | 'none'): 'debug' | 'info' | 'warning' | 'error' | 'none' {
+    private static validateLogLevel(value: unknown, defaultValue: 'debug' | 'info' | 'warning' | 'error' | 'none'): 'debug' | 'info' | 'warning' | 'error' | 'none' {
         const validLevels = ['debug', 'info', 'warning', 'error', 'none'];
         if (typeof value !== 'string' || !validLevels.includes(value)) {
             return defaultValue;
         }
-        return value as any;
+        return value as unknown;
     }
 
-    private static validateTheme(value: any, defaultValue: 'light' | 'dark' | 'system'): 'light' | 'dark' | 'system' {
+    private static validateTheme(value: unknown, defaultValue: 'light' | 'dark' | 'system'): 'light' | 'dark' | 'system' {
         const validThemes = ['light', 'dark', 'system'];
         if (typeof value !== 'string' || !validThemes.includes(value)) {
             return defaultValue;
         }
-        return value as any;
+        return value as unknown;
     }
 
-    private static validatePanelPosition(value: any, defaultValue: 'left' | 'right' | 'bottom'): 'left' | 'right' | 'bottom' {
+    private static validatePanelPosition(value: unknown, defaultValue: 'left' | 'right' | 'bottom'): 'left' | 'right' | 'bottom' {
         const validPositions = ['left', 'right', 'bottom'];
         if (typeof value !== 'string' || !validPositions.includes(value)) {
             return defaultValue;
         }
-        return value as any;
+        return value as unknown;
     }
 } 

@@ -1,6 +1,6 @@
 import { TerminalService } from '../services/terminal/terminalService';
 
-export function useTerminal() {
+export function useTerminal(): Promise<void> {
     const getTerminalService = (): TerminalService | undefined => {
         return TerminalService.getInstance();
     };

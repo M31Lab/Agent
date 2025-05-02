@@ -15,7 +15,7 @@ export interface BrowserEvent {
     action?: BrowserAction;
     result?: BrowserActionResult;
     error?: string;
-    data?: any;
+    data?: unknown;
     timestamp: number;
 }
 
@@ -269,8 +269,8 @@ interface BrowserProvider {
 }
 
 class ChromiumBrowserProvider implements BrowserProvider {
-    private browser: any = null;
-    private page: any = null;
+    private browser: unknown = null;
+    private page: unknown = null;
     private consoleLogs: Array<{ level: string; message: string }> = [];
 
     async initialize(options: BrowserOptions): Promise<void> {
@@ -314,7 +314,7 @@ class ChromiumBrowserProvider implements BrowserProvider {
         
         this.consoleLogs = [];
         
-        this.page.on('console', (msg: any) => {
+        this.page.on('console', (msg: unknown) => {
             const type = msg.type() || 'log';
             let text = msg.text();
             
@@ -336,7 +336,7 @@ class ChromiumBrowserProvider implements BrowserProvider {
             });
         });
         
-        this.page.on('requestfailed', (request: any) => {
+        this.page.on('requestfailed', (request: unknown) => {
             const failure = request.failure();
             const errorText = failure ? failure.errorText : 'Unknown error';
             

@@ -342,7 +342,7 @@ async function addEndpointToTool(
             parameters.push({
                 name: paramName,
                 description: paramDescription,
-                type: paramType as any,
+                type: paramType as unknown,
                 required: isRequired === 'Yes'
             });
         }
@@ -366,7 +366,7 @@ async function addEndpointToTool(
     vscode.window.showInformationMessage(`Endpoint "${name}" added to tool "${tool.name}"`);
 }
 
-function generateToolDetailsHtml(tool: any): string {
+function generateToolDetailsHtml(tool: unknown): string {
     return `
 <!DOCTYPE html>
 <html lang="en">

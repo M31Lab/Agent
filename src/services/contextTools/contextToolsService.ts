@@ -3,21 +3,21 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as _uuidv4 } from 'uuid';
 import { 
     ContextTool,
     ContextToolType,
     ContextToolInput,
     ContextToolResult,
-    UrlContextInput,
+    _UrlContextInput,
     FileContextInput,
     FolderContextInput,
-    ProblemsContextInput,
-    CustomContextInput
+    _ProblemsContextInput,
+    _CustomContextInput
 } from '../../models/contextTools';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { LoggingService } from '../../utils/logging/loggingService';
-import { FileSystemService } from '../fileSystem/fileSystemService';
+import { _FileSystemService } from '../fileSystem/fileSystemService';
 
 export interface ContextToolEvent {
     type: 'toolExecuted' | 'toolFailed';

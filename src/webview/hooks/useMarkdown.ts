@@ -6,7 +6,7 @@ export interface MarkdownOptions {
     codeBlockClass?: string;
 }
 
-export const useMarkdown = (options: MarkdownOptions = {}) => {
+export const useMarkdown = (options: MarkdownOptions = {}): Record<string, unknown>  => {
     const formatMarkdown = useCallback((content: string): string => {
         if (!content) {
             return '';

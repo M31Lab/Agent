@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
-import { LoggingService } from '../../utils/logging/loggingService';
-import { TelemetryService } from '../../services/telemetry/telemetryService';
+import { _LoggingService } from '../../utils/logging/loggingService';
+import { _TelemetryService } from '../../services/telemetry/telemetryService';
 
 export interface CommandExecutionOptions {
-    args?: any[];
+    args?: unknown[][];
     showErrorMessage?: boolean;
     trackTelemetry?: boolean;
     telemetryProperties?: Record<string, string>;
@@ -14,7 +14,7 @@ export function useExecuteCommand(
     extensionContext: ExtensionContext
 ): {
     executeCommand: <T>(command: string, options?: CommandExecutionOptions) => Promise<T | undefined>;
-    registerCommand: (commandId: string, handler: (...args: any[]) => any) => vscode.Disposable;
+    registerCommand: (commandId: string, handler: (...args: unknown[][]) => unknown[]) => vscode.Disposable;
 } {
     const logging = extensionContext.loggingService;
     const telemetry = extensionContext.telemetryService;
@@ -54,11 +54,11 @@ export function useExecuteCommand(
 
     function registerCommand(
         commandId: string,
-        handler: (...args: any[]) => any
+        handler: (...args: unknown[][]) => unknown[]
     ): vscode.Disposable {
         logging.debug(`Registering command: ${commandId}`);
         
-        const disposable = vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+        const disposable = vscode.commands.registerCommand(commandId, async (...args: unknown[][]) => {
             try {
                 logging.debug(`Running command: ${commandId}`);
                 

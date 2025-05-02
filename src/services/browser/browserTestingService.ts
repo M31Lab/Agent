@@ -13,7 +13,7 @@ import {
     BrowserTestingEventType,
     defaultBrowserTestingOptions,
     ElementInteraction,
-    ElementInteractionType
+    _ElementInteractionType
 } from '../../models/browserTesting';
 import { BrowserActionType } from '../../models/browserInteraction';
 
@@ -28,7 +28,7 @@ export interface BrowserTestingEvent {
         message: string;
     };
     error?: string;
-    data?: any;
+    data?: unknown;
     timestamp: number;
 }
 

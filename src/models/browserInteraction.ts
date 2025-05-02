@@ -46,7 +46,7 @@ export enum BrowserActionType {
 
 export interface BrowserActionResult {
     success: boolean;
-    data?: any;
+    data?: unknown;
     screenshot?: string;
     logs?: BrowserLog[];
     error?: string;

@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as _vscode from 'vscode';
 import { Action } from '../actions/actionCreators';
 import { ChatMessage, ChatSession } from '../../models/ai/chatTypes';
 import { AIModel } from '../../models/ai/aiModels';
@@ -112,7 +112,7 @@ export const initialState: AppState = {
     }
 };
 
-export function createStateContext() {
+export function createStateContext(): Record<string, unknown> {
     const StateContext = {
         createStateContext: (initialState: AppState, dispatch: (action: Action) => void): StateContextProps => {
             return {

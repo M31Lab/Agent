@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ChatMessage } from '../interfaces/messageHandlers';
 import { ChatState, ChatContext } from '../context/chatContext';
 
-export const useChatState = (chatContext: ChatContext) => {
+export const useChatState = (chatContext: ChatContext): Record<string, unknown>  => {
     const [state, setState] = useState<ChatState>(chatContext.getState());
 
     useEffect(() => {

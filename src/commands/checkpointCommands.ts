@@ -322,7 +322,7 @@ export function registerCheckpointCommands(
     return disposables;
 }
 
-function formatDiffSummary(diff: any, fromLabel: string, toLabel: string): string {
+function formatDiffSummary(diff: unknown, fromLabel: string, toLabel: string): string {
     let content = `# Checkpoint Comparison: ${fromLabel} → ${toLabel}\n\n`;
     
     content += `Comparison created: ${new Date().toLocaleString()}\n\n`;
@@ -368,7 +368,7 @@ function formatDiffSummary(diff: any, fromLabel: string, toLabel: string): strin
     return content;
 }
 
-function formatCheckpointsList(checkpoints: any[]): string {
+function formatCheckpointsList(checkpoints: unknown[][]): string {
     let content = `# Checkpoints (${checkpoints.length})\n\n`;
     
     for (const cp of checkpoints) {
@@ -400,7 +400,7 @@ function formatCheckpointsList(checkpoints: any[]): string {
     return content;
 }
 
-function getCheckpointMetricsData(checkpoint: any): any {
+function getCheckpointMetricsData(checkpoint: unknown): unknown {
     let filesCreated = 0;
     let filesDeleted = 0;
     let filesModified = 0;

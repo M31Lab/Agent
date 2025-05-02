@@ -1,7 +1,7 @@
 import { TelemetryService } from '../services/telemetry/telemetryService';
 import { useConfiguration } from './useConfiguration';
 
-export function useTelemetry() {
+export function useTelemetry(): Record<string, unknown> {
     const getTelemetryService = (): TelemetryService | undefined => {
         return TelemetryService.getInstance();
     };

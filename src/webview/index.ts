@@ -3,7 +3,7 @@ import { vscode } from './utils/vscode';
 import './styles/index.css';
 
 // Initialize message passing with VS Code
-const messageHandler = (event: MessageEvent) => {
+const messageHandler = (event: MessageEvent): void  => {
     const message = event.data;
     
     switch (message.command) {
@@ -35,7 +35,7 @@ const clearButton = document.getElementById('clear-button') as HTMLButtonElement
 const errorContainer = document.getElementById('error-container') as HTMLDivElement;
 
 // Handle form submission
-const handleSubmit = () => {
+const handleSubmit = (): void  => {
     const messageText = messageInput.value.trim();
     if (messageText) {
         const userMessage = {
@@ -70,16 +70,16 @@ messageInput.addEventListener('keydown', (e) => {
 });
 
 // Render the chat interface
-function renderApp(initialData: any) {
+function renderApp(initialData: unknown): void {
     if (initialData.messages && initialData.messages.length) {
-        initialData.messages.forEach((message: any) => {
+        initialData.messages.forEach((message: unknown) => {
             addMessage(message);
         });
     }
 }
 
 // Add a message to the chat
-function addMessage(message: any) {
+function addMessage(message: unknown): void {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(message.role);
@@ -98,12 +98,12 @@ function addMessage(message: any) {
 }
 
 // Clear all messages
-function clearMessages() {
+function clearMessages(): void {
     chatContainer.innerHTML = '';
 }
 
 // Set processing state (loading indicator)
-function setProcessingState(isProcessing: boolean) {
+function setProcessingState(isProcessing: boolean): void {
     document.body.classList.toggle('processing', isProcessing);
     sendButton.disabled = isProcessing;
     messageInput.disabled = isProcessing;
@@ -123,7 +123,7 @@ function setProcessingState(isProcessing: boolean) {
 }
 
 // Show error message
-function showError(message: string) {
+function showError(message: string): void {
     errorContainer.textContent = message;
     errorContainer.style.display = 'block';
     

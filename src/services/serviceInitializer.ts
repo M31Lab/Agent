@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as _vscode from 'vscode';
 import { ExtensionContext } from '../models/context/extensionContext';
 import { LanguageSupportService } from './languageSupport/languageSupportService';
 import { CodebaseAnalysisService } from './codeAnalysis/codebaseAnalysisService';
@@ -9,7 +9,7 @@ import { BrowserService } from './browser/browserService';
 import { CheckpointService } from './checkpoint/checkpointService';
 import { ContextToolsService } from './contextTools/contextToolsService';
 import { CustomToolsService } from './customTools/customToolsService';
-import { DiagnosticsMonitoringService } from './diagnostics/diagnosticsMonitoringService';
+import { _DiagnosticsMonitoringService } from './diagnostics/diagnosticsMonitoringService';
 import { GitService } from './git/gitService';
 import { CodeShareService } from './code/codeShareService';
 import { OptimizedCompletionService } from './codeCompletion/optimizedCompletionService';

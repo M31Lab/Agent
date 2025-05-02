@@ -168,6 +168,6 @@ export class ConfigurationManager {
             this.configChangeListener.dispose();
         }
         
-        ConfigurationManager.instance = undefined as any;
+        ConfigurationManager.instance = undefined as unknown;
     }
 } 

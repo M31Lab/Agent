@@ -4,7 +4,7 @@ export interface OpenRouterModelResponseData {
     created?: number;
     object?: string;
     owned_by?: string;
-    permission?: any[];
+    permission?: unknown[][];
     pricing?: {
         prompt: number;
         completion: number;

@@ -61,7 +61,7 @@ async function configureApiKey(_context: ExtensionContext): Promise<void> {
         return;
     }
     
-    await (authService as any).authenticate();
+    await (authService as unknown).authenticate();
 }
 
 async function selectAiModel(_context: ExtensionContext): Promise<void> {
@@ -104,7 +104,7 @@ function toggleTelemetry(_context: ExtensionContext): void {
         return;
     }
     
-    const currentSetting = (configService as any).getConfiguration('enableTelemetry', true);
+    const currentSetting = (configService as unknown).getConfiguration('enableTelemetry', true);
     vscode.workspace.getConfiguration('m31-agent').update('enableTelemetry', !currentSetting, vscode.ConfigurationTarget.Global);
     
     vscode.window.showInformationMessage(`Telemetry ${!currentSetting ? 'enabled' : 'disabled'}`);
@@ -112,7 +112,7 @@ function toggleTelemetry(_context: ExtensionContext): void {
 
 function viewLogs(_context: ExtensionContext): void {
     _context.loggingService.info('Showing logs');
-    ((_context.loggingService as any).showOutputChannel) ? 
-        (_context.loggingService as any).showOutputChannel() : 
+    ((_context.loggingService as unknown).showOutputChannel) ? 
+        (_context.loggingService as unknown).showOutputChannel() : 
         vscode.window.showInformationMessage('Logs are available in the Output panel');
 } 

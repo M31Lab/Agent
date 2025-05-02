@@ -631,7 +631,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return `file:${path}`;
     }
 
-    private async findMainPackageJson(): Promise<any | null> {
+    private async findMainPackageJson(): Promise<unknown | null> {
         if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
             return null;
         }
@@ -990,7 +990,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return 'Unknown';
     }
 
-    private determineProjectType(filePaths: string[], packageJson: any | null): string {
+    private determineProjectType(filePaths: string[], packageJson: unknown[] | null): string {
         if (packageJson) {
             // Check for framework-specific dependencies
             const allDeps = {
@@ -2219,7 +2219,7 @@ export class CodebaseUnderstandingService implements ICodebaseUnderstandingServi
         return filesByFolder;
     }
 
-    private async detectPatterns(filesByFolder: Record<string, string[]>): Promise<any[]> {
+    private async detectPatterns(filesByFolder: Record<string, string[]>): Promise<unknown[][]> {
         // Simplistic pattern detection based on folder structure and naming patterns
         const patterns: Array<{
             name: string;
