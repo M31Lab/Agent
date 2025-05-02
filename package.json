@@ -3,6 +3,7 @@
   "displayName": "M31 Agent",
   "description": "AI-powered coding assistant that integrates with OpenRouter AI",
   "version": "0.1.0",
+  "icon": "resources/icon.svg",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -34,7 +35,7 @@
         {
           "id": "m31-agent-sidebar",
           "title": "M31 Agent",
-          "icon": "resources/icons/sidebar-icon.png"
+          "icon": "resources/icons/sidebar-icon.svg"
         }
       ]
     },
@@ -42,15 +43,18 @@
       "m31-agent-sidebar": [
         {
           "id": "m31-agent.chatView",
-          "name": "AI Chat"
+          "name": "AI Chat",
+          "icon": "resources/icons/commands/chat-view.svg"
         },
         {
           "id": "m31-agent.codebaseView",
-          "name": "Codebase Navigation"
+          "name": "Codebase Navigation",
+          "icon": "resources/icons/commands/codebase-view.svg"
         },
         {
           "id": "m31-agent.diagnosticsView",
-          "name": "Diagnostics"
+          "name": "Diagnostics",
+          "icon": "resources/icons/commands/diagnostics-view.svg"
         }
       ]
     },
@@ -58,27 +62,47 @@
       {
         "command": "m31-agent.showChat",
         "title": "Show Chat",
-        "category": "M31 Agent"
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/chat.svg",
+          "dark": "resources/icons/commands/chat.svg"
+        }
       },
       {
         "command": "m31-agent.configureSettings",
         "title": "Configure Settings",
-        "category": "M31 Agent"
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/settings.svg",
+          "dark": "resources/icons/commands/settings.svg"
+        }
       },
       {
         "command": "m31-agent.quickChat",
         "title": "Quick Chat",
-        "category": "M31 Agent"
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/chat.svg",
+          "dark": "resources/icons/commands/chat.svg"
+        }
       },
       {
         "command": "m31-agent.explainCode",
         "title": "Explain Code",
-        "category": "M31 Agent"
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/code.svg",
+          "dark": "resources/icons/commands/code.svg"
+        }
       },
       {
         "command": "m31-agent.generateCode",
         "title": "Generate Code",
-        "category": "M31 Agent"
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/code.svg",
+          "dark": "resources/icons/commands/code.svg"
+        }
       },
       {
         "command": "m31-agent.runCommand",
@@ -169,6 +193,33 @@
         "command": "m31-agent.code.shareCode",
         "title": "Share Code Link",
         "category": "M31 Agent"
+      },
+      {
+        "command": "m31-agent.configureApiKey",
+        "title": "Configure API Key",
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/key.svg",
+          "dark": "resources/icons/commands/key.svg"
+        }
+      },
+      {
+        "command": "m31-agent.clearApiKey",
+        "title": "Clear API Key",
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/key.svg",
+          "dark": "resources/icons/commands/key.svg"
+        }
+      },
+      {
+        "command": "m31-agent.selectModel",
+        "title": "Select AI Model",
+        "category": "M31 Agent",
+        "icon": {
+          "light": "resources/icons/commands/settings.svg",
+          "dark": "resources/icons/commands/settings.svg"
+        }
       }
     ],
     "keybindings": [
