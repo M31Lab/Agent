@@ -10,7 +10,7 @@ export function registerCodeGenerationCommands(
     dependencies: CommandDependencies
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = [];
-    const { statusBarManager } = dependencies;
+    const { statusBarManager: _statusBarManager } = dependencies;
 
     // Generate Code command
     const generateCode = vscode.commands.registerCommand('m31-agent.generateCode', async () => {
@@ -217,7 +217,7 @@ ${selectedCode}
     }
 }
 
-function getExplanationHtml(code: string, explanation: string, language: string): string {
+function getExplanationHtml(code: string, explanation: string, _language: string): string {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>

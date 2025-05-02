@@ -131,7 +131,7 @@ export class CodeExecutionCommands {
         }
     }
 
-    private async createTempFile(content: string, language: string): Promise<string | undefined> {
+    private async createTempFile(_content: string, _language: string): Promise<string | undefined> {
         // Implementation would create a temporary file with the content
         // For now, return a placeholder
         return undefined;
@@ -171,7 +171,7 @@ export class CodeExecutionCommands {
             this._telemetry.trackEvent('file_created', { language });
 
             // Create a new untitled file
-            const extension = this.getExtensionForLanguage(language);
+            const _extension = this.getExtensionForLanguage(language);
             const document = await vscode.workspace.openTextDocument({
                 content,
                 language

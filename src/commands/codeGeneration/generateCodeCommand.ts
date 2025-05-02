@@ -5,7 +5,6 @@ import { CommandDependencies } from '../commandRegistry';
 import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { LanguageSupportService } from '../../services/languageSupport/languageSupportService';
 import { IOpenRouterCompletionRequest, IOpenRouterMessage } from '../../api/interfaces/requests/completionRequest';
-import { AIRequestType } from '../../models/ai/aiRequestType';
 import { FileSystemService } from '../../services/fileSystem/fileSystemService';
 
 export function RegisterGenerateCodeCommand(

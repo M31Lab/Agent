@@ -103,7 +103,7 @@ async function findFilesByPattern(context: ExtensionContext): Promise<void> {
             location: vscode.ProgressLocation.Notification,
             title: `Finding files matching "${pattern}"`,
             cancellable: true
-        }, async (progress, token) => {
+        }, async (_progress, _token) => {
             // Find files
             const files = await vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000);
             
@@ -183,7 +183,7 @@ async function showProjectStructure(context: ExtensionContext, fileSystemService
             location: vscode.ProgressLocation.Notification,
             title: 'Analyzing project structure',
             cancellable: true
-        }, async (progress, token) => {
+        }, async (_progress, _token) => {
             // Get project structure
             const structure = await fileSystemService.getFileStructure(rootPath, 2);
             
@@ -205,17 +205,17 @@ async function showProjectStructure(context: ExtensionContext, fileSystemService
     }
 }
 
-function generateStructureMarkdown(structure: { [key: string]: any }, level: number = 0): string {
+function generateStructureMarkdown(structure: Record<string, unknown>, level: number = 0): string {
     let result = level === 0 ? '# Project Structure\n\n' : '';
     
     for (const [name, info] of Object.entries(structure)) {
         const indent = '  '.repeat(level);
-        const isDirectory = info.type === 'directory';
+        const isDirectory = (info as Record<string, unknown>).type === 'directory';
         
         result += `${indent}- ${isDirectory ? '📂' : '📄'} ${name}\n`;
         
-        if (isDirectory && info.children) {
-            result += generateStructureMarkdown(info.children, level + 1);
+        if (isDirectory && (info as Record<string, unknown>).children) {
+            result += generateStructureMarkdown((info as Record<string, unknown>).children as Record<string, unknown>, level + 1);
         }
     }
     

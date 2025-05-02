@@ -381,18 +381,18 @@
     "style-loader": "^3.3.3",
     "ts-loader": "^9.4.4",
     "typedoc": "^0.28.3",
-    "typescript": "^5.2.2",
+    "typescript": "^5.8.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "axios": "^1.4.0",
     "cheerio": "^1.0.0-rc.12",
+    "lru-cache": "^7.14.1",
     "minimatch": "^9.0.3",
     "puppeteer-core": "^21.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "uuid": "^9.0.0",
-    "lru-cache": "^7.14.1"
+    "uuid": "^9.0.0"
   }
 }

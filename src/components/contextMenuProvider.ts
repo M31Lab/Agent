@@ -56,8 +56,8 @@ export class ContextMenuProvider implements vscode.Disposable {
         this._contextMenuItems.delete(contextType);
     }
     
-    public handleContextMenuAction(actionId: string, editor?: vscode.TextEditor): void {
-        for (const [contextType, items] of this._contextMenuItems.entries()) {
+    public handleContextMenuAction(actionId: string, _editor?: vscode.TextEditor): void {
+        for (const [_contextType, items] of this._contextMenuItems.entries()) {
             const item = items.find(i => i.id === actionId);
             if (item) {
                 this._logging.debug(`Executing context menu action: ${actionId}`);
