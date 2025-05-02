@@ -3,7 +3,7 @@
   "displayName": "M31 Agent",
   "description": "AI-powered coding assistant that integrates with OpenRouter AI",
   "version": "0.1.0",
-  "icon": "resources/icon.svg",
+  "icon": "resources/images/icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },
