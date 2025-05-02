@@ -2,9 +2,9 @@
 
 ![M31-Agent Logo](resources/images/icon.png)
 
-[![VSCode Marketplace](https://img.shields.io/visual-studio-marketplace/v/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agen)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agen)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agen)
+[![VSCode Marketplace](https://img.shields.io/visual-studio-marketplace/v/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 ---
@@ -33,7 +33,7 @@ M31-Agent is your AI-powered coding companion for Visual Studio Code, designed t
 
 ## 📥 Installation
 
-Install M31-Agent easily from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agen):
+Install M31-Agent easily from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent):
 
 1. Open VS Code and go to the Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`).
 2. Search for **M31-Agent**.
