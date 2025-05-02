@@ -5,15 +5,44 @@ import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { ChatRole } from '../../models/ai/chatTypes';
 
 // Define the Repository interface as it's not exported by VS Code types
+interface GitCommit {
+    hash: string;
+    message: string;
+    parents: string[];
+    authorName: string;
+    authorEmail: string;
+    authorDate: string | Date;
+    commitDate: string | Date;
+}
+
 interface Repository {
     state: {
         indexChanges: {
             resourceUri: vscode.Uri;
             letter: string;
         }[];
+        HEAD?: {
+            name?: string;
+        };
     };
     diff(uri: vscode.Uri): Promise<string>;
     commit(message: string): Promise<void>;
+    getCommit(ref: string): Promise<{
+        message: string;
+    }>;
+    log(options: {
+        maxEntries: number;
+        hash: string;
+        sortByAuthorDate: boolean;
+    }): Promise<Array<{
+        hash: string;
+        message: string;
+        parents: string[];
+        authorName: string;
+        authorEmail: string;
+        authorDate: string | Date;
+        commitDate: string | Date;
+    }>>;
 }
 
 export interface GitFileChange {
@@ -179,8 +208,35 @@ export class GitService implements vscode.Disposable {
             }
         }
         
+        // Get repository information for context
+        const repository = await this.getRepository();
+        let branchName = '';
+        let lastCommitMessage = '';
+        
+        if (repository) {
+            branchName = repository.state.HEAD?.name || '';
+            
+            // Get last commit message for context
+            try {
+                const lastCommit = await repository.getCommit('HEAD');
+                lastCommitMessage = lastCommit.message;
+            } catch (error) {
+                // Ignore error if no commits yet
+                this.context.loggingService.debug('Could not get last commit message', error);
+            }
+        }
+        
         // Create a prompt for AI to generate commit message
         let prompt = 'Generate a concise, informative Git commit message based on the following staged changes:\n\n';
+        
+        // Add repository context
+        if (branchName) {
+            prompt += `Current branch: ${branchName}\n\n`;
+        }
+        
+        if (lastCommitMessage) {
+            prompt += `Last commit message: "${lastCommitMessage}"\n\n`;
+        }
         
         // Add information about changed files
         prompt += 'Changed files:\n';
@@ -202,19 +258,32 @@ export class GitService implements vscode.Disposable {
             prompt += '- Use Conventional Commit format (type(scope): description)\n';
             prompt += '- Types: feat, fix, docs, style, refactor, test, chore\n';
             prompt += '- Keep the first line under 72 characters\n';
+            prompt += '- Add an appropriate emoji at the start of the commit message (e.g., ✨ for feat, 🐛 for fix)\n';
         } else {
             prompt += '- Keep the first line under 72 characters\n';
         }
         
         if (options.includeDetails) {
             prompt += '- Include a more detailed explanation after the first line, separated by a blank line\n';
+            prompt += '- In the detailed explanation, mention what changes were made and why\n';
+            prompt += '- If applicable, mention any related issues or tickets\n';
         }
         
         try {
+            const systemPrompt = `You are an expert Git commit message generator. Your task is to analyze code changes and create clear, informative commit messages that follow best practices.
+            
+When generating commit messages:
+1. Focus on the "what" and "why" of the changes, not just the "how"
+2. Be specific but concise
+3. Use the present tense and imperative mood (e.g., "Add feature" not "Added feature")
+4. If using conventional commits, choose the most appropriate type based on the changes
+5. Group related changes under a single commit message
+6. Include relevant context from the branch name or previous commits`;
+
             const response = await this.apiClient.generateChatCompletion([
                 {
                     role: ChatRole.System,
-                    content: 'You are a helpful assistant that generates concise, clear git commit messages based on code changes.'
+                    content: systemPrompt
                 },
                 {
                     role: ChatRole.User,
@@ -226,6 +295,54 @@ export class GitService implements vscode.Disposable {
         } catch (error) {
             this.context.loggingService.error('Failed to generate commit message', error);
             throw new Error('Failed to generate commit message: ' + (error instanceof Error ? error.message : String(error)));
+        }
+    }
+    
+    /**
+     * Get commit history for the repository
+     */
+    public async getCommitHistory(maxEntries: number = 50): Promise<GitCommit[]> {
+        const repository = await this.getRepository();
+        if (!repository) {
+            return [];
+        }
+        
+        try {
+            // Get log using Git extension API
+            const commits: GitCommit[] = [];
+            let count = 0;
+            
+            // Use git log command to get history
+            const logOptions = {
+                maxEntries,
+                hash: '',
+                sortByAuthorDate: true
+            };
+            
+            const log = await repository.log(logOptions);
+            
+            for (const commit of log) {
+                if (count >= maxEntries) {
+                    break;
+                }
+                
+                commits.push({
+                    hash: commit.hash,
+                    message: commit.message,
+                    parents: commit.parents as string[],
+                    authorName: commit.authorName,
+                    authorEmail: commit.authorEmail,
+                    authorDate: commit.authorDate,
+                    commitDate: commit.commitDate
+                });
+                
+                count++;
+            }
+            
+            return commits;
+        } catch (error) {
+            this.context.loggingService.error('Failed to get commit history', error);
+            return [];
         }
     }
     
@@ -251,4 +368,4 @@ export class GitService implements vscode.Disposable {
         this.subscriptions.forEach(d => d.dispose());
         this.subscriptions = [];
     }
-} 
+}

@@ -177,9 +177,16 @@ async function explainSelectedCode(
                 
                 const language = editor.document.languageId;
                 
-                const systemPrompt = `You are a code explanation assistant. Explain the given code clearly and concisely.
-Focus on the purpose, functionality, and any notable patterns or techniques.
-Be thorough but avoid unnecessary verbosity.`;
+                const systemPrompt = `You are an expert code explanation assistant. Analyze and explain the given code in a structured, comprehensive manner.
+
+Your explanation should include:
+1. A high-level overview of what the code does
+2. A breakdown of key components, functions, or classes and their purposes
+3. The algorithms, patterns, or techniques used
+4. Any potential edge cases, performance considerations, or security implications
+5. Suggestions for improvements or best practices that could be applied
+
+Structure your response with clear headings and bullet points where appropriate. Be thorough but concise.`;
                 
                 const userPrompt = `Please explain the following ${language} code:
 
@@ -225,13 +232,17 @@ ${selectedCode}
     );
 }
 
-function getExplanationHtml(code: string, explanation: string, _language: string): string {
+function getExplanationHtml(code: string, explanation: string, language: string): string {
+    // Process markdown in the explanation
+    const processedExplanation = processMarkdown(explanation);
+    
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Explanation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
     <style>
         body {
             font-family: var(--vscode-font-family);
@@ -239,6 +250,8 @@ function getExplanationHtml(code: string, explanation: string, _language: string
             line-height: 1.6;
             color: var(--vscode-editor-foreground);
             background-color: var(--vscode-editor-background);
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .code-block {
             background-color: var(--vscode-editor-inactiveSelectionBackground);
@@ -248,15 +261,81 @@ function getExplanationHtml(code: string, explanation: string, _language: string
             overflow-x: auto;
             font-family: var(--vscode-editor-font-family);
             font-size: var(--vscode-editor-font-size);
+            position: relative;
         }
         .explanation {
-            padding: 15px;
+            padding: 20px;
             margin: 15px 0;
             background-color: var(--vscode-sideBar-background);
             border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        h1, h2 {
+        h1, h2, h3 {
             color: var(--vscode-titleBar-activeForeground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            padding-bottom: 8px;
+        }
+        h1 {
+            font-size: 1.8em;
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 25px;
+        }
+        h3 {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        pre {
+            margin: 0;
+        }
+        code {
+            font-family: var(--vscode-editor-font-family);
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .language-label {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            padding: 2px 8px;
+            border-radius: 0 0 4px 4px;
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .highlight {
+            background-color: var(--vscode-editor-selectionBackground);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        blockquote {
+            border-left: 4px solid var(--vscode-activityBarBadge-background);
+            margin-left: 0;
+            padding-left: 15px;
+            color: var(--vscode-descriptionForeground);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid var(--vscode-panel-border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
         }
     </style>
 </head>
@@ -265,13 +344,36 @@ function getExplanationHtml(code: string, explanation: string, _language: string
     
     <h2>Original Code</h2>
     <div class="code-block">
-        <pre><code>${escapeHtml(code)}</code></pre>
+        <div class="language-label">${language}</div>
+        <pre><code class="language-${language}">${escapeHtml(code)}</code></pre>
     </div>
     
     <h2>Explanation</h2>
     <div class="explanation">
-        ${explanation.replace(/\n/g, '<br>')}
+        ${processedExplanation}
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-csharp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-rust.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-html.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Prism.highlightAll();
+        });
+    </script>
 </body>
 </html>`;
 }
@@ -283,4 +385,42 @@ function escapeHtml(text: string): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-} 
+}
+
+function processMarkdown(markdown: string): string {
+    // Process code blocks with syntax highlighting
+    markdown = markdown.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        return `<pre><code class="language-${lang || 'plaintext'}">${escapeHtml(code)}</code></pre>`;
+    });
+    
+    // Process inline code
+    markdown = markdown.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Process headings
+    markdown = markdown.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+    markdown = markdown.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+    markdown = markdown.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+    
+    // Process bold and italic
+    markdown = markdown.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    markdown = markdown.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // Process unordered lists
+    markdown = markdown.replace(/^\s*[-*+]\s+(.*)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/(<li>.*<\/li>)(?!\s*<li>)/gs, '<ul>$1</ul>');
+    
+    // Process ordered lists
+    markdown = markdown.replace(/^\s*\d+\.\s+(.*)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/(<li>.*<\/li>)(?!\s*<li>)/gs, '<ol>$1</ol>');
+    
+    // Process blockquotes
+    markdown = markdown.replace(/^>\s(.*$)/gm, '<blockquote>$1</blockquote>');
+    
+    // Process links
+    markdown = markdown.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    
+    // Process line breaks
+    markdown = markdown.replace(/\n/g, '<br>');
+    
+    return markdown;
+}

@@ -88,6 +88,7 @@ export class ChatPanelProvider {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>M31 Agent Chat</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
                 <style>
                     body {
                         font-family: var(--vscode-font-family);
@@ -304,12 +305,37 @@ export class ChatPanelProvider {
                                 
                                 let content = msg.content;
                                 
-                                content = content.replace(/\`\`\`(\\w*)(\\n)?([\\s\\S]*?)\\n?\`\`\`/g, (match, lang, newline, code) => {
-                                    return \`<pre><code class="language-\${lang}">\${code}</code></pre>\`;
+                                // Process code blocks with syntax highlighting
+                                content = content.replace(/\`\`\`(\w*)(\n)?([\s\S]*?)\n?\`\`\`/g, (match, lang, newline, code) => {
+                                    return \`<pre><code class="language-\${lang || 'plaintext'}">\${code}</code></pre>\`;
                                 });
                                 
+                                // Process inline code
                                 content = content.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
                                 
+                                // Process bold text
+                                content = content.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<strong>$1</strong>');
+                                
+                                // Process italic text
+                                content = content.replace(/\\*([^\\*]+)\\*/g, '<em>$1</em>');
+                                
+                                // Process links
+                                content = content.replace(/\\[([^\\]]+)\\]\\(([^\\)]+)\\)/g, '<a href="$2" target="_blank">$1</a>');
+                                
+                                // Process lists
+                                content = content.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
+                                content = content.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+                                
+                                // Process numbered lists
+                                content = content.replace(/^\s*\d+\.\s+(.+)$/gm, '<li>$1</li>');
+                                content = content.replace(/(<li>.*<\/li>)/gs, '<ol>$1</ol>');
+                                
+                                // Process headings
+                                content = content.replace(/^###\\s+(.+)$/gm, '<h3>$1</h3>');
+                                content = content.replace(/^##\\s+(.+)$/gm, '<h2>$1</h2>');
+                                content = content.replace(/^#\\s+(.+)$/gm, '<h1>$1</h1>');
+                                
+                                // Process line breaks
                                 content = content.replace(/\\n/g, '<br>');
                                 
                                 messageElement.innerHTML = content;
@@ -317,6 +343,13 @@ export class ChatPanelProvider {
                             });
                             
                             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            
+                            // Apply syntax highlighting to code blocks
+                            if (typeof Prism !== 'undefined') {
+                                document.querySelectorAll('pre code').forEach((block) => {
+                                    Prism.highlightElement(block);
+                                });
+                            }
                         }
                         
                         function setProcessingState(processing) {
@@ -342,6 +375,22 @@ export class ChatPanelProvider {
                         vscode.postMessage({ command: 'ready' });
                     }());
                 </script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-csharp.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-rust.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-html.min.js"></script>
             </body>
             </html>`;
     }
@@ -675,4 +724,4 @@ export class ChatPanelProvider {
         this.clearCurrentSession();
         this.updateWebview();
     }
-} 
+}
