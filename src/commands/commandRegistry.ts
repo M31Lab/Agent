@@ -13,6 +13,7 @@ import { registerDiagnosticsMonitoringCommands } from './diagnostics/diagnostics
 import { registerMcpCommands } from './mcp/mcpToolCommands';
 import { registerCodeAnalysisCommands } from './codeAnalysis/codeAnalysisCommands';
 import { registerGitCommands } from './git/gitCommands';
+import { registerAuthCommands } from './auth/authCommands';
 
 export interface CommandDependencies {
     statusBarManager: StatusBarManager;
@@ -28,6 +29,7 @@ export function registerAllCommands(
     context.loggingService.info('Registering extension commands');
 
     // Register all command groups
+    registerAuthCommands(context, statusBarManager);
     registerChatCommands(context, chatPanelProvider, statusBarManager);
     registerSettingsCommands(context, statusBarManager);
     registerCodeCommands(context, chatPanelProvider, statusBarManager);
@@ -70,12 +72,12 @@ export function registerAllCommands(
 export function registerCommand(
     context: ExtensionContext,
     commandId: string,
-    callback: (...args: unknown[][]) => unknown[],
+    callback: (...args: any[]) => any,
     thisArg?: unknown
 ): vscode.Disposable {
     context.loggingService.debug(`Registering command: ${commandId}`);
     
-    const wrappedCallback = async (...args: unknown[][]): Promise<void>  => {
+    const wrappedCallback = async (...args: any[]): Promise<any> => {
         try {
             context.loggingService.debug(`Executing command: ${commandId}`);
             context.telemetryService.trackEvent('command_executed', { command: commandId });
@@ -95,8 +97,8 @@ export function registerCommand(
 
 export async function executeVSCodeCommand(
     commandId: string, 
-    ...args: unknown[][]
-): Promise<Promise<unknown>> {
+    ...args: any[]
+): Promise<any> {
     try {
         return await vscode.commands.executeCommand(commandId, ...args);
     } catch (error) {

@@ -15,6 +15,7 @@ import { CheckpointComparisonService } from './services/checkpoint/checkpointCom
 import { WebSearchService } from './services/search/webSearchService';
 import { McpService } from './services/mcp/mcpService';
 import { DiagnosticsMonitoringService } from './services/diagnostics/diagnosticsMonitoringService';
+import { WelcomeService } from './services/welcome/welcomeService';
 // Import sidebar view providers
 import { ChatViewProvider } from './views/chatView';
 import { CodebaseViewProvider } from './views/codebaseView';
@@ -41,6 +42,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
 
         await initializeServices(extensionContext);
+        
+        // Initialize welcome service and handle first run
+        const welcomeService = new WelcomeService(extensionContext);
+        extensionContext.registerDisposable(welcomeService);
         
         const statusBarManager = new StatusBarManager(extensionContext);
         statusBarManager.initialize();
@@ -181,6 +186,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 })
             );
         }
+
+        // Handle first run experience
+        await welcomeService.handleFirstRun();
 
         loggingService.info('M31-Agent Extension Successfully Initialized');
         telemetryService.trackEvent('extension_activated');
