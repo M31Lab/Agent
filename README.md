@@ -1,6 +1,6 @@
 # ✨ M31-Agent: Your AI-Powered Coding Companion for VS Code ✨
 
-![M31-Agent Logo](resources/icon.svg)
+![M31-Agent Logo](resources/images/icon.png)
 
 [![VSCode Marketplace](https://img.shields.io/visual-studio-marketplace/v/m31-ai.m31-agent.svg)](https://marketplace.visualstudio.com/items?itemName=m31-ai.m31-agent)  
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/m31-ai.m31-agent.svg)](https://marketplace.visualstudio.com/items?itemName=m31-ai.m31-agent)  
