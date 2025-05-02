@@ -2,9 +2,9 @@
 
 ![M31-Agent Logo](resources/images/icon.png)
 
-[![VSCode Marketplace](https://img.shields.io/visual-studio-marketplace/v/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/m31-ai.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
+[![VSCode Marketplace](https://img.shields.io/visual-studio-marketplace/v/m31lab.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/m31lab.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/m31lab.m31-agent.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=m31lab.m31-agent)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 ---
