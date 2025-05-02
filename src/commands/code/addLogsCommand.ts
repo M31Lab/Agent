@@ -43,25 +43,21 @@ export class AddLogsCommand {
                         cancellable: false
                     },
                     async () => {
-                        try {
-                            // Generate code with logs
-                            const codeWithLogs = await this.addLogsToCode(selectedText, languageId);
-                            
-                            // Replace selected text with code with logs
-                            await editor.edit(editBuilder => {
-                                editBuilder.replace(selection, codeWithLogs);
-                            });
-                            
-                            vscode.window.showInformationMessage('Logs added successfully.');
-                            
-                            // Track event
-                            this.context.telemetryService.trackEvent('add_logs', {
-                                language: languageId,
-                                codeLength: selectedText.length.toString()
-                            });
-                        } catch (error) {
-                            throw error;
-                        }
+                        // Generate code with logs
+                        const codeWithLogs = await this.addLogsToCode(selectedText, languageId);
+                        
+                        // Replace selected text with code with logs
+                        await editor.edit(editBuilder => {
+                            editBuilder.replace(selection, codeWithLogs);
+                        });
+                        
+                        vscode.window.showInformationMessage('Logs added successfully.');
+                        
+                        // Track event
+                        this.context.telemetryService.trackEvent('add_logs', {
+                            language: languageId,
+                            codeLength: selectedText.length.toString()
+                        });
                     }
                 );
             } catch (error) {

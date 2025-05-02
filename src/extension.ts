@@ -76,7 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         extensionContext.registerDisposable(diagnosticsStatusBar);
         
         // Update status bar with current diagnostics
-        const updateDiagnosticsStatusBar = () => {
+        const updateDiagnosticsStatusBar = (): void => {
             const diagnosticsService = extensionContext.diagnosticsMonitoringService;
             if (!diagnosticsService) {
                 return;

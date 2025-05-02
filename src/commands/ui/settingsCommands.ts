@@ -6,14 +6,14 @@ import { ConfigurationService } from '../../services/configuration/configuration
 
 export function registerSettingsCommands(
     context: ExtensionContext,
-    dependencies: CommandDependencies
+    _dependencies: CommandDependencies
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = [];
 
     // Configure Settings command
     const configureSettings = vscode.commands.registerCommand('m31-agent.configureSettings', async () => {
         context.loggingService.info('Executing command: m31-agent.configureSettings');
-        context.telemetryService.trackCommand('configureSettings');
+        context.telemetryService.trackEvent('configureSettings');
         
         const options = [
             'Configure API Key',
@@ -54,17 +54,17 @@ export function registerSettingsCommands(
     return disposables;
 }
 
-async function configureApiKey(context: ExtensionContext): Promise<void> {
+async function configureApiKey(_context: ExtensionContext): Promise<void> {
     const authService = AuthenticationService.getInstance();
     if (!authService) {
         vscode.window.showErrorMessage('Authentication service not initialized');
         return;
     }
     
-    await authService.promptForAuthentication();
+    await (authService as any).authenticate();
 }
 
-async function selectAiModel(context: ExtensionContext): Promise<void> {
+async function selectAiModel(_context: ExtensionContext): Promise<void> {
     const configService = ConfigurationService.getInstance();
     if (!configService) {
         vscode.window.showErrorMessage('Configuration service not initialized');
@@ -81,38 +81,38 @@ async function selectAiModel(context: ExtensionContext): Promise<void> {
         'google/gemini-pro'
     ];
     
-    const currentModel = configService.getModelId();
-    
-    const selection = await vscode.window.showQuickPick(models, {
-        placeHolder: 'Select an AI model',
-        activeItems: [currentModel]
+    const selection = await vscode.window.showQuickPick(models.map(model => ({ label: model })), {
+        placeHolder: 'Select an AI model'
     });
     
     if (!selection) {
         return;
     }
     
-    await vscode.workspace.getConfiguration('m31-agent').update('modelId', selection, vscode.ConfigurationTarget.Global);
-    vscode.window.showInformationMessage(`AI model set to ${selection}`);
+    await vscode.workspace.getConfiguration('m31-agent').update('modelId', selection.label, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage(`AI model set to ${selection.label}`);
 }
 
-function configureAiParameters(context: ExtensionContext): void {
+function configureAiParameters(_context: ExtensionContext): void {
     vscode.commands.executeCommand('workbench.action.openSettings', 'm31-agent');
 }
 
-function toggleTelemetry(context: ExtensionContext): void {
+function toggleTelemetry(_context: ExtensionContext): void {
     const configService = ConfigurationService.getInstance();
     if (!configService) {
         vscode.window.showErrorMessage('Configuration service not initialized');
         return;
     }
     
-    const currentSetting = configService.isTelemetryEnabled();
+    const currentSetting = (configService as any).getConfiguration('enableTelemetry', true);
     vscode.workspace.getConfiguration('m31-agent').update('enableTelemetry', !currentSetting, vscode.ConfigurationTarget.Global);
     
     vscode.window.showInformationMessage(`Telemetry ${!currentSetting ? 'enabled' : 'disabled'}`);
 }
 
-function viewLogs(context: ExtensionContext): void {
-    context.loggingService.showOutputChannel();
+function viewLogs(_context: ExtensionContext): void {
+    _context.loggingService.info('Showing logs');
+    ((_context.loggingService as any).showOutputChannel) ? 
+        (_context.loggingService as any).showOutputChannel() : 
+        vscode.window.showInformationMessage('Logs are available in the Output panel');
 } 

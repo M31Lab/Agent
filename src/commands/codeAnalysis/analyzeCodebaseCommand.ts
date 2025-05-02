@@ -48,7 +48,7 @@ export class AnalyzeCodebaseCommand {
                 );
             } catch (error) {
                 this.context.loggingService.error('Failed to run codebase analysis', error);
-                vscode.window.showErrorMessage(`Failed to analyze codebase: ${error.message}`);
+                vscode.window.showErrorMessage(`Failed to analyze codebase: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         });
     }
@@ -111,7 +111,7 @@ export class AnalyzeCodebaseCommand {
             panel.webview.html = this.generateFileDependenciesHtml(relationships);
         } catch (error) {
             this.context.loggingService.error(`Error showing file dependencies for ${filePath}`, error);
-            vscode.window.showErrorMessage(`Failed to analyze file dependencies: ${error.message}`);
+            vscode.window.showErrorMessage(`Failed to analyze file dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
@@ -136,7 +136,7 @@ export class AnalyzeCodebaseCommand {
             panel.webview.html = this.generateModuleInsightsHtml(insights);
         } catch (error) {
             this.context.loggingService.error(`Error showing module insights for ${modulePath}`, error);
-            vscode.window.showErrorMessage(`Failed to analyze module insights: ${error.message}`);
+            vscode.window.showErrorMessage(`Failed to analyze module insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
@@ -144,7 +144,7 @@ export class AnalyzeCodebaseCommand {
         overview: any,
         architecture: any,
         analysisResult: any,
-        dependencyGraph: any
+        _dependencyGraph: any
     ): string {
         return `
             <!DOCTYPE html>
@@ -242,12 +242,12 @@ export class AnalyzeCodebaseCommand {
                                 <th>Lines</th>
                                 <th>Percentage</th>
                             </tr>
-                            ${overview.languageSummary.map(lang => `
+                            ${overview.languageSummary.map((lang: Record<string, unknown>) => `
                                 <tr>
                                     <td>${lang.language}</td>
                                     <td>${lang.fileCount}</td>
-                                    <td>${lang.totalLines.toLocaleString()}</td>
-                                    <td>${lang.percentage.toFixed(1)}%</td>
+                                    <td>${(lang.totalLines as number).toLocaleString()}</td>
+                                    <td>${(lang.percentage as number).toFixed(1)}%</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -263,7 +263,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Files</th>
                                 <th>Actions</th>
                             </tr>
-                            ${overview.mainModules.map(module => `
+                            ${overview.mainModules.map((module: Record<string, unknown>) => `
                                 <tr>
                                     <td>${module.name}</td>
                                     <td>${module.path}</td>
@@ -288,7 +288,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Complexity</th>
                                 <th>Reason</th>
                             </tr>
-                            ${analysisResult.complexityHotspots.slice(0, 10).map(hotspot => `
+                            ${analysisResult.complexityHotspots.slice(0, 10).map((hotspot: Record<string, unknown>) => `
                                 <tr class="hotspot">
                                     <td class="file-link" onclick="showFileDependencies('${hotspot.filePath}')">
                                         ${hotspot.filePath}
@@ -309,11 +309,11 @@ export class AnalyzeCodebaseCommand {
                                 <th>Confidence</th>
                                 <th>Locations</th>
                             </tr>
-                            ${architecture.patterns.map(pattern => `
+                            ${architecture.patterns.map((pattern: Record<string, unknown>) => `
                                 <tr>
                                     <td>${pattern.name}</td>
-                                    <td>${(pattern.confidence * 100).toFixed(0)}%</td>
-                                    <td>${pattern.locations.length} files</td>
+                                    <td>${((pattern.confidence as number) * 100).toFixed(0)}%</td>
+                                    <td>${(pattern.locations as unknown[]).length} files</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -395,7 +395,7 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Module/File</th>
                             </tr>
-                            ${relationships.imports.map(imp => `
+                            ${relationships.imports.map((imp: string) => `
                                 <tr>
                                     <td>${imp}</td>
                                 </tr>
@@ -407,7 +407,7 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>File</th>
                             </tr>
-                            ${relationships.importedBy.map(imp => `
+                            ${relationships.importedBy.map((imp: string) => `
                                 <tr>
                                     <td>${imp}</td>
                                 </tr>
@@ -421,7 +421,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Relationship</th>
                                 <th>Strength</th>
                             </tr>
-                            ${relationships.relatedFiles.map(related => `
+                            ${relationships.relatedFiles.map((related: Record<string, unknown>) => `
                                 <tr>
                                     <td>${related.path}</td>
                                     <td>${related.relationReason}</td>
@@ -523,7 +523,7 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Symbol</th>
                             </tr>
-                            ${insights.exportedSymbols.map(symbol => `
+                            ${insights.exportedSymbols.map((symbol: string) => `
                                 <tr>
                                     <td>${symbol}</td>
                                 </tr>
@@ -535,7 +535,7 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Module</th>
                             </tr>
-                            ${insights.importedModules.map(module => `
+                            ${insights.importedModules.map((module: string) => `
                                 <tr>
                                     <td>${module}</td>
                                 </tr>

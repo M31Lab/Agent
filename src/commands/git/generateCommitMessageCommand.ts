@@ -28,42 +28,43 @@ export class GenerateCommitMessageCommand {
                         cancellable: false
                     },
                     async () => {
-                        try {
-                            // Get options for commit message generation
-                            const options: CommitMessageGenerationOptions = {
-                                includeSummary: true,
-                                includeDetails: true,
-                                useConventionalCommit: true
-                            };
-                            
-                            // Generate commit message
-                            const commitMessage = await this.context.gitService.generateCommitMessage(options);
-                            
-                            // Show commit message in input box for editing
-                            const editedMessage = await vscode.window.showInputBox({
-                                prompt: 'Review and edit commit message',
-                                value: commitMessage,
-                                placeHolder: 'Commit message',
-                                valueSelection: [0, commitMessage.indexOf('\n') > 0 ? commitMessage.indexOf('\n') : commitMessage.length]
-                            });
-                            
-                            if (editedMessage) {
-                                // Commit changes with edited message
-                                const success = await this.context.gitService.commitChanges(editedMessage);
-                                if (success) {
-                                    vscode.window.showInformationMessage('Changes committed successfully.');
-                                    
-                                    // Track successful commit
-                                    this.context.telemetryService.trackEvent('git_commit', {
-                                        messageLength: editedMessage.length.toString(),
-                                        filesCount: stagedChanges.length.toString()
-                                    });
-                                } else {
-                                    vscode.window.showErrorMessage('Failed to commit changes.');
-                                }
+                        // Get options for commit message generation
+                        const options: CommitMessageGenerationOptions = {
+                            includeSummary: true,
+                            includeDetails: true,
+                            useConventionalCommit: true
+                        };
+                        
+                        // Generate commit message
+                        const commitMessage = await this.context.gitService?.generateCommitMessage(options);
+                        
+                        if (!commitMessage) {
+                            vscode.window.showErrorMessage('Failed to generate commit message.');
+                            return;
+                        }
+                        
+                        // Show commit message in input box for editing
+                        const editedMessage = await vscode.window.showInputBox({
+                            prompt: 'Review and edit commit message',
+                            value: commitMessage,
+                            placeHolder: 'Commit message',
+                            valueSelection: [0, commitMessage.indexOf('\n') > 0 ? commitMessage.indexOf('\n') : commitMessage.length]
+                        });
+                        
+                        if (editedMessage) {
+                            // Commit changes with edited message
+                            const success = await this.context.gitService?.commitChanges(editedMessage);
+                            if (success) {
+                                vscode.window.showInformationMessage('Changes committed successfully.');
+                                
+                                // Track successful commit
+                                this.context.telemetryService.trackEvent('git_commit', {
+                                    messageLength: editedMessage.length.toString(),
+                                    filesCount: stagedChanges.length.toString()
+                                });
+                            } else {
+                                vscode.window.showErrorMessage('Failed to commit changes.');
                             }
-                        } catch (error) {
-                            throw error;
                         }
                     }
                 );

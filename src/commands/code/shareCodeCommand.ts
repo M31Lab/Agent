@@ -20,7 +20,7 @@ export class ShareCodeCommand {
                 
                 // Get selection or entire file content
                 let code: string;
-                let selection = editor.selection;
+                const selection = editor.selection;
                 
                 if (selection.isEmpty) {
                     // No selection, ask if user wants to share the entire file
@@ -60,30 +60,26 @@ export class ShareCodeCommand {
                         cancellable: false
                     },
                     async () => {
-                        try {
-                            // Share code and get link
-                            const shareUrl = await this.codeShareService.shareCode(code, languageId, title || undefined);
-                            
-                            // Show the link
-                            const openAction = 'Open in Browser';
-                            const copyAction = 'Copy to Clipboard';
-                            
-                            const action = await vscode.window.showInformationMessage(
-                                `Code shared successfully! ${shareUrl}`,
-                                openAction,
-                                copyAction
-                            );
-                            
-                            if (action === openAction) {
-                                // Open in browser
-                                vscode.env.openExternal(vscode.Uri.parse(shareUrl));
-                            } else if (action === copyAction) {
-                                // Copy to clipboard
-                                await vscode.env.clipboard.writeText(shareUrl);
-                                vscode.window.showInformationMessage('Share link copied to clipboard.');
-                            }
-                        } catch (error) {
-                            throw error;
+                        // Share code and get link
+                        const shareUrl = await this.codeShareService.shareCode(code, languageId, title || undefined);
+                        
+                        // Show the link
+                        const openAction = 'Open in Browser';
+                        const copyAction = 'Copy to Clipboard';
+                        
+                        const action = await vscode.window.showInformationMessage(
+                            `Code shared successfully! ${shareUrl}`,
+                            openAction,
+                            copyAction
+                        );
+                        
+                        if (action === openAction) {
+                            // Open in browser
+                            vscode.env.openExternal(vscode.Uri.parse(shareUrl));
+                        } else if (action === copyAction) {
+                            // Copy to clipboard
+                            await vscode.env.clipboard.writeText(shareUrl);
+                            vscode.window.showInformationMessage('Share link copied to clipboard.');
                         }
                     }
                 );

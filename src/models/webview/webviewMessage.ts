@@ -3,7 +3,7 @@ import { ExtensionConfiguration } from '../settings/extensionConfiguration';
 
 interface BaseWebviewMessage {
     type: WebviewMessageType;
-    payload: Record<string, any>;
+    payload: Record<string, unknown>;
 }
 
 interface InitializeMessage extends BaseWebviewMessage {

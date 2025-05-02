@@ -1,7 +1,18 @@
 import * as vscode from 'vscode';
 import { ConfigurationService } from '../services/configuration/configurationService';
 
-export function useConfiguration() {
+export function useConfiguration(): {
+    getConfigurationService: () => ConfigurationService | undefined;
+    getConfiguration: <T>(key: string, defaultValue: T) => T;
+    updateConfiguration: (key: string, value: unknown, target?: vscode.ConfigurationTarget) => Promise<void>;
+    getModelId: () => string;
+    getMaxTokens: () => number;
+    getTemperature: () => number;
+    isRequireConfirmation: () => boolean;
+    isTelemetryEnabled: () => boolean;
+    getLogLevel: () => string;
+    resetToDefaults: () => Promise<void>;
+} {
     const getConfigurationService = (): ConfigurationService | undefined => {
         return ConfigurationService.getInstance();
     };
@@ -12,12 +23,12 @@ export function useConfiguration() {
             return defaultValue;
         }
 
-        return configService.getConfiguration<T>(key, defaultValue);
+        return ((configService as any).getConfiguration)(key, defaultValue);
     };
 
     const updateConfiguration = async (
         key: string,
-        value: any,
+        value: unknown,
         target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
     ): Promise<void> => {
         const configService = getConfigurationService();
@@ -70,7 +81,7 @@ export function useConfiguration() {
             return true;
         }
 
-        return configService.isTelemetryEnabled();
+        return (configService as any).isTelemetryEnabled();
     };
 
     const getLogLevel = (): string => {
