@@ -7,7 +7,7 @@
   "engines": {
     "vscode": "^1.80.0"
   },
-  "publisher": "m31-ai",
+  "publisher": "m31lab",
   "repository": {
     "type": "git",
     "url": "https://github.com/M31Lab/Agent"
