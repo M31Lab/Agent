@@ -176,6 +176,7 @@ export class CheckpointComparisonService implements vscode.Disposable {
                     
                     changes.push({
                         path: filePath,
+                        type: 'create',
                         oldContent: undefined,
                         newContent: content
                     });

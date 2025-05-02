@@ -3,6 +3,8 @@ export interface FileChange {
     type: 'create' | 'modify' | 'delete';
     oldContent?: string;
     newContent?: string;
+    timestamp?: number;
+    changeType?: string; // For backward compatibility
 }
 
 export interface Checkpoint {
@@ -77,12 +79,19 @@ export interface CheckpointDiff {
     toCheckpointId: string;
     timestamp: number;
     fileChanges: FileChangeDiff[];
+    changedFiles: Array<FileChangeDiff & { additions?: number; deletions?: number }>;
+    createdFiles: FileChangeDiff[];
+    deletedFiles: FileChangeDiff[];
 }
 
 export interface FileChangeDiff {
     path: string;
     type: 'added' | 'modified' | 'deleted';
     diff?: string;
+    content?: string;
+    oldContent?: string;
+    newContent?: string;
+    unchanged?: boolean;
 }
 
 export interface CheckpointRestoreOptions {

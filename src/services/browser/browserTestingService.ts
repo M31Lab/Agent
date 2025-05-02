@@ -13,7 +13,7 @@ import {
     BrowserTestingEventType,
     defaultBrowserTestingOptions,
     ElementInteraction,
-    _ElementInteractionType
+    ElementInteractionType
 } from '../../models/browserTesting';
 import { BrowserActionType } from '../../models/browserInteraction';
 
@@ -71,7 +71,7 @@ export class BrowserTestingService implements vscode.Disposable {
                     this.emitEvent({
                         type: BrowserTestingEventType.ScreenshotCaptured,
                         executionId,
-                        screenshot: event.data.screenshot,
+                        screenshot: event.data?.screenshot as string,
                         stepId: data.execution.steps[data.currentStepIndex]?.stepId
                     });
                 }
@@ -87,8 +87,8 @@ export class BrowserTestingService implements vscode.Disposable {
                         type: BrowserTestingEventType.ConsoleMessage,
                         executionId,
                         consoleMessage: {
-                            type: event.data.type,
-                            message: event.data.message
+                            type: event.data?.type as string,
+                            message: event.data?.message as string
                         }
                     });
                 }
@@ -484,36 +484,71 @@ export class BrowserTestingService implements vscode.Disposable {
         step: BrowserTestStep,
         _options: BrowserTestingOptions
     ): Promise<BrowserTestResult> {
-        const result = await this.browserService.executeAction(browserId, {
-            type: step.action,
-            ...step.parameters
-        });
-        
-        if (!result.success) {
-            throw new Error(result.error || 'Step execution failed');
-        }
-        
-        // For element interaction steps, map parameters to the right format
-        if (step.action === BrowserActionType.ElementInteraction && step.parameters) {
-            const interaction = step.parameters as ElementInteraction;
+        try {
+            let action: BrowserAction;
             
-            // Execute the element interaction
-            const interactionResult = await this.browserService.executeAction(browserId, {
-                type: BrowserActionType.ElementInteraction,
-                interaction
-            });
-            
-            if (!interactionResult.success) {
-                throw new Error(interactionResult.error || 'Element interaction failed');
+            switch (step.action) {
+                case BrowserActionType.Click:
+                case BrowserActionType.Type:
+                case BrowserActionType.WaitForSelector:
+                    // Handle element interaction steps
+                    const interaction = step.parameters as ElementInteraction;
+                    
+                    action = {
+                        type: step.action,
+                        selector: interaction.selector,
+                        text: interaction.type === ElementInteractionType.Type ? interaction.value : undefined,
+                        timeout: step.parameters?.timeout as number
+                    };
+                    break;
+                    
+                case BrowserActionType.Navigate:
+                    action = {
+                        type: BrowserActionType.Navigate,
+                        url: step.parameters?.url as string
+                    };
+                    break;
+                    
+                case BrowserActionType.Screenshot:
+                    action = {
+                        type: BrowserActionType.Screenshot,
+                        selector: step.parameters?.selector as string,
+                        width: step.parameters?.width as number,
+                        height: step.parameters?.height as number
+                    };
+                    break;
+                
+                default:
+                    return {
+                        success: false,
+                        error: `Unsupported action type: ${step.action}`,
+                        timestamp: Date.now()
+                    };
             }
+            
+            // Execute the action
+            const result = await this.browserService.executeAction(browserId, action);
+            
+            return {
+                success: result.success,
+                stepId: step.id,
+                screenshot: result.screenshot,
+                consoleOutput: result.logs?.map(log => ({
+                    type: log.level,
+                    message: log.message,
+                    timestamp: Date.now()
+                })),
+                error: result.error,
+                timestamp: Date.now()
+            };
+        } catch (error) {
+            return {
+                success: false,
+                stepId: step.id,
+                error: error instanceof Error ? error.message : String(error),
+                timestamp: Date.now()
+            };
         }
-        
-        return {
-            success: true,
-            stepId: step.id,
-            timestamp: Date.now(),
-            ...result
-        };
     }
     
     private async captureScreenshot(

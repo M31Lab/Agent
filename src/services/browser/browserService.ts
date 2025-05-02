@@ -228,6 +228,10 @@ export class BrowserService implements vscode.Disposable {
         }
     }
 
+    public async closeSession(sessionId: string): Promise<void> {
+        return this.endSession(sessionId);
+    }
+
     public getSession(sessionId: string): BrowserSession | undefined {
         return this.sessions.get(sessionId);
     }
@@ -269,8 +273,8 @@ interface BrowserProvider {
 }
 
 class ChromiumBrowserProvider implements BrowserProvider {
-    private browser: unknown = null;
-    private page: unknown = null;
+    private browser: any = null;
+    private page: any = null;
     private consoleLogs: Array<{ level: string; message: string }> = [];
 
     async initialize(options: BrowserOptions): Promise<void> {
@@ -308,43 +312,31 @@ class ChromiumBrowserProvider implements BrowserProvider {
     }
 
     private async setupConsoleLogging(): Promise<void> {
-        if (!this.page) {
-            return;
+        if (this.page) {
+            // Listen for console messages
+            this.page.on('console', (msg: any) => {
+                this.consoleLogs.push({
+                    level: msg.type(),
+                    message: msg.text()
+                });
+            });
+            
+            // Listen for page errors
+            this.page.on('pageerror', (error: Error) => {
+                this.consoleLogs.push({
+                    level: 'error',
+                    message: error.message
+                });
+            });
+            
+            // Listen for request failures
+            this.page.on('requestfailed', (request: any) => {
+                this.consoleLogs.push({
+                    level: 'error',
+                    message: `Request failed: ${request.url()} (${request.failure().errorText})`
+                });
+            });
         }
-        
-        this.consoleLogs = [];
-        
-        this.page.on('console', (msg: unknown) => {
-            const type = msg.type() || 'log';
-            let text = msg.text();
-            
-            // Limit message length to avoid excessive content
-            if (text.length > 500) {
-                text = text.substring(0, 500) + '... [truncated]';
-            }
-            
-            this.consoleLogs.push({
-                level: type,
-                message: text
-            });
-        });
-        
-        this.page.on('pageerror', (error: Error) => {
-            this.consoleLogs.push({
-                level: 'error',
-                message: error.message
-            });
-        });
-        
-        this.page.on('requestfailed', (request: unknown) => {
-            const failure = request.failure();
-            const errorText = failure ? failure.errorText : 'Unknown error';
-            
-            this.consoleLogs.push({
-                level: 'error',
-                message: `Request failed: ${request.url()} - ${errorText}`
-            });
-        });
     }
 
     async navigate(url: string): Promise<BrowserActionResult> {
@@ -439,22 +431,12 @@ class ChromiumBrowserProvider implements BrowserProvider {
 
     async scroll(x: number = 0, y: number = 0): Promise<BrowserActionResult> {
         try {
-            await this.page.evaluate((x, y) => {
+            await this.page.evaluate((x: number, y: number) => {
                 window.scrollTo(x, y);
             }, x, y);
             
-            const screenshot = await this.page.screenshot({
-                encoding: 'base64'
-            });
-            
             return {
-                success: true,
-                data: {
-                    x,
-                    y
-                },
-                screenshot: `data:image/png;base64,${screenshot}`,
-                logs: this.getLogsSinceLastAction()
+                success: true
             };
         } catch (error) {
             return {
@@ -620,22 +602,18 @@ class ChromiumBrowserProvider implements BrowserProvider {
     }
 
     async close(): Promise<void> {
+        if (this.page) {
+            await this.page.close();
+        }
+        
         if (this.browser) {
             await this.browser.close();
-            this.browser = null;
-            this.page = null;
-            this.consoleLogs = [];
         }
     }
 
     dispose(): void {
         if (this.browser) {
-            this.browser.close().catch((error: Error) => {
-                console.error('Error closing browser:', error);
-            });
-            this.browser = null;
-            this.page = null;
-            this.consoleLogs = [];
+            this.browser.close();
         }
     }
 } 

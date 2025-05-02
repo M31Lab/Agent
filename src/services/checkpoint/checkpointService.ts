@@ -10,8 +10,10 @@ import {
     CheckpointRestoreOptions,
     defaultCheckpointRestoreOptions
 } from '../../models/checkpoint';
+import { ExtensionContext } from '../../models/extensionContext';
 
-export class CheckpointService {
+export class CheckpointService implements vscode.Disposable {
+    private static instance: CheckpointService;
     private checkpoints: Map<string, Checkpoint> = new Map();
     private readonly storageDir: string;
     private readonly workspaceRoot: string;
@@ -20,17 +22,36 @@ export class CheckpointService {
     
     public readonly onCheckpointEvent = this.eventEmitter.event;
     
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: ExtensionContext) {
+        this.context = context;
+        this.storageDir = path.join(context.globalStoragePath, 'checkpoints');
         this.disposables.push(this.eventEmitter);
         
+        CheckpointService.instance = this;
+        
         this.workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-        this.storageDir = path.join(context.globalStoragePath, 'checkpoints');
         
         if (!fs.existsSync(this.storageDir)) {
             fs.mkdirSync(this.storageDir, { recursive: true });
         }
         
         this.loadCheckpoints();
+        
+        this.initialize().catch(error => {
+            context.loggingService.error('Failed to initialize checkpoint service', error);
+        });
+    }
+    
+    public static getInstance(context?: ExtensionContext): CheckpointService {
+        if (!CheckpointService.instance && context) {
+            CheckpointService.instance = new CheckpointService(context);
+        }
+        
+        if (!CheckpointService.instance) {
+            throw new Error('CheckpointService not initialized');
+        }
+        
+        return CheckpointService.instance;
     }
     
     public async createCheckpoint(
@@ -294,8 +315,12 @@ export class CheckpointService {
         return true;
     }
     
-    public getCheckpoint(checkpointId: string): Checkpoint | undefined {
-        return this.checkpoints.get(checkpointId);
+    public getCheckpoint(id: string): Checkpoint | undefined {
+        return this.checkpoints.get(id);
+    }
+    
+    public getCheckpointById(id: string): Checkpoint | undefined {
+        return this.getCheckpoint(id);
     }
     
     public getAllCheckpoints(): Checkpoint[] {

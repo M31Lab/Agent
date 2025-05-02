@@ -80,6 +80,10 @@ export class LoggingService {
         this.log(LogLevel.Warning, message, data);
     }
 
+    public warn(message: string, data?: unknown): void {
+        this.warning(message, data);
+    }
+
     public error(message: string, data?: unknown): void {
         this.log(LogLevel.Error, message, data);
     }

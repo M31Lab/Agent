@@ -26,7 +26,11 @@ const extensionConfig = {
         exclude: /node_modules/,
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+              happyPackMode: true
+            }
           }
         ]
       }
@@ -57,7 +61,11 @@ const webviewConfig = {
         exclude: /node_modules/,
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+              happyPackMode: true
+            }
           }
         ]
       },
