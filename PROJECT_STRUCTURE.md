@@ -122,4 +122,4 @@ Contains utility scripts for development:
 
 - `check-dependencies.js`: Checks for outdated dependencies
 - `prerelease.js`: Prepares a new release version
-- `postinstall.js`: Runs post-installation setup 
+- `postinstall.js`: Runs post-installation setup

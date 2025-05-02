@@ -32,32 +32,32 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 ### Setting Up the Development Environment
 
 1. **Fork the Repository**
-   
+
    Start by forking the M31-Agent repository on GitHub.
 
 2. **Clone Your Fork**
-   
+
    ```bash
    git clone https://github.com/M31Lab/Agent.git
    cd Agent
    ```
 
 3. **Install Dependencies**
-   
+
    ```bash
    npm install
    ```
 
 4. **Set Up the Development Environment**
-   
+
    ```bash
    npm run compile
    ```
 
 5. **Launch in Development Mode**
-   
+
    Press F5 in VS Code to launch a new window with the extension loaded. Alternatively, run:
-   
+
    ```bash
    npm run watch
    ```
@@ -65,17 +65,17 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 ## Contribution Workflow
 
 1. **Check Existing Issues and Discussions**
-   
+
    Before starting work, check if there's already an issue or discussion about the feature or bug you want to address.
 
 2. **Create an Issue**
-   
+
    If no issue exists, create one to discuss your proposed changes.
 
 3. **Branch Strategy**
-   
+
    Create a new branch for your work:
-   
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -83,29 +83,29 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
    ```
 
 4. **Make Your Changes**
-   
+
    Implement your changes following our [coding guidelines](#coding-guidelines).
 
 5. **Test Your Changes**
-   
+
    Run tests to make sure your changes don't break existing functionality:
-   
+
    ```bash
    npm test
    ```
 
 6. **Commit Your Changes**
-   
+
    Follow our [commit message guidelines](#commit-messages).
 
 7. **Push Your Changes**
-   
+
    ```bash
    git push origin your-branch-name
    ```
 
 8. **Create a Pull Request**
-   
+
    Create a pull request from your branch to the main M31-Agent repository.
 
 ## Pull Request Guidelines
@@ -130,6 +130,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
 ```
 
 Types:
+
 - `feat`: A new feature
 - `fix`: A bug fix
 - `docs`: Documentation changes
@@ -142,6 +143,7 @@ Types:
 - `chore`: Other changes that don't modify src or test files
 
 Example:
+
 ```
 feat(code-generation): add support for React component generation
 
@@ -259,4 +261,4 @@ When requesting features, please include:
 - **Discord**: For real-time communication
 - **Email**: support@m31-ai.com for private communications
 
-Thank you for contributing to M31-Agent! 
+Thank you for contributing to M31-Agent!

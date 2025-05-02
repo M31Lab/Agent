@@ -2,104 +2,104 @@ import * as vscode from 'vscode';
 import { FileSystemService } from '../services/fileSystem/fileSystemService';
 
 export function useFileSystem(): Promise<void> {
-    const getFileSystemService = (): FileSystemService | undefined => {
-        return FileSystemService.getInstance();
-    };
+  const getFileSystemService = (): FileSystemService | undefined => {
+    return FileSystemService.getInstance();
+  };
 
-    const readFile = async (filePath: string): Promise<string> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            throw new Error('File system service not initialized');
-        }
+  const readFile = async (filePath: string): Promise<string> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      throw new Error('File system service not initialized');
+    }
 
-        return fileSystem.readFile(filePath);
-    };
+    return fileSystem.readFile(filePath);
+  };
 
-    const writeFile = async (filePath: string, content: string): Promise<void> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            throw new Error('File system service not initialized');
-        }
+  const writeFile = async (filePath: string, content: string): Promise<void> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      throw new Error('File system service not initialized');
+    }
 
-        return fileSystem.writeFile(filePath, content);
-    };
+    return fileSystem.writeFile(filePath, content);
+  };
 
-    const listDirectory = async (directoryPath: string): Promise<string[]> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            throw new Error('File system service not initialized');
-        }
+  const listDirectory = async (directoryPath: string): Promise<string[]> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      throw new Error('File system service not initialized');
+    }
 
-        return fileSystem.listDirectory(directoryPath);
-    };
+    return fileSystem.listDirectory(directoryPath);
+  };
 
-    const exists = async (path: string): Promise<boolean> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            throw new Error('File system service not initialized');
-        }
+  const exists = async (path: string): Promise<boolean> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      throw new Error('File system service not initialized');
+    }
 
-        return fileSystem.exists(path);
-    };
+    return fileSystem.exists(path);
+  };
 
-    const isDirectory = async (path: string): Promise<boolean> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            throw new Error('File system service not initialized');
-        }
+  const isDirectory = async (path: string): Promise<boolean> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      throw new Error('File system service not initialized');
+    }
 
-        return fileSystem.isDirectory(path);
-    };
+    return fileSystem.isDirectory(path);
+  };
 
-    const isFile = async (path: string): Promise<boolean> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            throw new Error('File system service not initialized');
-        }
+  const isFile = async (path: string): Promise<boolean> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      throw new Error('File system service not initialized');
+    }
 
-        return fileSystem.isFile(path);
-    };
+    return fileSystem.isFile(path);
+  };
 
-    const getWorkspaceRootPath = (): string | undefined => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            return undefined;
-        }
+  const getWorkspaceRootPath = (): string | undefined => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      return undefined;
+    }
 
-        return fileSystem.getWorkspaceRootPath();
-    };
+    return fileSystem.getWorkspaceRootPath();
+  };
 
-    const findFilesInWorkspace = async (
-        globPattern: string,
-        excludePattern?: string
-    ): Promise<vscode.Uri[]> => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            return [];
-        }
+  const findFilesInWorkspace = async (
+    globPattern: string,
+    excludePattern?: string
+  ): Promise<vscode.Uri[]> => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      return [];
+    }
 
-        return fileSystem.findFilesInWorkspace(globPattern, excludePattern);
-    };
+    return fileSystem.findFilesInWorkspace(globPattern, excludePattern);
+  };
 
-    const resolveWorkspacePath = (relativePath: string): string | undefined => {
-        const fileSystem = getFileSystemService();
-        if (!fileSystem) {
-            return undefined;
-        }
+  const resolveWorkspacePath = (relativePath: string): string | undefined => {
+    const fileSystem = getFileSystemService();
+    if (!fileSystem) {
+      return undefined;
+    }
 
-        return fileSystem.resolveWorkspacePath(relativePath);
-    };
+    return fileSystem.resolveWorkspacePath(relativePath);
+  };
 
-    return {
-        getFileSystemService,
-        readFile,
-        writeFile,
-        listDirectory,
-        exists,
-        isDirectory,
-        isFile,
-        getWorkspaceRootPath,
-        findFilesInWorkspace,
-        resolveWorkspacePath
-    };
-} 
+  return {
+    getFileSystemService,
+    readFile,
+    writeFile,
+    listDirectory,
+    exists,
+    isDirectory,
+    isFile,
+    getWorkspaceRootPath,
+    findFilesInWorkspace,
+    resolveWorkspacePath,
+  };
+}

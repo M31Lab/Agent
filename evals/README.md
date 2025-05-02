@@ -32,4 +32,4 @@ When adding new evaluation scripts, please follow these guidelines:
 1. Place scripts in the appropriate subdirectory
 2. Include clear success/failure criteria
 3. Document any dependencies or setup requirements
-4. Add appropriate entry in the `package.json` scripts section 
+4. Add appropriate entry in the `package.json` scripts section

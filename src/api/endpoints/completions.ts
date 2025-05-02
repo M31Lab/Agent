@@ -3,9 +3,9 @@ import { IOpenRouterCompletionRequest } from '../interfaces/requests/completionR
 import { IOpenRouterCompletionResponse } from '../interfaces/responses/completionResponse';
 
 export async function createCompletion(
-    client: AxiosInstance,
-    request: IOpenRouterCompletionRequest
+  client: AxiosInstance,
+  request: IOpenRouterCompletionRequest
 ): Promise<IOpenRouterCompletionResponse> {
-    const response = await client.post<IOpenRouterCompletionResponse>('/chat/completions', request);
-    return response.data;
+  const response = await client.post<IOpenRouterCompletionResponse>('/chat/completions', request);
+  return response.data;
 }

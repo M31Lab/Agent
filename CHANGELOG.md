@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2023-10-15
 
 ### Added
+
 - Initial public release
 - Core features: AI Chat, Code Generation, Code Explanation, Terminal Commands, Codebase Navigation
 - OpenRouter AI integration with support for multiple models

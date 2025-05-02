@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
-      
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
@@ -39,17 +39,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
       - name: Create VS Code Package
         if: steps.changesets.outputs.published == 'true'
         run: npm run package
-        
+
       - name: Publish to VS Code Marketplace
         if: steps.changesets.outputs.published == 'true'
         run: |
           npm install -g @vscode/vsce
           vsce publish -p ${{ secrets.VSCE_TOKEN }}
-        
+
       - name: Create GitHub Release
         if: steps.changesets.outputs.published == 'true'
         uses: actions/create-release@v1
@@ -60,4 +60,4 @@ jobs:
           release_name: Release v${{ steps.changesets.outputs.version }}
           body: ${{ steps.changesets.outputs.publishedPackages }}
           draft: false
-          prerelease: false 
+          prerelease: false

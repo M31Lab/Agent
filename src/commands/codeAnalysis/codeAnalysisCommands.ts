@@ -3,15 +3,15 @@ import { ExtensionContext } from '../../models/context/extensionContext';
 import { AnalyzeCodebaseCommand } from './analyzeCodebaseCommand';
 
 export function registerCodeAnalysisCommands(context: ExtensionContext): vscode.Disposable[] {
-    const disposables: vscode.Disposable[] = [];
+  const disposables: vscode.Disposable[] = [];
 
-    // Register analyze codebase command
-    const analyzeCodebaseCommand = new AnalyzeCodebaseCommand(context);
-    disposables.push(analyzeCodebaseCommand.register());
+  // Register analyze codebase command
+  const analyzeCodebaseCommand = new AnalyzeCodebaseCommand(context);
+  disposables.push(analyzeCodebaseCommand.register());
 
-    // Register the command in package.json
-    // Note: this should be added to the package.json file:
-    /*
+  // Register the command in package.json
+  // Note: this should be added to the package.json file:
+  /*
     "contributes": {
         "commands": [
             {
@@ -23,5 +23,5 @@ export function registerCodeAnalysisCommands(context: ExtensionContext): vscode.
     }
     */
 
-    return disposables;
-} 
+  return disposables;
+}

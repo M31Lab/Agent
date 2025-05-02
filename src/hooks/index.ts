@@ -20,4 +20,4 @@ export * from './useContext/useExtensionContext';
 export * from './useFiles/useActiveEditor';
 
 // Terminal hooks
-export * from './useTerminal/useTerminalCommand'; 
+export * from './useTerminal/useTerminalCommand';

@@ -11,6 +11,7 @@ npm run changeset
 ```
 
 2. Follow the prompts:
+
    - Select packages that were modified in this change
    - Choose the type of change (patch, minor, major)
    - Write a description of the changes
@@ -20,6 +21,7 @@ npm run changeset
 ## How Changesets Work
 
 When changes are merged to the main branch, the changeset GitHub Action will create a PR that:
+
 1. Updates package versions based on the changesets
 2. Updates the changelog with the descriptions from each changeset
 3. Removes the changeset files that were consumed
@@ -29,4 +31,4 @@ Once the "Version Packages" PR is merged, a new release is automatically publish
 ## Learn More
 
 - [Changeset Documentation](https://github.com/changesets/changesets)
-- [Managing Versioning in Our Project](../CONTRIBUTING.md) 
+- [Managing Versioning in Our Project](../CONTRIBUTING.md)

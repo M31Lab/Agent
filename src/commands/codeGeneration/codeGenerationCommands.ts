@@ -5,105 +5,110 @@ import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { AIRequestType } from '../../models/ai/aiRequestType';
 
 export function registerCodeGenerationCommands(
-    context: ExtensionContext,
-    { statusBarManager: _ }: CommandDependencies
+  context: ExtensionContext,
+  { statusBarManager: _ }: CommandDependencies
 ): vscode.Disposable[] {
-    const disposables: vscode.Disposable[] = [];
+  const disposables: vscode.Disposable[] = [];
 
-    // Generate Code command
-    const generateCode = vscode.commands.registerCommand('m31-agent.generateCode', async () => {
-        context.loggingService.info('Executing command: m31-agent.generateCode');
-        context.telemetryService.trackEvent('generateCode');
-        
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active editor');
-            return;
-        }
-        
-        const prompt = await vscode.window.showInputBox({
-            placeHolder: 'Describe the code you want to generate',
-            prompt: 'M31-Agent: Code Generation'
-        });
-        
-        if (!prompt) {
-            return;
-        }
-        
-        await generateCodeFromPrompt(context, prompt, editor);
-    });
-    disposables.push(generateCode);
-    
-    // Explain Code command
-    const explainCode = vscode.commands.registerCommand('m31-agent.explainCode', async () => {
-        context.loggingService.info('Executing command: m31-agent.explainCode');
-        context.telemetryService.trackEvent('explainCode');
-        
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active editor');
-            return;
-        }
-        
-        const selection = editor.selection;
-        if (selection.isEmpty) {
-            vscode.window.showErrorMessage('Please select code to explain');
-            return;
-        }
-        
-        const selectedText = editor.document.getText(selection);
-        await explainSelectedCode(context, selectedText);
-    });
-    disposables.push(explainCode);
+  // Generate Code command
+  const generateCode = vscode.commands.registerCommand('m31-agent.generateCode', async () => {
+    context.loggingService.info('Executing command: m31-agent.generateCode');
+    context.telemetryService.trackEvent('generateCode');
 
-    return disposables;
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage('No active editor');
+      return;
+    }
+
+    const prompt = await vscode.window.showInputBox({
+      placeHolder: 'Describe the code you want to generate',
+      prompt: 'M31-Agent: Code Generation',
+    });
+
+    if (!prompt) {
+      return;
+    }
+
+    await generateCodeFromPrompt(context, prompt, editor);
+  });
+  disposables.push(generateCode);
+
+  // Explain Code command
+  const explainCode = vscode.commands.registerCommand('m31-agent.explainCode', async () => {
+    context.loggingService.info('Executing command: m31-agent.explainCode');
+    context.telemetryService.trackEvent('explainCode');
+
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage('No active editor');
+      return;
+    }
+
+    const selection = editor.selection;
+    if (selection.isEmpty) {
+      vscode.window.showErrorMessage('Please select code to explain');
+      return;
+    }
+
+    const selectedText = editor.document.getText(selection);
+    await explainSelectedCode(context, selectedText);
+  });
+  disposables.push(explainCode);
+
+  return disposables;
 }
 
 async function generateCodeFromPrompt(
-    context: ExtensionContext,
-    prompt: string,
-    editor: vscode.TextEditor
+  context: ExtensionContext,
+  prompt: string,
+  editor: vscode.TextEditor
 ): Promise<void> {
-    const apiClient = OpenRouterApiClient.getInstance();
-    if (!apiClient) {
-        vscode.window.showErrorMessage('API client not initialized');
-        return;
+  const apiClient = OpenRouterApiClient.getInstance();
+  if (!apiClient) {
+    vscode.window.showErrorMessage('API client not initialized');
+    return;
+  }
+
+  if (!context.authenticationService.isAuthenticated()) {
+    const authenticated = await context.authenticationService.ensureAuthenticated();
+    if (!authenticated) {
+      vscode.window.showErrorMessage('Authentication required to generate code');
+      return;
     }
-    
-    if (!context.authenticationService.isAuthenticated()) {
-        const authenticated = await context.authenticationService.ensureAuthenticated();
-        if (!authenticated) {
-            vscode.window.showErrorMessage('Authentication required to generate code');
-            return;
-        }
-    }
-    
-    vscode.window.withProgress(
-        {
-            location: vscode.ProgressLocation.Notification,
-            title: 'Generating code...',
-            cancellable: false
-        },
-        async () => {
-            try {
-                const document = editor.document;
-                const language = document.languageId;
-                const fileName = document.fileName.split('/').pop() || '';
-                const fileExtension = fileName.includes('.') ? fileName.split('.').pop() : '';
-                
-                // Get context around cursor
-                const position = editor.selection.active;
-                const startLine = Math.max(0, position.line - 10);
-                const endLine = Math.min(document.lineCount - 1, position.line + 10);
-                const rangeAround = new vscode.Range(startLine, 0, endLine, document.lineAt(endLine).text.length);
-                const textAround = document.getText(rangeAround);
-                
-                const systemPrompt = `You are a code generation assistant. Generate code based on the user's request.
+  }
+
+  vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: 'Generating code...',
+      cancellable: false,
+    },
+    async () => {
+      try {
+        const document = editor.document;
+        const language = document.languageId;
+        const fileName = document.fileName.split('/').pop() || '';
+        const fileExtension = fileName.includes('.') ? fileName.split('.').pop() : '';
+
+        // Get context around cursor
+        const position = editor.selection.active;
+        const startLine = Math.max(0, position.line - 10);
+        const endLine = Math.min(document.lineCount - 1, position.line + 10);
+        const rangeAround = new vscode.Range(
+          startLine,
+          0,
+          endLine,
+          document.lineAt(endLine).text.length
+        );
+        const textAround = document.getText(rangeAround);
+
+        const systemPrompt = `You are a code generation assistant. Generate code based on the user's request.
 The user is working with a ${language} file ${fileName ? `named ${fileName}` : ''}.
 The code should be idiomatic, well-formatted, and follow best practices for ${language}.
 Do not include explanations, comments, or markdown formatting - return ONLY the code.`;
-                
-                const userPrompt = `I'm working on a ${language} ${fileExtension ? `(${fileExtension})` : ''} file and need you to generate code based on my request.
+
+        const userPrompt = `I'm working on a ${language} ${fileExtension ? `(${fileExtension})` : ''} file and need you to generate code based on my request.
 
 Here's some context from my current file:
 \`\`\`${language}
@@ -115,118 +120,119 @@ My cursor is positioned at line ${position.line + 1}.
 REQUEST: ${prompt}
 
 Generate ONLY the code I need, without any explanation or markdown.`;
-                
-                const response = await apiClient.sendRequest({
-                    requestType: AIRequestType.Chat,
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: userPrompt }
-                    ]
-                });
-                
-                const generatedCode = response.content.trim();
-                
-                // Insert the generated code at the cursor position
-                await editor.edit(editBuilder => {
-                    editBuilder.insert(position, generatedCode);
-                });
-                
-                context.telemetryService.trackEvent('code_generated', 
-                    { language, fileExtension: fileExtension || '' },
-                    { promptTokens: response.promptTokens, completionTokens: response.completionTokens }
-                );
-            } catch (error) {
-                context.loggingService.error('Failed to generate code', error);
-                vscode.window.showErrorMessage('Failed to generate code: ' + 
-                    (error instanceof Error ? error.message : String(error)));
-            }
-        }
-    );
+
+        const response = await apiClient.sendRequest({
+          requestType: AIRequestType.Chat,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        });
+
+        const generatedCode = response.content.trim();
+
+        // Insert the generated code at the cursor position
+        await editor.edit((editBuilder) => {
+          editBuilder.insert(position, generatedCode);
+        });
+
+        context.telemetryService.trackEvent(
+          'code_generated',
+          { language, fileExtension: fileExtension || '' },
+          { promptTokens: response.promptTokens, completionTokens: response.completionTokens }
+        );
+      } catch (error) {
+        context.loggingService.error('Failed to generate code', error);
+        vscode.window.showErrorMessage(
+          'Failed to generate code: ' + (error instanceof Error ? error.message : String(error))
+        );
+      }
+    }
+  );
 }
 
-async function explainSelectedCode(
-    context: ExtensionContext,
-    selectedCode: string
-): Promise<void> {
-    const apiClient = OpenRouterApiClient.getInstance();
-    if (!apiClient) {
-        vscode.window.showErrorMessage('API client not initialized');
-        return;
+async function explainSelectedCode(context: ExtensionContext, selectedCode: string): Promise<void> {
+  const apiClient = OpenRouterApiClient.getInstance();
+  if (!apiClient) {
+    vscode.window.showErrorMessage('API client not initialized');
+    return;
+  }
+
+  if (!context.authenticationService.isAuthenticated()) {
+    const authenticated = await context.authenticationService.ensureAuthenticated();
+    if (!authenticated) {
+      vscode.window.showErrorMessage('Authentication required to explain code');
+      return;
     }
-    
-    if (!context.authenticationService.isAuthenticated()) {
-        const authenticated = await context.authenticationService.ensureAuthenticated();
-        if (!authenticated) {
-            vscode.window.showErrorMessage('Authentication required to explain code');
-            return;
+  }
+
+  vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: 'Analyzing code...',
+      cancellable: false,
+    },
+    async () => {
+      try {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          return;
         }
-    }
-    
-    vscode.window.withProgress(
-        {
-            location: vscode.ProgressLocation.Notification,
-            title: 'Analyzing code...',
-            cancellable: false
-        },
-        async () => {
-            try {
-                const editor = vscode.window.activeTextEditor;
-                if (!editor) {
-                    return;
-                }
-                
-                const language = editor.document.languageId;
-                
-                const systemPrompt = `You are a code explanation assistant. Explain the given code clearly and concisely.
+
+        const language = editor.document.languageId;
+
+        const systemPrompt = `You are a code explanation assistant. Explain the given code clearly and concisely.
 Focus on the purpose, functionality, and any notable patterns or techniques.
 Be thorough but avoid unnecessary verbosity.`;
-                
-                const userPrompt = `Please explain the following ${language} code:
+
+        const userPrompt = `Please explain the following ${language} code:
 
 \`\`\`${language}
 ${selectedCode}
 \`\`\``;
-                
-                const response = await apiClient.sendRequest({
-                    requestType: AIRequestType.Chat,
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: userPrompt }
-                    ]
-                });
-                
-                // Show the explanation in a markdown preview
-                const explanation = response.content.trim();
-                const explainPanel = vscode.window.createWebviewPanel(
-                    'm31-agent.codeExplanation',
-                    'Code Explanation',
-                    vscode.ViewColumn.Beside,
-                    {
-                        enableScripts: false
-                    }
-                );
-                
-                explainPanel.webview.html = getExplanationHtml(selectedCode, explanation, language);
-                
-                context.telemetryService.trackEvent('code_explained', 
-                    { language },
-                    { 
-                        promptTokens: response.promptTokens, 
-                        completionTokens: response.completionTokens,
-                        codeLength: selectedCode.length
-                    }
-                );
-            } catch (error) {
-                context.loggingService.error('Failed to explain code', error);
-                vscode.window.showErrorMessage('Failed to explain code: ' + 
-                    (error instanceof Error ? error.message : String(error)));
-            }
-        }
-    );
+
+        const response = await apiClient.sendRequest({
+          requestType: AIRequestType.Chat,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        });
+
+        // Show the explanation in a markdown preview
+        const explanation = response.content.trim();
+        const explainPanel = vscode.window.createWebviewPanel(
+          'm31-agent.codeExplanation',
+          'Code Explanation',
+          vscode.ViewColumn.Beside,
+          {
+            enableScripts: false,
+          }
+        );
+
+        explainPanel.webview.html = getExplanationHtml(selectedCode, explanation, language);
+
+        context.telemetryService.trackEvent(
+          'code_explained',
+          { language },
+          {
+            promptTokens: response.promptTokens,
+            completionTokens: response.completionTokens,
+            codeLength: selectedCode.length,
+          }
+        );
+      } catch (error) {
+        context.loggingService.error('Failed to explain code', error);
+        vscode.window.showErrorMessage(
+          'Failed to explain code: ' + (error instanceof Error ? error.message : String(error))
+        );
+      }
+    }
+  );
 }
 
 function getExplanationHtml(code: string, explanation: string, _language: string): string {
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -277,10 +283,10 @@ function getExplanationHtml(code: string, explanation: string, _language: string
 }
 
 function escapeHtml(text: string): string {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-} 
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

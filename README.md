@@ -96,19 +96,19 @@ M31-Agent comes packed with a stellar array of AI-powered features designed to s
 
 ## 🏆 Comparison with Other Coding Assistants
 
-| Feature                     | M31-Agent                  | GitHub Copilot | Tabnine       | Kite          |
-|-----------------------------|----------------------------|----------------|--------------|---------------|
-| **🤖 AI Provider**             | OpenRouter (multiple models) | OpenAI Codex   | Proprietary AI | Proprietary AI |
-| **✍️ Code Generation**         | ✅ Extensive               | ✅ Extensive   | ✅ Limited    | ✅ Limited    |
-| **💬 Natural Language Chat**   | ✅ Advanced                | ✅ Basic       | ❌ No        | ❌ No         |
-| **🔍 Code Explanation**        | ✅ Comprehensive           | ✅ Basic       | ❌ No        | ✅ Basic      |
-| **🖥️ Terminal Command Generation** | ✅ Yes                 | ❌ No          | ❌ No        | ❌ No         |
-| **🧭 Codebase Navigation**     | ✅ Advanced                | ❌ No          | ❌ No        | ✅ Basic      |
-| **🔄 Multi-Model Access**      | ✅ Yes                    | ❌ No          | ❌ No        | ❌ No         |
-| **📝 Documentation Generation**| ✅ Yes                    | ✅ Limited     | ❌ No        | ✅ Limited    |
-| **🧪 Test Generation**         | ✅ Yes                    | ✅ Limited     | ❌ No        | ❌ No         |
-| **💰 Pricing Model**           | Usage-based (OpenRouter)  | Subscription   | Freemium     | Freemium     |
-| **🔒 Privacy Focus**           | ✅ High                   | ⚠️ Medium      | ⚠️ Medium    | ⚠️ Medium    |
+| Feature                            | M31-Agent                    | GitHub Copilot | Tabnine        | Kite           |
+| ---------------------------------- | ---------------------------- | -------------- | -------------- | -------------- |
+| **🤖 AI Provider**                 | OpenRouter (multiple models) | OpenAI Codex   | Proprietary AI | Proprietary AI |
+| **✍️ Code Generation**             | ✅ Extensive                 | ✅ Extensive   | ✅ Limited     | ✅ Limited     |
+| **💬 Natural Language Chat**       | ✅ Advanced                  | ✅ Basic       | ❌ No          | ❌ No          |
+| **🔍 Code Explanation**            | ✅ Comprehensive             | ✅ Basic       | ❌ No          | ✅ Basic       |
+| **🖥️ Terminal Command Generation** | ✅ Yes                       | ❌ No          | ❌ No          | ❌ No          |
+| **🧭 Codebase Navigation**         | ✅ Advanced                  | ❌ No          | ❌ No          | ✅ Basic       |
+| **🔄 Multi-Model Access**          | ✅ Yes                       | ❌ No          | ❌ No          | ❌ No          |
+| **📝 Documentation Generation**    | ✅ Yes                       | ✅ Limited     | ❌ No          | ✅ Limited     |
+| **🧪 Test Generation**             | ✅ Yes                       | ✅ Limited     | ❌ No          | ❌ No          |
+| **💰 Pricing Model**               | Usage-based (OpenRouter)     | Subscription   | Freemium       | Freemium       |
+| **🔒 Privacy Focus**               | ✅ High                      | ⚠️ Medium      | ⚠️ Medium      | ⚠️ Medium      |
 
 M31-Agent shines brightest with its flexible AI model selection through OpenRouter, comprehensive natural language capabilities, and unique features like terminal command generation and advanced codebase navigation.
 
@@ -120,42 +120,42 @@ Getting M31-Agent into your VS Code environment is a breeze! Here's how to bring
 
 ### 🔍 Method 1: Install via VS Code Extensions View
 
-1. Open Visual Studio Code  
-2. Click on the Extensions icon in the Activity Bar (or press `Ctrl+Shift+X` / `Cmd+Shift+X`)  
-3. Search for "M31-Agent"  
-4. Click "Install" on the M31-Agent extension  
+1. Open Visual Studio Code
+2. Click on the Extensions icon in the Activity Bar (or press `Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "M31-Agent"
+4. Click "Install" on the M31-Agent extension
 
 ### ⌨️ Method 2: Install via VS Code Command Palette
 
-1. Open Visual Studio Code  
-2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)  
-3. Type "Extensions: Install Extension"  
-4. Enter "M31-Agent" in the search field  
-5. Select the M31-Agent extension from the list and click "Install"  
+1. Open Visual Studio Code
+2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+3. Type "Extensions: Install Extension"
+4. Enter "M31-Agent" in the search field
+5. Select the M31-Agent extension from the list and click "Install"
 
 ### 🌐 Method 3: Install from VS Code Marketplace Website
 
-1. Visit [M31-Agent on the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=m31-ai.m31-agent)  
-2. Click the "Install" button  
-3. Confirm when VS Code prompts to launch and install the extension  
+1. Visit [M31-Agent on the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=m31-ai.m31-agent)
+2. Click the "Install" button
+3. Confirm when VS Code prompts to launch and install the extension
 
 ### 💻 System Requirements
 
-- Visual Studio Code version 1.80.0 or higher  
-- Stable internet connection for API communication  
-- Minimum 4GB RAM recommended  
-- Node.js 14.0 or higher (bundled with VS Code)  
-- OpenRouter API account with valid API key  
+- Visual Studio Code version 1.80.0 or higher
+- Stable internet connection for API communication
+- Minimum 4GB RAM recommended
+- Node.js 14.0 or higher (bundled with VS Code)
+- OpenRouter API account with valid API key
 
 ### 🔧 Installation Troubleshooting
 
 Ran into a snag? Here's how to fix common installation issues:
 
-1. **📊 VS Code Version**: Ensure you're running VS Code version 1.80.0 or higher  
-2. **🔌 Connectivity Issues**: Check your internet connection and firewall settings  
-3. **⚠️ Conflicting Extensions**: Temporarily disable other AI coding assistants to prevent conflicts  
-4. **💥 Extension Host Crashes**: Update VS Code to the latest version  
-5. **🔑 Permissions Issues**: Ensure VS Code has proper permissions for extension installation  
+1. **📊 VS Code Version**: Ensure you're running VS Code version 1.80.0 or higher
+2. **🔌 Connectivity Issues**: Check your internet connection and firewall settings
+3. **⚠️ Conflicting Extensions**: Temporarily disable other AI coding assistants to prevent conflicts
+4. **💥 Extension Host Crashes**: Update VS Code to the latest version
+5. **🔑 Permissions Issues**: Ensure VS Code has proper permissions for extension installation
 
 ---
 
@@ -167,29 +167,29 @@ Let's get you up and running with M31-Agent in no time! Follow these simple step
 
 Before using M31-Agent, you'll need an OpenRouter API key:
 
-1. Sign up for an account at [openrouter.ai](https://openrouter.ai/)  
-2. Navigate to the API Keys section in your OpenRouter dashboard  
-3. Generate a new API key with appropriate rate limits and model access  
-4. Save this key for configuring M31-Agent  
+1. Sign up for an account at [openrouter.ai](https://openrouter.ai/)
+2. Navigate to the API Keys section in your OpenRouter dashboard
+3. Generate a new API key with appropriate rate limits and model access
+4. Save this key for configuring M31-Agent
 
 ### ⚙️ 2. Configure M31-Agent
 
 After installation, configure the extension with your API key:
 
-1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)  
-2. Run the command "M31-Agent: Configure Settings"  
-3. Enter your OpenRouter API key when prompted  
-4. Select your preferred default AI model from the available options  
-5. Adjust additional settings like maximum token length and temperature as needed  
+1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run the command "M31-Agent: Configure Settings"
+3. Enter your OpenRouter API key when prompted
+4. Select your preferred default AI model from the available options
+5. Adjust additional settings like maximum token length and temperature as needed
 
 ### 🎮 3. Start Using M31-Agent
 
 You can activate M31-Agent using any of these methods:
 
-- Click the M31-Agent icon in the VS Code status bar  
-- Use the keyboard shortcut (`Ctrl+Alt+M` / `Cmd+Alt+M`)  
-- Open the Command Palette and run "M31-Agent: Show Chat"  
-- Right-click on selected code and choose "M31-Agent: Explain Code"  
+- Click the M31-Agent icon in the VS Code status bar
+- Use the keyboard shortcut (`Ctrl+Alt+M` / `Cmd+Alt+M`)
+- Open the Command Palette and run "M31-Agent: Show Chat"
+- Right-click on selected code and choose "M31-Agent: Explain Code"
 
 ### 💬 4. Your First Interaction
 
@@ -211,10 +211,10 @@ Try these beginner-friendly commands to familiarize yourself with M31-Agent:
 
 M31-Agent works best when it has context. When asking questions about your code:
 
-- Select the relevant code before asking for an explanation  
-- Provide specific details in your questions  
-- Refer to files by name in navigation requests  
-- Let the agent know what language or framework you're using for generation tasks  
+- Select the relevant code before asking for an explanation
+- Provide specific details in your questions
+- Refer to files by name in navigation requests
+- Let the agent know what language or framework you're using for generation tasks
 
 ---
 
@@ -230,31 +230,31 @@ OpenRouter is like a universal translator for AI models - it's an API gateway se
 
 M31-Agent puts a universe of AI models at your fingertips through OpenRouter:
 
-- **🔮 OpenAI GPT-4o**: Most capable general-purpose model with extensive coding abilities  
-- **⚡ OpenAI GPT-4 Turbo**: Highly capable general-purpose model optimized for coding  
-- **💨 OpenAI GPT-3.5 Turbo**: Fast and economical model for simpler coding tasks  
-- **🧠 Anthropic Claude 3 Opus**: Highest capability Claude model with excellent reasoning  
-- **⚖️ Anthropic Claude 3 Sonnet**: Balanced capability and performance for coding tasks  
-- **🚀 Anthropic Claude 3 Haiku**: Fast and efficient Claude model for quick responses  
-- **💎 Google Gemini Pro**: Google's advanced large language model with strong coding capabilities  
+- **🔮 OpenAI GPT-4o**: Most capable general-purpose model with extensive coding abilities
+- **⚡ OpenAI GPT-4 Turbo**: Highly capable general-purpose model optimized for coding
+- **💨 OpenAI GPT-3.5 Turbo**: Fast and economical model for simpler coding tasks
+- **🧠 Anthropic Claude 3 Opus**: Highest capability Claude model with excellent reasoning
+- **⚖️ Anthropic Claude 3 Sonnet**: Balanced capability and performance for coding tasks
+- **🚀 Anthropic Claude 3 Haiku**: Fast and efficient Claude model for quick responses
+- **💎 Google Gemini Pro**: Google's advanced large language model with strong coding capabilities
 
 ### 🎯 Model Selection Guidance
 
 Different models excel at different tasks - here's how to pick the perfect partner:
 
-- For complex code generation and refactoring, GPT-4o or Claude 3 Opus is recommended  
-- For quick code explanations and simple generations, GPT-3.5 Turbo or Claude 3 Haiku works well  
-- For balanced performance and quality, GPT-4 Turbo or Claude 3 Sonnet is ideal  
-- For projects with specialized needs, experiment with different models  
+- For complex code generation and refactoring, GPT-4o or Claude 3 Opus is recommended
+- For quick code explanations and simple generations, GPT-3.5 Turbo or Claude 3 Haiku works well
+- For balanced performance and quality, GPT-4 Turbo or Claude 3 Sonnet is ideal
+- For projects with specialized needs, experiment with different models
 
 ### 💰 API Usage and Pricing
 
 When using M31-Agent, keep these pricing considerations in mind:
 
-- OpenRouter charges based on the model used and the number of tokens processed  
-- Tokens include both your input (prompts, code context) and the model's output  
-- Set appropriate token limits in M31-Agent settings to control costs  
-- Monitor your usage through the OpenRouter dashboard  
+- OpenRouter charges based on the model used and the number of tokens processed
+- Tokens include both your input (prompts, code context) and the model's output
+- Set appropriate token limits in M31-Agent settings to control costs
+- Monitor your usage through the OpenRouter dashboard
 
 M31-Agent includes optional telemetry that helps us improve the extension while respecting your privacy. All API calls to OpenRouter are made using your personal API key, ensuring you retain control over model selection and usage.
 
@@ -264,12 +264,12 @@ M31-Agent includes optional telemetry that helps us improve the extension while 
 
 Here are the essential commands to supercharge your coding experience:
 
-- **💬 M31-Agent: Show Chat** - Open the AI chat panel  
-- **✍️ M31-Agent: Generate Code** - Generate code based on a description  
-- **🔍 M31-Agent: Explain Code** - Explain the selected code  
-- **🖥️ M31-Agent: Run Command** - Execute or generate a terminal command  
-- **🧭 M31-Agent: Navigate Codebase** - Find and navigate to files in your project  
-- **⚙️ M31-Agent: Configure Settings** - Configure the extension settings  
+- **💬 M31-Agent: Show Chat** - Open the AI chat panel
+- **✍️ M31-Agent: Generate Code** - Generate code based on a description
+- **🔍 M31-Agent: Explain Code** - Explain the selected code
+- **🖥️ M31-Agent: Run Command** - Execute or generate a terminal command
+- **🧭 M31-Agent: Navigate Codebase** - Find and navigate to files in your project
+- **⚙️ M31-Agent: Configure Settings** - Configure the extension settings
 
 ---
 
@@ -607,7 +607,7 @@ Improve code quality with AI-powered test generation:
 - **Python**: pytest, unittest
 - **Java**: JUnit, TestNG
 - **C#**: NUnit, xUnit
-- **And many others based on your project's language and framework
+- \*\*And many others based on your project's language and framework
 
 #### ✨ Features
 
@@ -867,19 +867,19 @@ import * as m31 from 'm31-agent-api';
 const generatedCode = await m31.generateCode({
   prompt: 'Create a function to validate email addresses',
   language: 'typescript',
-  maxTokens: 500
+  maxTokens: 500,
 });
 
 // Explain code
 const explanation = await m31.explainCode({
   code: 'const sum = (a, b) => a + b;',
-  level: 'intermediate'
+  level: 'intermediate',
 });
 
 // Execute a command
 const result = await m31.executeCommand({
   command: 'Find large files in the project',
-  requireConfirmation: true
+  requireConfirmation: true,
 });
 ```
 
@@ -916,7 +916,7 @@ const config = await m31.getConfiguration();
 // Update settings
 await m31.updateConfiguration({
   model: 'anthropic/claude-3-opus',
-  temperature: 0.7
+  temperature: 0.7,
 });
 
 // Register a custom model
@@ -924,7 +924,7 @@ await m31.registerCustomModel({
   id: 'my-custom-model',
   displayName: 'My Team Model',
   endpoint: 'https://api.example.com/ai',
-  authHeader: 'X-API-Key'
+  authHeader: 'X-API-Key',
 });
 ```
 
@@ -941,7 +941,7 @@ m31.commands.register({
   handler: async (params) => {
     // Implementation
     return result;
-  }
+  },
 });
 ```
 
@@ -981,7 +981,7 @@ The extension follows a structured organization:
 ```
 m31-agent/
 ├── src/                      # Source code
-│   ├── api/                  # API communication 
+│   ├── api/                  # API communication
 │   │   ├── client/           # API client implementations
 │   │   ├── endpoints/        # Endpoint definitions
 │   │   ├── interfaces/       # API type definitions
@@ -1097,11 +1097,13 @@ M31-Agent supports multiple AI providers through OpenRouter, giving you flexibil
 ### 🟢 OpenAI Models
 
 - **🔮 GPT-4o**: OpenAI's most advanced model with superior coding capabilities
+
   - ✨ Strengths: Advanced reasoning, broad knowledge, excellent code generation
   - 🎯 Best for: Complex programming tasks, novel solutions, detailed explanations
   - ⚠️ Limitations: Higher latency, more expensive
 
 - **⚡ GPT-4 Turbo**: Powerful model with expanded context window
+
   - ✨ Strengths: Large context handling, good balance of performance and capability
   - 🎯 Best for: Working with larger files, system design, refactoring
   - ⚠️ Limitations: Slightly less capable than GPT-4o
@@ -1114,11 +1116,13 @@ M31-Agent supports multiple AI providers through OpenRouter, giving you flexibil
 ### 🟣 Anthropic Models
 
 - **🧠 Claude 3 Opus**: Anthropic's most capable AI assistant
+
   - ✨ Strengths: Exceptional reasoning, nuanced understanding, safety features
   - 🎯 Best for: Complex code understanding, architectural design, secure coding
   - ⚠️ Limitations: Higher cost, not optimized for all programming languages
 
 - **⚖️ Claude 3 Sonnet**: Balanced performance and capabilities
+
   - ✨ Strengths: Good reasoning with faster performance, cost-effective
   - 🎯 Best for: Everyday coding assistance, documentation, explanation
   - ⚠️ Limitations: Less capable than Opus for very complex tasks
@@ -1208,22 +1212,26 @@ M31-Agent employs various strategies to ensure optimal performance and responsiv
 #### 🔐 Authentication Issues
 
 **Problem**: "Unable to authenticate with OpenRouter API"
+
 - **🔧 Solution 1**: Verify your API key in settings
 - **🔧 Solution 2**: Check your OpenRouter account status
 - **🔧 Solution 3**: Ensure your network allows connections to api.openrouter.ai
 
 **Problem**: "API key is invalid or expired"
+
 - **🔧 Solution**: Generate a new API key in the OpenRouter dashboard
 
 #### ⚡ Performance Issues
 
 **Problem**: "AI responses are very slow"
+
 - **🔧 Solution 1**: Switch to a faster model (Claude 3 Haiku or GPT-3.5 Turbo)
 - **🔧 Solution 2**: Reduce maximum token length in settings
 - **🔧 Solution 3**: Check your internet connection
 - **🔧 Solution 4**: Limit the context scope in advanced settings
 
 **Problem**: "VS Code becomes unresponsive during large operations"
+
 - **🔧 Solution 1**: Increase the "maxContextSize" in advanced settings
 - **🔧 Solution 2**: Enable "backgroundProcessing" in settings
 - **🔧 Solution 3**: Split operations into smaller chunks
@@ -1231,11 +1239,13 @@ M31-Agent employs various strategies to ensure optimal performance and responsiv
 #### 🧩 Feature Issues
 
 **Problem**: "Code generation is not matching my project style"
+
 - **🔧 Solution 1**: Select more files for context in advanced settings
 - **🔧 Solution 2**: Be more specific in your generation prompts
 - **🔧 Solution 3**: Create style guide examples for the AI to follow
 
 **Problem**: "Terminal commands are not executing"
+
 - **🔧 Solution 1**: Ensure command execution is enabled in security settings
 - **🔧 Solution 2**: Check terminal permissions on your system
 - **🔧 Solution 3**: Try running with elevated privileges if required
@@ -1243,11 +1253,13 @@ M31-Agent employs various strategies to ensure optimal performance and responsiv
 #### 🧰 Extension Issues
 
 **Problem**: "Extension fails to activate"
+
 - **🔧 Solution 1**: Check VS Code version (requires 1.80.0+)
 - **🔧 Solution 2**: Try reinstalling the extension
 - **🔧 Solution 3**: Examine VS Code logs for errors
 
 **Problem**: "Settings are not being saved"
+
 - **🔧 Solution 1**: Check file permissions for VS Code configuration directory
 - **🔧 Solution 2**: Use the "Reset Settings" command to restore defaults
 - **🔧 Solution 3**: Configure settings through the JSON settings file
@@ -1348,17 +1360,20 @@ This guide walks you through setting up a development environment for M31-Agent 
 ### 🚀 Setup Instructions
 
 1. **📥 Clone the Repository**
+
    ```bash
    git clone https://github.com/m31-ai/m31-agent-vscode.git
    cd m31-agent-vscode
    ```
 
 2. **📦 Install Dependencies**
+
    ```bash
    npm install
    ```
 
 3. **🏗️ Build the Extension**
+
    ```bash
    npm run compile
    ```
@@ -1373,7 +1388,7 @@ M31-Agent follows a professional-grade project structure with modern development
 
 - **Type Safety**: Comprehensive TypeScript interfaces and types throughout the codebase
 - **Modular Design**: Clear separation of concerns with 100+ files organized by feature and responsibility
-- **Quality Assurance**: 
+- **Quality Assurance**:
   - Automated tests (unit, integration, and scenario-based)
   - Performance benchmarks
   - Linting and formatting rules

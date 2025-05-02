@@ -19,69 +19,69 @@ import { CodeShareService } from '../../services/code/codeShareService';
 import { OptimizedCompletionService } from '../../services/codeCompletion/optimizedCompletionService';
 
 export class ExtensionContext {
-    private disposables: vscode.Disposable[] = [];
-    
-    // Agent Services
-    public browserService?: BrowserService;
-    public terminalService?: TerminalService;
-    public checkpointService?: CheckpointService;
-    public contextToolsService?: ContextToolsService;
-    public customToolsService?: CustomToolsService;
-    public browserTestingService?: BrowserTestingService;
-    public checkpointComparisonService?: CheckpointComparisonService;
-    public webSearchService?: WebSearchService;
-    public mcpService?: McpService;
-    public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
-    public codebaseUnderstandingService?: CodebaseUnderstandingService;
-    public gitService?: GitService;
-    public codeShareService?: CodeShareService;
-    public optimizedCompletionService?: OptimizedCompletionService;
+  private disposables: vscode.Disposable[] = [];
 
-    constructor(
-        public readonly vscodeContext: vscode.ExtensionContext,
-        public readonly configurationService: ConfigurationService,
-        public readonly loggingService: LoggingService,
-        public readonly telemetryService: TelemetryService,
-        public readonly authenticationService: AuthenticationService
-    ) {}
+  // Agent Services
+  public browserService?: BrowserService;
+  public terminalService?: TerminalService;
+  public checkpointService?: CheckpointService;
+  public contextToolsService?: ContextToolsService;
+  public customToolsService?: CustomToolsService;
+  public browserTestingService?: BrowserTestingService;
+  public checkpointComparisonService?: CheckpointComparisonService;
+  public webSearchService?: WebSearchService;
+  public mcpService?: McpService;
+  public diagnosticsMonitoringService?: DiagnosticsMonitoringService;
+  public codebaseUnderstandingService?: CodebaseUnderstandingService;
+  public gitService?: GitService;
+  public codeShareService?: CodeShareService;
+  public optimizedCompletionService?: OptimizedCompletionService;
 
-    public registerDisposable(disposable: vscode.Disposable): void {
-        this.disposables.push(disposable);
-        this.vscodeContext.subscriptions.push(disposable);
-    }
+  constructor(
+    public readonly vscodeContext: vscode.ExtensionContext,
+    public readonly configurationService: ConfigurationService,
+    public readonly loggingService: LoggingService,
+    public readonly telemetryService: TelemetryService,
+    public readonly authenticationService: AuthenticationService
+  ) {}
 
-    public get extensionPath(): string {
-        return this.vscodeContext.extensionPath;
-    }
+  public registerDisposable(disposable: vscode.Disposable): void {
+    this.disposables.push(disposable);
+    this.vscodeContext.subscriptions.push(disposable);
+  }
 
-    public get subscriptions(): vscode.Disposable[] {
-        return this.vscodeContext.subscriptions;
-    }
+  public get extensionPath(): string {
+    return this.vscodeContext.extensionPath;
+  }
 
-    public get globalState(): vscode.Memento {
-        return this.vscodeContext.globalState;
-    }
+  public get subscriptions(): vscode.Disposable[] {
+    return this.vscodeContext.subscriptions;
+  }
 
-    public get workspaceState(): vscode.Memento {
-        return this.vscodeContext.workspaceState;
-    }
+  public get globalState(): vscode.Memento {
+    return this.vscodeContext.globalState;
+  }
 
-    public get storagePath(): string | undefined {
-        return this.vscodeContext.storagePath;
-    }
+  public get workspaceState(): vscode.Memento {
+    return this.vscodeContext.workspaceState;
+  }
 
-    public get logPath(): string {
-        return this.vscodeContext.logPath;
-    }
-    
-    public get globalStoragePath(): string {
-        return this.vscodeContext.globalStoragePath;
-    }
+  public get storagePath(): string | undefined {
+    return this.vscodeContext.storagePath;
+  }
 
-    public dispose(): void {
-        for (const disposable of this.disposables) {
-            disposable.dispose();
-        }
-        this.disposables = [];
+  public get logPath(): string {
+    return this.vscodeContext.logPath;
+  }
+
+  public get globalStoragePath(): string {
+    return this.vscodeContext.globalStoragePath;
+  }
+
+  public dispose(): void {
+    for (const disposable of this.disposables) {
+      disposable.dispose();
     }
-} 
+    this.disposables = [];
+  }
+}

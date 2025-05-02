@@ -2,111 +2,111 @@ import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export enum PanelType {
-    Chat = 'chat',
-    Settings = 'settings',
-    History = 'history',
-    ModelInfo = 'modelInfo',
-    Logs = 'logs'
+  Chat = 'chat',
+  Settings = 'settings',
+  History = 'history',
+  ModelInfo = 'modelInfo',
+  Logs = 'logs',
 }
 
 export interface PanelOptions {
-    title: string;
-    viewType: string;
-    preserveFocus?: boolean;
-    showOptions?: vscode.WebviewPanelOptions;
-    iconPath?: vscode.Uri | { light: vscode.Uri; dark: vscode.Uri };
+  title: string;
+  viewType: string;
+  preserveFocus?: boolean;
+  showOptions?: vscode.WebviewPanelOptions;
+  iconPath?: vscode.Uri | { light: vscode.Uri; dark: vscode.Uri };
 }
 
 export class PanelManager {
-    private static instance: PanelManager;
-    private context: ExtensionContext;
-    private panels: Map<string, vscode.WebviewPanel> = new Map();
+  private static instance: PanelManager;
+  private context: ExtensionContext;
+  private panels: Map<string, vscode.WebviewPanel> = new Map();
 
-    constructor(context: ExtensionContext) {
-        this.context = context;
-        PanelManager.instance = this;
+  constructor(context: ExtensionContext) {
+    this.context = context;
+    PanelManager.instance = this;
+  }
+
+  public static getInstance(): PanelManager {
+    if (!PanelManager.instance) {
+      throw new Error('PanelManager not initialized');
+    }
+    return PanelManager.instance;
+  }
+
+  public initialize(): void {
+    this.context.loggingService.debug('Panel manager initialized');
+  }
+
+  public createOrShowPanel(
+    panelType: PanelType,
+    options: PanelOptions,
+    contentProvider: (webview: vscode.Webview) => string
+  ): vscode.WebviewPanel {
+    const { title, viewType, preserveFocus, showOptions, iconPath } = options;
+
+    const column = vscode.window.activeTextEditor
+      ? vscode.window.activeTextEditor.viewColumn
+      : vscode.ViewColumn.One;
+
+    if (this.panels.has(panelType)) {
+      const panel = this.panels.get(panelType)!;
+      panel.reveal(column || vscode.ViewColumn.One, preserveFocus);
+      return panel;
     }
 
-    public static getInstance(): PanelManager {
-        if (!PanelManager.instance) {
-            throw new Error('PanelManager not initialized');
-        }
-        return PanelManager.instance;
+    const panel = vscode.window.createWebviewPanel(
+      viewType,
+      title,
+      {
+        viewColumn: column || vscode.ViewColumn.One,
+        preserveFocus: preserveFocus,
+      },
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(this.context.vscodeContext.extensionUri, 'media'),
+          vscode.Uri.joinPath(this.context.vscodeContext.extensionUri, 'dist'),
+        ],
+      }
+    );
+
+    if (iconPath) {
+      panel.iconPath = iconPath;
     }
 
-    public initialize(): void {
-        this.context.loggingService.debug('Panel manager initialized');
-    }
+    panel.webview.html = contentProvider(panel.webview);
 
-    public createOrShowPanel(
-        panelType: PanelType, 
-        options: PanelOptions, 
-        contentProvider: (webview: vscode.Webview) => string
-    ): vscode.WebviewPanel {
-        const { title, viewType, preserveFocus, showOptions, iconPath } = options;
-        
-        const column = vscode.window.activeTextEditor
-            ? vscode.window.activeTextEditor.viewColumn
-            : vscode.ViewColumn.One;
-        
-        if (this.panels.has(panelType)) {
-            const panel = this.panels.get(panelType)!;
-            panel.reveal(column || vscode.ViewColumn.One, preserveFocus);
-            return panel;
-        }
-        
-        const panel = vscode.window.createWebviewPanel(
-            viewType,
-            title,
-            {
-                viewColumn: column || vscode.ViewColumn.One,
-                preserveFocus: preserveFocus
-            },
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.joinPath(this.context.vscodeContext.extensionUri, 'media'),
-                    vscode.Uri.joinPath(this.context.vscodeContext.extensionUri, 'dist')
-                ]
-            }
-        );
-        
-        if (iconPath) {
-            panel.iconPath = iconPath;
-        }
-        
-        panel.webview.html = contentProvider(panel.webview);
-        
-        panel.onDidDispose(() => this.panels.delete(panelType), null, this.context.subscriptions);
-        
-        this.panels.set(panelType, panel);
-        this.context.loggingService.debug(`Panel created: ${panelType}`);
-        
-        return panel;
-    }
+    panel.onDidDispose(() => this.panels.delete(panelType), null, this.context.subscriptions);
 
-    public getPanel(panelType: PanelType): vscode.WebviewPanel | undefined {
-        return this.panels.get(panelType);
-    }
+    this.panels.set(panelType, panel);
+    this.context.loggingService.debug(`Panel created: ${panelType}`);
 
-    public closePanel(panelType: PanelType): void {
-        const panel = this.panels.get(panelType);
-        if (panel) {
-            panel.dispose();
-            this.panels.delete(panelType);
-            this.context.loggingService.debug(`Panel closed: ${panelType}`);
-        }
-    }
+    return panel;
+  }
 
-    public closeAllPanels(): void {
-        this.panels.forEach(panel => panel.dispose());
-        this.panels.clear();
-        this.context.loggingService.debug('All panels closed');
-    }
+  public getPanel(panelType: PanelType): vscode.WebviewPanel | undefined {
+    return this.panels.get(panelType);
+  }
 
-    public dispose(): void {
-        this.closeAllPanels();
-        PanelManager.instance = undefined as unknown;
+  public closePanel(panelType: PanelType): void {
+    const panel = this.panels.get(panelType);
+    if (panel) {
+      panel.dispose();
+      this.panels.delete(panelType);
+      this.context.loggingService.debug(`Panel closed: ${panelType}`);
     }
-} 
+  }
+
+  public closeAllPanels(): void {
+    this.panels.forEach((panel) => panel.dispose());
+    this.panels.clear();
+    this.context.loggingService.debug('All panels closed');
+  }
+
+  public dispose(): void {
+    this.closeAllPanels();
+    PanelManager.instance = undefined as unknown;
+  }
+}
