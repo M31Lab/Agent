@@ -1,10 +1,16 @@
 import * as vscode from 'vscode';
+import { ChatPanelProvider } from '../components/chat/chatPanelProvider';
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'm31-agent.chatView';
   private _view?: vscode.WebviewView;
+  private chatPanelProvider?: ChatPanelProvider;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  public setChatPanelProvider(provider: ChatPanelProvider): void {
+    this.chatPanelProvider = provider;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -22,14 +28,52 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     // Handle messages from the webview
     webviewView.webview.onDidReceiveMessage(message => {
-      switch (message.command) {
-        case 'sendMessage':
-          // TODO: Process the message and get a response from the AI
-          const response = `Received: ${message.text}`;
-          this._view?.webview.postMessage({ command: 'receiveMessage', text: response });
-          return;
+      if (message.command === 'sendMessage') {
+        this.handleIncomingMessage(message.text);
       }
     });
+  }
+
+  private async handleIncomingMessage(text: string): Promise<void> {
+    if (!this.chatPanelProvider) {
+      this._view?.webview.postMessage({ 
+        command: 'receiveMessage', 
+        text: "Chat service is not available. Please try again later."
+      });
+      return;
+    }
+
+    try {
+      // Set loading state
+      this._view?.webview.postMessage({ 
+        command: 'showLoading', 
+        isLoading: true 
+      });
+
+      // Open the full chat panel to handle this
+      await this.chatPanelProvider.show();
+      
+      // Send the message to the chat panel
+      await this.chatPanelProvider.sendMessage(text);
+      
+      // Confirm message was sent to user
+      this._view?.webview.postMessage({ 
+        command: 'receiveMessage', 
+        text: "Your message has been sent to the chat panel."
+      });
+    } catch (error) {
+      // Handle errors
+      this._view?.webview.postMessage({ 
+        command: 'showError', 
+        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    } finally {
+      // Clear loading state
+      this._view?.webview.postMessage({ 
+        command: 'showLoading', 
+        isLoading: false 
+      });
+    }
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
@@ -46,6 +90,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             color: var(--vscode-editor-foreground);
             font-family: var(--vscode-font-family);
             background-color: var(--vscode-editor-background);
+          }
+          .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
           }
           .message-container {
             height: calc(100vh - 120px);
@@ -88,13 +137,37 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             background-color: var(--vscode-editor-selectionBackground);
             align-self: flex-start;
           }
+          .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+          }
+          .loading.active {
+            display: block;
+          }
+          .error {
+            color: var(--vscode-errorForeground);
+            margin: 10px 0;
+            padding: 8px;
+            background-color: var(--vscode-inputValidation-errorBackground);
+            border: 1px solid var(--vscode-inputValidation-errorBorder);
+            border-radius: 5px;
+            display: none;
+          }
+          .error.active {
+            display: block;
+          }
         </style>
       </head>
       <body>
-        <div class="message-container" id="messages"></div>
-        <div class="input-container">
-          <input type="text" id="message-input" placeholder="Ask a question...">
-          <button id="send-button">Send</button>
+        <div class="container">
+          <div class="message-container" id="messages"></div>
+          <div class="loading" id="loading">Processing your request...</div>
+          <div class="error" id="error"></div>
+          <div class="input-container">
+            <input type="text" id="message-input" placeholder="Ask a question...">
+            <button id="send-button">Send</button>
+          </div>
         </div>
 
         <script>
@@ -102,6 +175,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
           const messageContainer = document.getElementById('messages');
           const messageInput = document.getElementById('message-input');
           const sendButton = document.getElementById('send-button');
+          const loadingIndicator = document.getElementById('loading');
+          const errorDisplay = document.getElementById('error');
 
           // Handle sending messages
           function sendMessage() {
@@ -137,6 +212,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 aiMessageElement.textContent = message.text;
                 messageContainer.appendChild(aiMessageElement);
                 messageContainer.scrollTop = messageContainer.scrollHeight;
+                break;
+              case 'showLoading':
+                if (message.isLoading) {
+                  loadingIndicator.classList.add('active');
+                } else {
+                  loadingIndicator.classList.remove('active');
+                }
+                break;
+              case 'showError':
+                errorDisplay.textContent = message.text;
+                errorDisplay.classList.add('active');
+                setTimeout(() => {
+                  errorDisplay.classList.remove('active');
+                }, 5000);
                 break;
             }
           });

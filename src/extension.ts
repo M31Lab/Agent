@@ -74,6 +74,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const chatViewProvider = new ChatViewProvider(context.extensionUri);
         const codebaseViewProvider = new CodebaseViewProvider();
         const diagnosticsViewProvider = new DiagnosticsViewProvider();
+        
+        // Connect the chat view provider to the chat panel provider
+        chatViewProvider.setChatPanelProvider(chatPanelProvider);
 
         // Register tree data providers
         context.subscriptions.push(
@@ -110,12 +113,33 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         
         // Update status bar with current diagnostics
         const updateDiagnosticsStatusBar = (): void => {
-            const diagnosticsService = extensionContext.diagnosticsMonitoringService;
-            if (!diagnosticsService) {
-                return;
-            }
+            let counts = { errors: 0, warnings: 0, information: 0, hints: 0 };
             
-            const counts = diagnosticsService.getErrorCount();
+            // Try to get counts from the diagnostics service
+            try {
+                if (extensionContext.diagnosticsMonitoringService) {
+                    counts = extensionContext.diagnosticsMonitoringService.getErrorCount();
+                } else {
+                    // Fallback to the diagnostics view provider
+                    counts = diagnosticsViewProvider.getErrorCount();
+                }
+            } catch (error) {
+                // Additional fallback - if both methods fail, use the vscode.languages.getDiagnostics API directly
+                try {
+                    const allDiagnostics = vscode.languages.getDiagnostics();
+                    for (const [_, fileDiagnostics] of allDiagnostics) {
+                        for (const diagnostic of fileDiagnostics) {
+                            if (diagnostic.severity === vscode.DiagnosticSeverity.Error) {
+                                counts.errors++;
+                            } else if (diagnostic.severity === vscode.DiagnosticSeverity.Warning) {
+                                counts.warnings++;
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to count diagnostics:', err);
+                }
+            }
             
             if (counts.errors > 0) {
                 diagnosticsStatusBar.text = `$(error) ${counts.errors} Error${counts.errors === 1 ? '' : 's'}`;
@@ -132,11 +156,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         
         // Initialize and listen for changes
         updateDiagnosticsStatusBar();
-        extensionContext.registerDisposable(
-            extensionContext.diagnosticsMonitoringService!.onDiagnosticsEvent(() => {
-                updateDiagnosticsStatusBar();
-            })
-        );
+        
+        // Register for diagnostic changes
+        try {
+            if (extensionContext.diagnosticsMonitoringService) {
+                extensionContext.registerDisposable(
+                    extensionContext.diagnosticsMonitoringService.onDiagnosticsEvent(() => {
+                        updateDiagnosticsStatusBar();
+                    })
+                );
+            } else {
+                // Fallback - listen to VS Code's built-in diagnostic events
+                extensionContext.registerDisposable(
+                    vscode.languages.onDidChangeDiagnostics(() => {
+                        updateDiagnosticsStatusBar();
+                    })
+                );
+            }
+        } catch (error) {
+            // If service registration fails, at least listen to VS Code's events
+            extensionContext.registerDisposable(
+                vscode.languages.onDidChangeDiagnostics(() => {
+                    updateDiagnosticsStatusBar();
+                })
+            );
+        }
 
         loggingService.info('M31-Agent Extension Successfully Initialized');
         telemetryService.trackEvent('extension_activated');

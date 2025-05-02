@@ -38,68 +38,95 @@ export class DiagnosticsViewProvider implements vscode.TreeDataProvider<Diagnost
   }
 
   private updateDiagnostics() {
-    this.diagnosticItems = [];
-    
-    // Clear existing diagnostics
-    vscode.languages.getLanguages().then(languages => {
-      for (const language of languages) {
-        // Get all diagnostics for all open files
-        if (vscode.window.activeTextEditor) {
-          const diagnostics = vscode.languages.getDiagnostics();
+    try {
+      this.diagnosticItems = [];
+      
+      // Get all diagnostics for all open files
+      const diagnostics = vscode.languages.getDiagnostics();
+      
+      for (const [uri, fileDiagnostics] of diagnostics) {
+        if (fileDiagnostics.length > 0) {
+          // Create a file item that will hold all diagnostics for this file
+          const fileItem = new DiagnosticItem(
+            uri.fsPath.split('/').pop() || uri.fsPath,
+            uri.fsPath,
+            uri,
+            vscode.TreeItemCollapsibleState.Collapsed
+          );
           
-          for (const [uri, fileDiagnostics] of diagnostics) {
-            if (fileDiagnostics.length > 0) {
-              // Create a file item that will hold all diagnostics for this file
-              const fileItem = new DiagnosticItem(
-                uri.fsPath.split('/').pop() || uri.fsPath,
-                uri.fsPath,
-                uri,
-                vscode.TreeItemCollapsibleState.Collapsed
-              );
-              
-              // Process each diagnostic for this file
-              for (const diagnostic of fileDiagnostics) {
-                const severityLabel = this.getSeverityLabel(diagnostic.severity);
-                const lineNumber = diagnostic.range.start.line + 1;
-                const message = diagnostic.message.replace(/\r?\n/g, ' ');
-                
-                const diagnosticItem = new DiagnosticItem(
-                  `[${severityLabel}] Line ${lineNumber}: ${message}`,
-                  message,
+          // Process each diagnostic for this file
+          for (const diagnostic of fileDiagnostics) {
+            const severityLabel = this.getSeverityLabel(diagnostic.severity);
+            const lineNumber = diagnostic.range.start.line + 1;
+            const message = diagnostic.message.replace(/\r?\n/g, ' ');
+            
+            const diagnosticItem = new DiagnosticItem(
+              `[${severityLabel}] Line ${lineNumber}: ${message}`,
+              message,
+              uri,
+              vscode.TreeItemCollapsibleState.None,
+              {
+                command: 'vscode.open',
+                title: 'Go to Diagnostic',
+                arguments: [
                   uri,
-                  vscode.TreeItemCollapsibleState.None,
-                  {
-                    command: 'vscode.open',
-                    title: 'Go to Diagnostic',
-                    arguments: [
-                      uri,
-                      { 
-                        selection: new vscode.Range(
-                          diagnostic.range.start, 
-                          diagnostic.range.end
-                        ) 
-                      }
-                    ]
+                  { 
+                    selection: new vscode.Range(
+                      diagnostic.range.start, 
+                      diagnostic.range.end
+                    ) 
                   }
-                );
-                
-                // Set icon based on severity
-                diagnosticItem.iconPath = this.getSeverityIcon(diagnostic.severity);
-                
-                // Add diagnostic to file item's children
-                fileItem.addChild(diagnosticItem);
+                ]
               }
-              
-              // Add file to the root list
-              this.diagnosticItems.push(fileItem);
-            }
+            );
+            
+            // Set icon based on severity
+            diagnosticItem.iconPath = this.getSeverityIcon(diagnostic.severity);
+            
+            // Add diagnostic to file item's children
+            fileItem.addChild(diagnosticItem);
           }
+          
+          // Add file to the root list
+          this.diagnosticItems.push(fileItem);
         }
       }
       
       // Notify tree view that data has changed
       this._onDidChangeTreeData.fire();
-    });
+    } catch (err) {
+      console.error('Error updating diagnostics view:', err);
+    }
+  }
+  
+  // Helper method to get error counts (can be used by other components)
+  public getErrorCount(): { errors: number; warnings: number; information: number; hints: number } {
+    let errors = 0;
+    let warnings = 0;
+    let information = 0;
+    let hints = 0;
+    
+    const diagnostics = vscode.languages.getDiagnostics();
+    for (const [_, fileDiagnostics] of diagnostics) {
+      for (const diagnostic of fileDiagnostics) {
+        switch (diagnostic.severity) {
+          case vscode.DiagnosticSeverity.Error:
+            errors++;
+            break;
+          case vscode.DiagnosticSeverity.Warning:
+            warnings++;
+            break;
+          case vscode.DiagnosticSeverity.Information:
+            information++;
+            break;
+          case vscode.DiagnosticSeverity.Hint:
+            hints++;
+            break;
+        }
+      }
+    }
+    
+    return { errors, warnings, information, hints };
   }
   
   private getSeverityLabel(severity?: vscode.DiagnosticSeverity): string {

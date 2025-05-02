@@ -395,89 +395,144 @@ export class ChatPanelProvider {
             return;
         }
 
-        const session = this.getActiveSession();
-        if (!session) {
-            this.context.loggingService.error('No active chat session found');
-            return;
+        try {
+            // Set processing flag
+            this.isProcessing = true;
+            this.updateWebviewLoadingState(true);
+
+            // Get active session
+            const session = this.getActiveSession();
+            if (!session) {
+                throw new Error('No active chat session');
+            }
+
+            // Add user message to session
+            session.messages.push({
+                id: uuidv4(),
+                role: ChatRole.User,
+                content: text,
+                timestamp: new Date().toISOString()
+            });
+
+            // Save sessions
+            this.saveSessions();
+
+            // Update UI
+            await this.updateWebview();
+
+            // Get model ID from configuration
+            const modelId = this.context.configurationService.get<string>('m31-agent.modelId', 'openai/gpt-4o');
+            
+            try {
+                // Send to API and get response
+                const response = await this.apiClient.chat(session.messages, {
+                    model: modelId,
+                    temperature: this.context.configurationService.get<number>('m31-agent.temperature', 0.7),
+                    max_tokens: this.context.configurationService.get<number>('m31-agent.maxTokens', 1024)
+                });
+
+                // Add response to session
+                if (response && response.content) {
+                    session.messages.push({
+                        id: uuidv4(),
+                        role: ChatRole.Assistant,
+                        content: response.content,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    // Save sessions
+                    this.saveSessions();
+                    await this.updateWebview();
+                } else {
+                    throw new Error('Empty response from API');
+                }
+            } catch (error) {
+                this.context.loggingService.error('Error processing message:', error);
+                
+                // Add error message to the chat
+                this.addSystemMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+                
+                // Rethrow for downstream handlers
+                throw error;
+            }
+        } finally {
+            // Reset processing flag
+            this.isProcessing = false;
+            this.updateWebviewLoadingState(false);
+        }
+    }
+
+    /**
+     * Process a message and return the AI's response text
+     * Used by the ChatViewProvider for sidebar integration
+     */
+    public async processMessage(text: string): Promise<string> {
+        if (!text.trim() || this.isProcessing) {
+            return "I'm currently processing another request. Please wait a moment.";
         }
 
         try {
-            // Add user message
-            const userMessage: ChatMessage = {
+            // Set processing flag
+            this.isProcessing = true;
+
+            // Get active session
+            const session = this.getActiveSession();
+            if (!session) {
+                throw new Error('No active chat session');
+            }
+
+            // Add user message to session
+            session.messages.push({
+                id: uuidv4(),
                 role: ChatRole.User,
                 content: text,
-                timestamp: Date.now(),
-                id: uuidv4()
-            };
-
-            session.messages.push(userMessage);
-            session.updatedAt = Date.now();
-            await this.updateWebview();
-
-            // Start processing
-            this.isProcessing = true;
-            await this.updateWebview();
-
-            // Ensure API key is set
-            const isAuthenticated = await this.context.authenticationService.ensureAuthenticated();
-            if (!isAuthenticated) {
-                this.addSystemMessage('API key not configured. Please set your OpenRouter API key in the settings.');
-                this.isProcessing = false;
-                await this.updateWebview();
-                return;
-            }
-
-            // Prepare chat completion request
-            const messages = session.messages
-                .filter(m => m.role !== ChatRole.System || session.messages.indexOf(m) === 0)
-                .map(m => ({
-                    role: m.role,
-                    content: m.content
-                }));
-
-            // Add a system message if none exists
-            if (!messages.find(m => m.role === ChatRole.System)) {
-                messages.unshift({
-                    role: ChatRole.System,
-                    content: 'You are M31 Agent, an AI assistant for VS Code. Be concise, helpful, and clear in your responses. Use markdown formatting when appropriate.'
-                });
-            }
-
-            // Get completion from OpenRouter
-            const modelId = session.modelId || this.context.configurationService.getModelId();
-            const response = await this.apiClient.generateChatCompletion(messages, {
-                modelId,
-                temperature: this.context.configurationService.getTemperature(),
-                maxTokens: this.context.configurationService.getMaxTokens()
+                timestamp: new Date().toISOString()
             });
 
-            // Add assistant response
-            const assistantMessage: ChatMessage = {
-                role: ChatRole.Assistant,
-                content: response.choices[0].message.content,
-                timestamp: Date.now(),
-                id: uuidv4()
-            };
-
-            session.messages.push(assistantMessage);
-            session.updatedAt = Date.now();
-
-            // Save sessions and update UI
+            // Save sessions
             this.saveSessions();
 
-            // Track the event
-            this.context.telemetryService.trackEvent('chat_message_processed', {
-                modelId,
-                inputTokens: response.usage.prompt_tokens.toString(),
-                outputTokens: response.usage.completion_tokens.toString(),
-                totalTokens: response.usage.total_tokens.toString()
+            // Get model ID from configuration
+            const modelId = this.context.configurationService.get<string>('m31-agent.modelId', 'openai/gpt-4o');
+            
+            // Send to API and get response
+            const response = await this.apiClient.chat(session.messages, {
+                model: modelId,
+                temperature: this.context.configurationService.get<number>('m31-agent.temperature', 0.7),
+                max_tokens: this.context.configurationService.get<number>('m31-agent.maxTokens', 1024)
             });
+
+            // Add response to session
+            if (response && response.content) {
+                session.messages.push({
+                    id: uuidv4(),
+                    role: ChatRole.Assistant,
+                    content: response.content,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Save sessions
+                this.saveSessions();
+                
+                return response.content;
+            } else {
+                throw new Error('Empty response from API');
+            }
         } catch (error) {
-            this.context.loggingService.error('Error processing chat message', error);
-            this.addSystemMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
+            this.context.loggingService.error('Error processing message:', error);
+            throw error;
         } finally {
+            // Reset processing flag
             this.isProcessing = false;
-            await this.updateWebview();
+        }
+    }
+
+    private updateWebviewLoadingState(isLoading: boolean): void {
+        if (this.panel) {
+            this.panel.webview.postMessage({
+                command: 'setLoadingState',
+                isLoading
+            });
         }
     }
 
