@@ -4,6 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { ChatMessage, ChatRole, ChatSession } from '../../models/ai/chatTypes';
 import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
+import { OpenRouterChatResponse } from '../../models/ai/openRouterTypes';
+
+interface WebviewMessage {
+    command: string;
+    text?: string;
+}
 
 export class ChatPanelProvider {
     private panel: vscode.WebviewPanel | undefined;
@@ -19,11 +25,11 @@ export class ChatPanelProvider {
         this.apiClient = new OpenRouterApiClient(
             context.configurationService,
             context.authenticationService,
-            context.loggingService
+            context.loggingService,
+            context
         );
         this.loadSessions();
         
-        // Create default session if none exists
         if (this.sessions.length === 0) {
             this.createNewSession();
         } else {
@@ -58,7 +64,7 @@ export class ChatPanelProvider {
         this.panel.webview.html = this.getWebviewContent();
 
         this.panel.webview.onDidReceiveMessage(
-            async (message) => {
+            async (message: WebviewMessage) => {
                 await this.handleWebviewMessage(message);
             },
             undefined,
@@ -73,7 +79,6 @@ export class ChatPanelProvider {
             this.context.subscriptions
         );
 
-        // Send initial state to webview
         await this.updateWebview();
     }
 
@@ -221,7 +226,6 @@ export class ChatPanelProvider {
                         
                         let isProcessing = false;
                         
-                        // Handle sending messages
                         function sendMessage() {
                             const message = messageInput.value.trim();
                             if (!message || isProcessing) return;
@@ -235,7 +239,6 @@ export class ChatPanelProvider {
                             messageInput.style.height = 'auto';
                         }
                         
-                        // Event listeners
                         sendButton.addEventListener('click', sendMessage);
                         
                         messageInput.addEventListener('keydown', (event) => {
@@ -262,7 +265,6 @@ export class ChatPanelProvider {
                             vscode.postMessage({ command: 'exportChat' });
                         });
                         
-                        // Listen for messages from the extension
                         window.addEventListener('message', (event) => {
                             const message = event.data;
                             
@@ -273,10 +275,12 @@ export class ChatPanelProvider {
                                 case 'setProcessing':
                                     setProcessingState(message.isProcessing);
                                     break;
+                                case 'setLoadingState':
+                                    setProcessingState(message.isLoading);
+                                    break;
                             }
                         });
                         
-                        // Display chat messages
                         function updateChatMessages(messages) {
                             messagesContainer.innerHTML = '';
                             
@@ -296,29 +300,23 @@ export class ChatPanelProvider {
                                         break;
                                 }
                                 
-                                // Process markdown-like content
                                 let content = msg.content;
                                 
-                                // Handle code blocks
                                 content = content.replace(/\`\`\`(\\w*)(\\n)?([\\s\\S]*?)\\n?\`\`\`/g, (match, lang, newline, code) => {
                                     return \`<pre><code class="language-\${lang}">\${code}</code></pre>\`;
                                 });
                                 
-                                // Handle inline code
                                 content = content.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
                                 
-                                // Handle line breaks
                                 content = content.replace(/\\n/g, '<br>');
                                 
                                 messageElement.innerHTML = content;
                                 messagesContainer.appendChild(messageElement);
                             });
                             
-                            // Scroll to bottom
                             messagesContainer.scrollTop = messagesContainer.scrollHeight;
                         }
                         
-                        // Update UI processing state
                         function setProcessingState(processing) {
                             isProcessing = processing;
                             sendButton.disabled = processing;
@@ -339,7 +337,6 @@ export class ChatPanelProvider {
                             }
                         }
                         
-                        // Notify the extension that the webview is ready
                         vscode.postMessage({ command: 'ready' });
                     }());
                 </script>
@@ -347,13 +344,15 @@ export class ChatPanelProvider {
             </html>`;
     }
 
-    private async handleWebviewMessage(message: unknown): Promise<void> {
+    private async handleWebviewMessage(message: WebviewMessage): Promise<void> {
         switch (message.command) {
             case 'ready':
                 await this.updateWebview();
                 break;
             case 'sendMessage':
-                await this.sendMessage(message.text);
+                if (message.text) {
+                    await this.sendMessage(message.text);
+                }
                 break;
             case 'newChat':
                 await this.createNewSession();
@@ -396,51 +395,37 @@ export class ChatPanelProvider {
         }
 
         try {
-            // Set processing flag
             this.isProcessing = true;
             this.updateWebviewLoadingState(true);
 
-            // Get active session
             const session = this.getActiveSession();
             if (!session) {
                 throw new Error('No active chat session');
             }
 
-            // Add user message to session
             session.messages.push({
                 id: uuidv4(),
                 role: ChatRole.User,
                 content: text,
-                timestamp: new Date().toISOString()
+                timestamp: Date.now()
             });
 
-            // Save sessions
             this.saveSessions();
-
-            // Update UI
             await this.updateWebview();
 
-            // Get model ID from configuration
-            const modelId = this.context.configurationService.get<string>('m31-agent.modelId', 'openai/gpt-4o');
+            const modelId = this.context.configurationService.getModelId();
             
             try {
-                // Send to API and get response
-                const response = await this.apiClient.chat(session.messages, {
-                    model: modelId,
-                    temperature: this.context.configurationService.get<number>('m31-agent.temperature', 0.7),
-                    max_tokens: this.context.configurationService.get<number>('m31-agent.maxTokens', 1024)
-                });
+                const response = await this.generateChatResponse(session.messages, modelId);
 
-                // Add response to session
-                if (response && response.content) {
+                if (response) {
                     session.messages.push({
                         id: uuidv4(),
                         role: ChatRole.Assistant,
-                        content: response.content,
-                        timestamp: new Date().toISOString()
+                        content: response,
+                        timestamp: Date.now()
                     });
 
-                    // Save sessions
                     this.saveSessions();
                     await this.updateWebview();
                 } else {
@@ -448,73 +433,51 @@ export class ChatPanelProvider {
                 }
             } catch (error) {
                 this.context.loggingService.error('Error processing message:', error);
-                
-                // Add error message to the chat
                 this.addSystemMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
-                
-                // Rethrow for downstream handlers
                 throw error;
             }
         } finally {
-            // Reset processing flag
             this.isProcessing = false;
             this.updateWebviewLoadingState(false);
         }
     }
 
-    /**
-     * Process a message and return the AI's response text
-     * Used by the ChatViewProvider for sidebar integration
-     */
     public async processMessage(text: string): Promise<string> {
         if (!text.trim() || this.isProcessing) {
             return "I'm currently processing another request. Please wait a moment.";
         }
 
         try {
-            // Set processing flag
             this.isProcessing = true;
 
-            // Get active session
             const session = this.getActiveSession();
             if (!session) {
                 throw new Error('No active chat session');
             }
 
-            // Add user message to session
             session.messages.push({
                 id: uuidv4(),
                 role: ChatRole.User,
                 content: text,
-                timestamp: new Date().toISOString()
+                timestamp: Date.now()
             });
 
-            // Save sessions
             this.saveSessions();
 
-            // Get model ID from configuration
-            const modelId = this.context.configurationService.get<string>('m31-agent.modelId', 'openai/gpt-4o');
-            
-            // Send to API and get response
-            const response = await this.apiClient.chat(session.messages, {
-                model: modelId,
-                temperature: this.context.configurationService.get<number>('m31-agent.temperature', 0.7),
-                max_tokens: this.context.configurationService.get<number>('m31-agent.maxTokens', 1024)
-            });
+            const modelId = this.context.configurationService.getModelId();
+            const response = await this.generateChatResponse(session.messages, modelId);
 
-            // Add response to session
-            if (response && response.content) {
+            if (response) {
                 session.messages.push({
                     id: uuidv4(),
                     role: ChatRole.Assistant,
-                    content: response.content,
-                    timestamp: new Date().toISOString()
+                    content: response,
+                    timestamp: Date.now()
                 });
 
-                // Save sessions
                 this.saveSessions();
                 
-                return response.content;
+                return response;
             } else {
                 throw new Error('Empty response from API');
             }
@@ -522,9 +485,18 @@ export class ChatPanelProvider {
             this.context.loggingService.error('Error processing message:', error);
             throw error;
         } finally {
-            // Reset processing flag
             this.isProcessing = false;
         }
+    }
+
+    private async generateChatResponse(messages: ChatMessage[], modelId: string): Promise<string> {
+        const response = await this.apiClient.generateChatCompletion(messages, {
+            modelId: modelId,
+            temperature: this.context.configurationService.getTemperature(),
+            maxTokens: this.context.configurationService.getMaxTokens()
+        });
+        
+        return response.choices[0].message.content;
     }
 
     private updateWebviewLoadingState(isLoading: boolean): void {
@@ -621,7 +593,6 @@ export class ChatPanelProvider {
 
             const jsonString = JSON.stringify(exportData, null, 2);
             
-            // Save to file
             const uri = await vscode.window.showSaveDialog({
                 defaultUri: vscode.Uri.file(`${session.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().replace(/:/g, '-')}.json`),
                 filters: {
@@ -662,7 +633,6 @@ export class ChatPanelProvider {
 
     private saveSessions(): void {
         try {
-            // Limit to the 50 most recent sessions
             const recentSessions = this.sessions.slice(0, 50);
             this.context.globalState.update('m31-agent.chatSessions', JSON.stringify(recentSessions));
             this.context.loggingService.debug(`Saved ${recentSessions.length} chat sessions`);
