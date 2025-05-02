@@ -81,7 +81,7 @@ export class BrowserTestingService implements vscode.Disposable {
                     .find(([_, data]) => data.browserId === event.sessionId);
                     
                 if (activeExecution) {
-                    const [executionId, _] = activeExecution;
+                    const [executionId] = activeExecution;
                     
                     this.emitEvent({
                         type: BrowserTestingEventType.ConsoleMessage,
@@ -486,13 +486,14 @@ export class BrowserTestingService implements vscode.Disposable {
     ): Promise<BrowserTestResult> {
         try {
             let action: BrowserAction;
+            let interaction: ElementInteraction;
             
             switch (step.action) {
                 case BrowserActionType.Click:
                 case BrowserActionType.Type:
                 case BrowserActionType.WaitForSelector:
                     // Handle element interaction steps
-                    const interaction = step.parameters as ElementInteraction;
+                    interaction = step.parameters as ElementInteraction;
                     
                     action = {
                         type: step.action,
