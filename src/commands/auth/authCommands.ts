@@ -4,9 +4,9 @@ import { StatusBarManager } from '../../components/statusBar/statusBarManager';
 import { registerCommand } from '../commandRegistry';
 
 export function registerAuthCommands(
-    context: ExtensionContext
+    context: ExtensionContext,
+    statusBarManager: StatusBarManager
 ): void {
-    const statusBarManager = context.getStatusBarManager();
     context.loggingService.debug('Registering authentication commands');
 
     // Configure API key

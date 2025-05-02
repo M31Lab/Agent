@@ -135,6 +135,7 @@ export class WelcomeService implements vscode.Disposable {
     }
     
     public dispose(): void {
-        WelcomeService.instance = undefined as unknown;
+        // Set the static instance to undefined to allow garbage collection
+        WelcomeService.instance = undefined as any;
     }
 } 

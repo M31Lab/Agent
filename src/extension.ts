@@ -22,17 +22,22 @@ import { CodebaseViewProvider } from './views/codebaseView';
 import { DiagnosticsViewProvider } from './views/diagnosticsView';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    console.log('M31-Agent: Starting activation...');
     try {
+        console.log('M31-Agent: Creating ConfigurationService...');
         const configService = new ConfigurationService(context);
         await configService.initialize();
 
+        console.log('M31-Agent: Creating LoggingService...');
         const loggingService = new LoggingService(configService);
         loggingService.info('M31-Agent Extension Activated');
 
+        console.log('M31-Agent: Creating TelemetryService and AuthenticationService...');
         const telemetryService = new TelemetryService(configService, loggingService);
         const authService = new AuthenticationService(context, configService, loggingService);
         await authService.initialize();
 
+        console.log('M31-Agent: Creating ExtensionContext...');
         const extensionContext = new ExtensionContext(
             context,
             configService,
@@ -41,23 +46,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             authService
         );
 
+        console.log('M31-Agent: Initializing services...');
         await initializeServices(extensionContext);
         
         // Initialize welcome service and handle first run
+        console.log('M31-Agent: Creating WelcomeService...');
         const welcomeService = new WelcomeService(extensionContext);
         extensionContext.registerDisposable(welcomeService);
         
+        console.log('M31-Agent: Initializing StatusBarManager...');
         const statusBarManager = new StatusBarManager(extensionContext);
         statusBarManager.initialize();
         
+        console.log('M31-Agent: Creating ChatPanelProvider...');
         const chatPanelProvider = new ChatPanelProvider(extensionContext);
         
+        console.log('M31-Agent: Registering commands...');
         registerAllCommands(extensionContext, {
             statusBarManager,
             chatPanelProvider
         });
 
         // Initialize new services
+        console.log('M31-Agent: Initializing additional services...');
         extensionContext.browserService = new BrowserService();
         extensionContext.browserTestingService = BrowserTestingService.getInstance(extensionContext);
         extensionContext.checkpointService = new CheckpointService(extensionContext.vscodeContext);
@@ -76,6 +87,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         extensionContext.registerDisposable(extensionContext.diagnosticsMonitoringService!);
 
         // Register sidebar views
+        console.log('M31-Agent: Registering sidebar views...');
         const chatViewProvider = new ChatViewProvider(context.extensionUri);
         const codebaseViewProvider = new CodebaseViewProvider();
         const diagnosticsViewProvider = new DiagnosticsViewProvider();
@@ -108,6 +120,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
 
         // Add diagnostics status bar indicator
+        console.log('M31-Agent: Setting up diagnostics status bar...');
         const diagnosticsStatusBar = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right, 
             100
@@ -188,8 +201,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
 
         // Handle first run experience
+        console.log('M31-Agent: Handling first run experience...');
         await welcomeService.handleFirstRun();
 
+        console.log('M31-Agent: Activation completed successfully');
         loggingService.info('M31-Agent Extension Successfully Initialized');
         telemetryService.trackEvent('extension_activated');
     } catch (error) {

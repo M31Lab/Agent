@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
-import { StatusBarManager } from '../../components/statusBar/statusBarManager';
 import { ChatPanelProvider } from '../../components/chat/chatPanelProvider';
+import { StatusBarManager } from '../../components/statusBar/statusBarManager';
 import { registerCommand } from '../commandRegistry';
 
 export function registerTerminalCommands(
