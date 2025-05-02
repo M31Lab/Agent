@@ -3,22 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { v4 as uuidv4 } from 'uuid';
 import { 
     ContextTool,
     ContextToolType,
-    ContextToolInput,
-    ContextToolResult,
-    _UrlContextInput,
-    FileContextInput,
-    FolderContextInput,
-    _ProblemsContextInput,
-    _CustomContextInput
+    ContextToolResult
 } from '../../models/contextTools';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { LoggingService } from '../../utils/logging/loggingService';
-import { TelemetryService } from '../../services/telemetry/telemetryService';
-import { CodeSnippet, FileContext } from '../../models/codebase/codeContext';
 // { _FileSystemService } from '../fileSystem/fileSystemService';
 
 export interface UrlContextInput {
@@ -85,13 +76,11 @@ export class ContextToolsService {
     private readonly eventEmitter = new vscode.EventEmitter<ContextToolEvent>();
     private readonly disposables: vscode.Disposable[] = [];
     private readonly tools: Map<ContextToolType, ContextTool> = new Map();
-    private readonly context: ExtensionContext;
     private readonly logging: LoggingService;
     
     public readonly onContextToolEvent = this.eventEmitter.event;
     
     constructor(context: ExtensionContext) {
-        this.context = context;
         this.logging = context.loggingService;
         this.disposables.push(this.eventEmitter);
         
@@ -266,7 +255,12 @@ export class ContextToolsService {
             
             // Sort diagnostics by severity (errors first) and then by file
             allDiagnostics.sort((a, b) => {
-                const severityOrder = { 'Error': 0, 'Warning': 1, 'Information': 2, 'Hint': 3 };
+                const severityOrder: Record<string, number> = { 
+                    'Error': 0, 
+                    'Warning': 1, 
+                    'Information': 2, 
+                    'Hint': 3 
+                };
                 const severityA = severityOrder[a.severity] || 4;
                 const severityB = severityOrder[b.severity] || 4;
                 
@@ -375,14 +369,11 @@ export class ContextToolsService {
             }
             
             const result: ContextToolResult = {
-                toolType: ContextToolType.File,
-                input,
                 content,
-                timestamp: Date.now(),
                 metadata: {
-                    filePath,
-                    fileSize: fs.statSync(filePath).size,
-                    selection: input.selection
+                    source: filePath,
+                    timestamp: Date.now(),
+                    type: ContextToolType.File
                 }
             };
             
@@ -457,15 +448,11 @@ export class ContextToolsService {
             }
             
             const result: ContextToolResult = {
-                toolType: ContextToolType.Folder,
-                input,
                 content,
-                timestamp: Date.now(),
                 metadata: {
-                    folderPath,
-                    totalFiles: files.length,
-                    includedFiles: selectedFiles.length,
-                    fileList: selectedFiles.map(f => path.relative(folderPath, f))
+                    source: folderPath,
+                    timestamp: Date.now(),
+                    type: ContextToolType.Folder
                 }
             };
             
@@ -505,11 +492,6 @@ export class ContextToolsService {
         return Array.from(this.tools.values()).find(tool => tool.command === command);
     }
     
-    private extractTitle(html: string): string {
-        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-        return titleMatch ? titleMatch[1].trim() : 'Untitled Page';
-    }
-    
     private htmlToMarkdown(html: string, baseUrl: string, includeImages: boolean = false): string {
         try {
             const $ = cheerio.load(html);
@@ -526,14 +508,14 @@ export class ContextToolsService {
             const contentElement = mainContent.length > 0 ? mainContent.first() : $('body');
             
             // Process headings
-            contentElement.find('h1, h2, h3, h4, h5, h6').each((i, elem) => {
+            contentElement.find('h1, h2, h3, h4, h5, h6').each((_, elem) => {
                 const level = parseInt(elem.tagName.substring(1));
                 const text = $(elem).text().trim();
                 markdown += `${'#'.repeat(level)} ${text}\n\n`;
             });
             
             // Process paragraphs
-            contentElement.find('p').each((i, elem) => {
+            contentElement.find('p').each((_, elem) => {
                 const text = $(elem).text().trim();
                 if (text) {
                     markdown += `${text}\n\n`;
@@ -541,7 +523,7 @@ export class ContextToolsService {
             });
             
             // Process lists
-            contentElement.find('ul, ol').each((i, elem) => {
+            contentElement.find('ul, ol').each((_, elem) => {
                 const isOrdered = elem.tagName === 'ol';
                 
                 $(elem).find('li').each((j, liElem) => {
@@ -558,7 +540,7 @@ export class ContextToolsService {
             
             // Process images if enabled
             if (includeImages) {
-                contentElement.find('img').each((i, elem) => {
+                contentElement.find('img').each((_, elem) => {
                     const src = $(elem).attr('src');
                     const alt = $(elem).attr('alt') || 'Image';
                     
@@ -571,7 +553,7 @@ export class ContextToolsService {
             }
             
             // Process code blocks
-            contentElement.find('pre, code').each((i, elem) => {
+            contentElement.find('pre, code').each((_, elem) => {
                 const language = $(elem).attr('class')?.match(/language-(\w+)/) ? 
                     $(elem).attr('class')?.match(/language-(\w+)/)?.[1] || '' : '';
                 const code = $(elem).text().trim();
@@ -586,99 +568,18 @@ export class ContextToolsService {
         }
     }
     
-    private getDiagnostics(): DiagnosticInfo[] {
-        const diagnostics: DiagnosticInfo[] = [];
-        
-        // Get all diagnostics from VS Code
-        vscode.languages.getDiagnostics().forEach(([uri, fileDiagnostics]) => {
-            const filePath = uri.fsPath;
-            
-            fileDiagnostics.forEach(diagnostic => {
-                diagnostics.push({
-                    filePath,
-                    message: diagnostic.message,
-                    severity: diagnostic.severity,
-                    source: diagnostic.source || 'unknown',
-                    line: diagnostic.range.start.line + 1,
-                    column: diagnostic.range.start.character + 1
-                });
-            });
-        });
-        
-        // Sort by severity (errors first)
-        diagnostics.sort((a, b) => a.severity - b.severity);
-        
-        return diagnostics;
-    }
-    
-    private formatDiagnosticsAsMarkdown(diagnostics: DiagnosticInfo[]): string {
-        if (diagnostics.length === 0) {
-            return 'No problems found in workspace.';
-        }
-        
-        let content = '# Workspace Problems\n\n';
-        content += `Found ${diagnostics.length} problems in workspace.\n\n`;
-        
-        // Group by file
-        const fileGroups: { [filePath: string]: DiagnosticInfo[] } = {};
-        
-        for (const diagnostic of diagnostics) {
-            if (!fileGroups[diagnostic.filePath]) {
-                fileGroups[diagnostic.filePath] = [];
-            }
-            fileGroups[diagnostic.filePath].push(diagnostic);
-        }
-        
-        // Format each file's problems
-        for (const [filePath, fileDiagnostics] of Object.entries(fileGroups)) {
-            const relativePath = vscode.workspace.asRelativePath(filePath);
-            content += `## File: ${relativePath}\n\n`;
-            
-            for (const diagnostic of fileDiagnostics) {
-                const severity = this.getSeverityName(diagnostic.severity);
-                content += `- **${severity}** (Line ${diagnostic.line}, Column ${diagnostic.column}): ${diagnostic.message}`;
-                
-                if (diagnostic.source && diagnostic.source !== 'unknown') {
-                    content += ` [${diagnostic.source}]`;
-                }
-                
-                content += '\n';
-            }
-            
-            content += '\n';
-        }
-        
-        return content;
-    }
-    
-    private getSeverityName(severity: vscode.DiagnosticSeverity): string {
+    private getDiagnosticSeverityString(severity: vscode.DiagnosticSeverity): string {
         switch (severity) {
             case vscode.DiagnosticSeverity.Error:
                 return 'Error';
             case vscode.DiagnosticSeverity.Warning:
                 return 'Warning';
             case vscode.DiagnosticSeverity.Information:
-                return 'Info';
+                return 'Information';
             case vscode.DiagnosticSeverity.Hint:
                 return 'Hint';
             default:
                 return 'Unknown';
-        }
-    }
-    
-    private getSeverityLevel(severity: string): vscode.DiagnosticSeverity {
-        switch (severity.toLowerCase()) {
-            case 'error':
-                return vscode.DiagnosticSeverity.Error;
-            case 'warning':
-                return vscode.DiagnosticSeverity.Warning;
-            case 'info':
-            case 'information':
-                return vscode.DiagnosticSeverity.Information;
-            case 'hint':
-                return vscode.DiagnosticSeverity.Hint;
-            default:
-                return vscode.DiagnosticSeverity.Error;
         }
     }
     
@@ -701,8 +602,6 @@ export class ContextToolsService {
         excludePatterns: string[],
         maxDepth: number
     ): Promise<string[]> {
-        const _folderUri = vscode.Uri.file(folderPath);
-        
         // Convert patterns to glob patterns for VS Code
         const includeGlob = `{${includePatterns.map(p => path.join(folderPath, p)).join(',')}}`;
         const excludeGlob = `{${excludePatterns.map(p => path.join(folderPath, p)).join(',')}}`;
@@ -717,17 +616,6 @@ export class ContextToolsService {
                 const depth = relativePath.split(path.sep).length;
                 return depth <= maxDepth;
             });
-    }
-    
-    private matchesGlobPattern(filePath: string, pattern: string): boolean {
-        // Convert the glob pattern to a regex
-        const regexPattern = pattern
-            .replace(/\./g, '\\.')
-            .replace(/\*/g, '.*')
-            .replace(/\?/g, '.');
-        
-        const regex = new RegExp(`^${regexPattern}$`, 'i');
-        return regex.test(filePath);
     }
     
     private getLanguageIdFromPath(filePath: string): string {
@@ -784,44 +672,7 @@ export class ContextToolsService {
         }
     }
     
-    private getDiagnosticSeverityString(severity: vscode.DiagnosticSeverity): string {
-        switch (severity) {
-            case vscode.DiagnosticSeverity.Error:
-                return 'Error';
-            case vscode.DiagnosticSeverity.Warning:
-                return 'Warning';
-            case vscode.DiagnosticSeverity.Information:
-                return 'Information';
-            case vscode.DiagnosticSeverity.Hint:
-                return 'Hint';
-            default:
-                return 'Unknown';
-        }
-    }
-    
     public dispose(): void {
         this.disposables.forEach(d => d.dispose());
     }
 }
-
-export type ContextToolEventType = 
-    | 'toolExecuted'
-    | 'toolFailed';
-
-export interface ContextToolEvent {
-    type: ContextToolEventType;
-    toolType: ContextToolType;
-    input: ContextToolInput;
-    result?: ContextToolResult;
-    error?: string;
-    timestamp: number;
-}
-
-interface DiagnosticInfo {
-    filePath: string;
-    message: string;
-    severity: vscode.DiagnosticSeverity;
-    source: string;
-    line: number;
-    column: number;
-} 
