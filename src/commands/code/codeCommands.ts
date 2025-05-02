@@ -2,14 +2,13 @@ import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { ChatPanelProvider } from '../../components/chat/chatPanelProvider';
 import { StatusBarManager } from '../../components/statusBar/statusBarManager';
-import { registerCommand } from '../commandRegistry';
 import { AddLogsCommand } from './addLogsCommand';
 import { ShareCodeCommand } from './shareCodeCommand';
 
 export function registerCodeCommands(
     context: ExtensionContext,
-    chatPanelProvider: ChatPanelProvider, 
-    statusBarManager: StatusBarManager
+    _chatPanelProvider: ChatPanelProvider, 
+    _statusBarManager: StatusBarManager
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = [];
     

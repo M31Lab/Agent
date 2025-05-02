@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as _path from 'path';
+// import * as path from 'path';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export function getNonce(): string {
@@ -85,17 +85,24 @@ export function createBaseWebviewContent(
 </html>`;
 }
 
-export function postMessageToWebview<T>(panel: vscode.WebviewPanel, type: string, data: T): void {
-    panel.webview.postMessage({ type, data });
+export function postMessageToWebview<T>(panel: vscode.WebviewPanel, type: string, data: T, requestId?: string | number): void {
+    panel.webview.postMessage({ type, data, requestId });
+}
+
+// Define an interface for the webview message structure
+export interface WebviewMessage<T = unknown> {
+    type: string;
+    data: T;
+    requestId?: string | number;
 }
 
 export function getMessageHandler<T, R>(
     handler: (message: T) => R | Promise<R>,
     responseType: string
-): (message: unknown, panel: vscode.WebviewPanel) => Promise<void> {
-    return async (message: unknown, panel: vscode.WebviewPanel) => {
+): (message: WebviewMessage<T>, panel: vscode.WebviewPanel) => Promise<void> {
+    return async (message: WebviewMessage<T>, panel: vscode.WebviewPanel) => {
         try {
-            const response = await handler(message);
+            const response = await handler(message.data);
             panel.webview.postMessage({
                 type: responseType,
                 data: response,
@@ -115,7 +122,7 @@ export function createWebviewMessageBus(
     panel: vscode.WebviewPanel,
     handlers: Record<string, (message: unknown) => unknown>
 ): vscode.Disposable {
-    const messageListener = panel.webview.onDidReceiveMessage(async (message) => {
+    const messageListener = panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
         const { type, data, requestId } = message;
         
         if (handlers[type]) {

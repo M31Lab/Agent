@@ -19,13 +19,13 @@ export function RegisterNavigateCodebaseCommand(
             }
             
             // Show status bar as busy
-            dependencies.statusBarManager.showBusy('Preparing navigation options');
+            dependencies.statusBarManager.setLoadingState('Preparing navigation options');
             
             // Check if we have a workspace open
             const workspaceFolders = vscode.workspace.workspaceFolders;
             if (!workspaceFolders || workspaceFolders.length === 0) {
                 vscode.window.showErrorMessage('No workspace folder open');
-                dependencies.statusBarManager.showReady();
+                dependencies.statusBarManager.setDefaultState();
                 return;
             }
             
@@ -43,7 +43,7 @@ export function RegisterNavigateCodebaseCommand(
             });
             
             if (!selectedOption) {
-                dependencies.statusBarManager.showReady();
+                dependencies.statusBarManager.setDefaultState();
                 return;
             }
             
@@ -69,7 +69,7 @@ export function RegisterNavigateCodebaseCommand(
                     break;
             }
             
-            dependencies.statusBarManager.showReady();
+            dependencies.statusBarManager.setDefaultState();
             
             // Track command usage
             context.telemetryService.trackEvent('navigate_codebase_used', {
@@ -78,7 +78,7 @@ export function RegisterNavigateCodebaseCommand(
         } catch (error) {
             context.loggingService.error('Failed to navigate codebase', error);
             vscode.window.showErrorMessage(`Failed to navigate codebase: ${error instanceof Error ? error.message : String(error)}`);
-            dependencies.statusBarManager.showError('Failed');
+            dependencies.statusBarManager.setErrorState('Failed');
         }
     });
     
@@ -238,7 +238,7 @@ async function aiPoweredFileSearch(context: ExtensionContext, dependencies: Comm
         }
         
         // Show busy status
-        dependencies.statusBarManager.showBusy('Analyzing codebase');
+        dependencies.statusBarManager.setLoadingState('Analyzing codebase');
         
         // Get workspace info
         const workspaceFolders = vscode.workspace.workspaceFolders;

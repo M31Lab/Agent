@@ -100,8 +100,9 @@ async function selectAiModel(context: ExtensionContext): Promise<void> {
         { label: 'Google Gemini Pro', id: 'google/gemini-pro' }
     ];
     
-    // We're leaving this here for future reference but prefixing with underscore to indicate it's unused
-    const __currentModel = configService.getModelId();
+    // We're leaving this here for future reference
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const currentModel = configService.getModelId();
     
     const selection = await vscode.window.showQuickPick(models, {
         placeHolder: 'Select an AI model',

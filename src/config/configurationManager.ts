@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ConfigurationKeys } from './configurationKeys';
-import { ExtensionConfiguration, UserConfiguration } from './interfaces/configurationInterfaces';
+import { EnvironmentConfig, ExtensionConfiguration, UserConfiguration } from './interfaces/configurationInterfaces';
 import { DefaultConfiguration, DEFAULT_API_ENDPOINT, DEFAULT_AUTO_SAVE_DELAY, DEFAULT_SHOW_WELCOME_ON_STARTUP } from './defaults/defaultConfiguration';
 import { validateConfiguration } from './validators/configurationValidator';
 import { getEnvironmentConfig } from './environments/environmentConfig';
@@ -8,7 +8,7 @@ import { EventEmitter } from 'events';
 import { LogLevel } from '../utils/logging/loggingService';
 
 export class ConfigurationManager {
-    private static instance: ConfigurationManager;
+    private static instance: ConfigurationManager | null = null;
     private vscodeConfig: vscode.WorkspaceConfiguration;
     private readonly extensionId = 'm31-agent';
     private readonly configChangedEmitter = new EventEmitter();
@@ -47,7 +47,7 @@ export class ConfigurationManager {
     public onConfigChanged(listener: (e: vscode.ConfigurationChangeEvent) => void): vscode.Disposable {
         this.configChangedEmitter.on('changed', listener);
         return {
-            dispose: () => {
+            dispose: (): void => {
                 this.configChangedEmitter.removeListener('changed', listener);
             }
         };
@@ -159,7 +159,7 @@ export class ConfigurationManager {
         }
     }
     
-    public getEnvironmentInformation() {
+    public getEnvironmentInformation(): EnvironmentConfig {
         return getEnvironmentConfig();
     }
     
@@ -168,6 +168,6 @@ export class ConfigurationManager {
             this.configChangeListener.dispose();
         }
         
-        ConfigurationManager.instance = undefined as unknown;
+        ConfigurationManager.instance = null;
     }
 } 

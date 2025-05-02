@@ -9,10 +9,10 @@ export function RegisterShowChatPanelCommand(
     const command = vscode.commands.registerCommand('m31-agent.showChatPanel', async () => {
         try {
             // Create and reveal the chat webview panel
-            dependencies.chatPanelProvider.createOrShowPanel();
+            dependencies.chatPanelProvider.show();
             
             // Update status bar with active state
-            dependencies.statusBarManager.updateStatusBar(true);
+            dependencies.statusBarManager.setActiveState('Chat panel active');
             
             // Track command usage
             context.telemetryService.trackEvent('chat_panel_opened');

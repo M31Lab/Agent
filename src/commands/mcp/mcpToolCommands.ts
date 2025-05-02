@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { McpService } from '../../services/mcp/mcpService';
 import { ExtensionContext } from '../../models/context/extensionContext';
-import { McpEndpoint, McpParameter } from '../../models/mcpTool';
+import { McpEndpoint, McpParameter, McpToolDefinition } from '../../models/mcpTool';
 
 export function registerMcpCommands(
     context: ExtensionContext
@@ -71,9 +71,9 @@ export function registerMcpCommands(
                 );
                 
                 // Create the server
-                const serverConfig = await mcpService.createServer(
+                const serverConfig = await mcpService.createLocalServer(
                     `${name} Server`,
-                    templatePath,
+                    `Server for ${name} MCP tool`,
                     undefined, // Use default port
                     true // Auto-start
                 );
@@ -342,7 +342,7 @@ async function addEndpointToTool(
             parameters.push({
                 name: paramName,
                 description: paramDescription,
-                type: paramType as unknown,
+                type: paramType as 'string' | 'number' | 'boolean' | 'object' | 'array',
                 required: isRequired === 'Yes'
             });
         }
@@ -358,7 +358,7 @@ async function addEndpointToTool(
     
     // Add the endpoint to the tool
     tool.endpoints.push(endpoint);
-    tool.lastModified = Date.now();
+    tool.updatedAt = Date.now();
     
     // Update the tool
     await mcpService.updateTool(tool);
@@ -366,7 +366,7 @@ async function addEndpointToTool(
     vscode.window.showInformationMessage(`Endpoint "${name}" added to tool "${tool.name}"`);
 }
 
-function generateToolDetailsHtml(tool: unknown): string {
+function generateToolDetailsHtml(tool: McpToolDefinition): string {
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -413,8 +413,8 @@ function generateToolDetailsHtml(tool: unknown): string {
             <p>${tool.description}</p>
             <p>Author: ${tool.author}</p>
             <p>Version: ${tool.version}</p>
-            <p>Created: ${new Date(tool.created).toLocaleString()}</p>
-            <p>Last Modified: ${new Date(tool.lastModified).toLocaleString()}</p>
+            <p>Created: ${new Date(tool.createdAt).toLocaleString()}</p>
+            <p>Last Modified: ${new Date(tool.updatedAt).toLocaleString()}</p>
         </div>
     </div>
     

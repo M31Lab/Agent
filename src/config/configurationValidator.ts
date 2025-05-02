@@ -25,7 +25,7 @@ export class ConfigurationValidator {
 
     public static validateLoggingConfiguration(config: Partial<LoggingConfiguration>): LoggingConfiguration {
         return {
-            logLevel: this.validateLogLevel(config.logLevel, DEFAULT_LOG_LEVEL as unknown),
+            logLevel: this.validateLogLevel(config.logLevel, DEFAULT_LOG_LEVEL as 'debug' | 'info' | 'warning' | 'error' | 'none'),
             includeTimestamps: this.validateBoolean(config.includeTimestamps, true),
             outputChannel: this.validateString(config.outputChannel, 'M31 Agent Logs'),
             logToFile: this.validateBoolean(config.logToFile, false),
@@ -111,7 +111,7 @@ export class ConfigurationValidator {
         if (typeof value !== 'string' || !validLevels.includes(value)) {
             return defaultValue;
         }
-        return value as unknown;
+        return value as 'debug' | 'info' | 'warning' | 'error' | 'none';
     }
 
     private static validateTheme(value: unknown, defaultValue: 'light' | 'dark' | 'system'): 'light' | 'dark' | 'system' {
@@ -119,7 +119,7 @@ export class ConfigurationValidator {
         if (typeof value !== 'string' || !validThemes.includes(value)) {
             return defaultValue;
         }
-        return value as unknown;
+        return value as 'light' | 'dark' | 'system';
     }
 
     private static validatePanelPosition(value: unknown, defaultValue: 'left' | 'right' | 'bottom'): 'left' | 'right' | 'bottom' {
@@ -127,6 +127,6 @@ export class ConfigurationValidator {
         if (typeof value !== 'string' || !validPositions.includes(value)) {
             return defaultValue;
         }
-        return value as unknown;
+        return value as 'left' | 'right' | 'bottom';
     }
 } 

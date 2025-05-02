@@ -3,8 +3,9 @@ import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigurationService } from '../configuration/configurationService';
 import { LoggingService } from '../../utils/logging/loggingService';
+import { ITelemetryService } from './interfaces/telemetryServiceInterface';
 
-export class TelemetryService {
+export class TelemetryService implements ITelemetryService {
     private static instance: TelemetryService;
     private telemetryEnabled: boolean;
     private userId: string;
@@ -95,6 +96,66 @@ export class TelemetryService {
 
         // In a production extension, you would send this data to your telemetry service
         // This implementation just logs the events
+    }
+
+    public trackCommand(
+        commandName: string,
+        properties: Record<string, string> = {},
+        measurements: Record<string, number> = {}
+    ): void {
+        this.trackEvent(`command_${commandName}`, properties, measurements);
+    }
+
+    public trackError(
+        error: Error,
+        properties: Record<string, string> = {},
+        measurements: Record<string, number> = {}
+    ): void {
+        if (!this.telemetryEnabled) {
+            return;
+        }
+
+        const errorProperties = {
+            ...properties,
+            errorName: error.name,
+            errorMessage: error.message,
+            stack: error.stack
+        };
+
+        this.trackEvent('error', errorProperties, measurements);
+    }
+
+    public trackAIRequest(
+        modelId: string,
+        tokensUsed: number,
+        promptLength: number,
+        responseLength: number,
+        durationMs: number
+    ): void {
+        if (!this.telemetryEnabled) {
+            return;
+        }
+
+        const properties = {
+            modelId
+        };
+
+        const measurements = {
+            tokensUsed,
+            promptLength,
+            responseLength,
+            durationMs
+        };
+
+        this.trackEvent('ai_request', properties, measurements);
+    }
+
+    public isEnabled(): boolean {
+        return this.telemetryEnabled;
+    }
+
+    public setEnabled(enabled: boolean): void {
+        this.setTelemetryEnabled(enabled);
     }
 
     public setTelemetryEnabled(enabled: boolean): void {

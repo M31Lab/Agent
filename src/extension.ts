@@ -76,7 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         console.log('M31-Agent: Initializing additional services...');
         extensionContext.browserService = new BrowserService();
         extensionContext.browserTestingService = BrowserTestingService.getInstance(extensionContext);
-        extensionContext.checkpointService = new CheckpointService(extensionContext.vscodeContext);
+        extensionContext.checkpointService = new CheckpointService(extensionContext);
         extensionContext.checkpointComparisonService = new CheckpointComparisonService(extensionContext);
         extensionContext.webSearchService = WebSearchService.getInstance(extensionContext);
         extensionContext.mcpService = McpService.getInstance(extensionContext);
@@ -138,9 +138,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 'm31-agent.diagnosticsView',
                 diagnosticsViewProvider
             ),
+            vscode.window.registerTreeDataProvider(
+                'm31-agent.codebaseView',
+                codebaseViewProvider
+            ),
             // Register commands for the views
             vscode.commands.registerCommand('m31-agent.diagnosticsView.refresh', () => {
                 diagnosticsViewProvider.refresh();
+            }),
+            vscode.commands.registerCommand('m31-agent.codebaseView.refresh', () => {
+                codebaseViewProvider.refresh();
             })
         );
 
@@ -170,7 +177,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 // Additional fallback - if both methods fail, use the vscode.languages.getDiagnostics API directly
                 try {
                     const allDiagnostics = vscode.languages.getDiagnostics();
-                    for (const [_, fileDiagnostics] of allDiagnostics) {
+                    for (const [, fileDiagnostics] of allDiagnostics) {
                         for (const diagnostic of fileDiagnostics) {
                             if (diagnostic.severity === vscode.DiagnosticSeverity.Error) {
                                 counts.errors++;

@@ -78,12 +78,6 @@ export function useExtensionContext(
     };
 }
 
-let _globalExtensionContext: ExtensionContext | undefined;
-
-export function initializeExtensionContext(context: ExtensionContext): void {
-    globalExtensionContext = context;
-}
-
 export function useGlobalState<T>(key: string, defaultValue?: T): {
     value: T | undefined;
     setValue: (value: T) => Thenable<void>;

@@ -1,4 +1,4 @@
-import * as _vscode from 'vscode';
+// import * as vscode from 'vscode';
 import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { OpenRouterChatResponse } from '../../models/ai/openRouterTypes';
 import { ChatMessage } from '../../models/ai/chatTypes';
@@ -108,7 +108,28 @@ export function useAiCompletion(
             logging.info('Starting streaming AI completion', { messageCount: messages.length });
             const mergedOptions = { ...defaultOptions, ...options };
 
-            const _response = await apiClient.generateChatCompletion(messages, {
+            // Define the callbacks object separately to ensure correct typing
+            const streamCallbacks = {
+                onToken: (token: string): void => {
+                    fullCompletion += token;
+                    completion = fullCompletion;
+                    onToken(token);
+                },
+                onComplete: (response: OpenRouterChatResponse): void => {
+                    usedModel = response.model;
+                    tokensUsed = response.usage?.total_tokens || 0;
+                    logging.info('Streaming AI completion finished', { 
+                        model: response.model,
+                        tokensUsed: response.usage?.total_tokens?.toString() 
+                    });
+                },
+                onError: (err: ApiError): void => {
+                    error = err;
+                    logging.error('Streaming AI completion error', err);
+                }
+            };
+
+            await apiClient.generateChatCompletion(messages, {
                 modelId: mergedOptions.modelId,
                 temperature: mergedOptions.temperature,
                 maxTokens: mergedOptions.maxTokens,
@@ -116,25 +137,7 @@ export function useAiCompletion(
                 presencePenalty: mergedOptions.presencePenalty,
                 stopSequences: mergedOptions.stopSequences,
                 stream: true,
-                streamCallbacks: {
-                    onToken: (token: string) => {
-                        fullCompletion += token;
-                        completion = fullCompletion;
-                        onToken(token);
-                    },
-                    onComplete: (response: OpenRouterChatResponse) => {
-                        usedModel = response.model;
-                        tokensUsed = response.usage?.total_tokens || 0;
-                        logging.info('Streaming AI completion finished', { 
-                            model: response.model,
-                            tokensUsed: response.usage?.total_tokens?.toString() 
-                        });
-                    },
-                    onError: (err: ApiError) => {
-                        error = err;
-                        logging.error('Streaming AI completion error', err);
-                    }
-                }
+                streamCallbacks: streamCallbacks
             });
 
             return fullCompletion;

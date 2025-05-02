@@ -28,8 +28,8 @@ export function RegisterGenerateCodeCommand(
             let languageName = '';
             
             if (editor) {
-                const langDef = languageService.getLanguageDefinitionForDocument(editor.document);
-                languageName = langDef?.name || editor.document.languageId;
+                const langDef = languageService.getLanguageFeatures(editor.document.languageId);
+                languageName = langDef?.id || editor.document.languageId;
             }
             
             // Get prompt from user
@@ -47,12 +47,15 @@ export function RegisterGenerateCodeCommand(
             
             // If no language is detected from editor, ask user for language preference
             if (!languageId) {
-                const supportedLanguages = languageService.getSupportedLanguages();
-                const languageItems = supportedLanguages.map(lang => ({
-                    label: lang.name,
-                    description: lang.extensions.join(', '),
-                    language: lang
-                }));
+                const supportedLanguageIds = languageService.getSupportedLanguageIds();
+                const languageItems = supportedLanguageIds.map(id => {
+                    const langFeatures = languageService.getLanguageFeatures(id);
+                    return {
+                        label: id,
+                        description: langFeatures ? langFeatures.fileExtensions.join(', ') : '',
+                        language: { id, name: id }
+                    };
+                });
                 
                 const selectedLanguage = await vscode.window.showQuickPick(languageItems, {
                     placeHolder: 'Select a language for the generated code',
@@ -80,7 +83,7 @@ export function RegisterGenerateCodeCommand(
             }
             
             // Show status bar as busy
-            dependencies.statusBarManager.showBusy('Generating code');
+            dependencies.statusBarManager.setLoadingState('Generating code');
             
             // Create system message with additional context about language and preferences
             const systemMessage: IOpenRouterMessage = {
@@ -147,7 +150,8 @@ Only respond with valid, runnable code in a single code block.`
                 vscode.window.showInformationMessage('Code inserted at cursor position');
             } else if (outputOption === 'Create new file') {
                 // Ask for filename
-                const fileExtension = languageService.getFileExtensionForLanguage(languageId) || '.txt';
+                const fileExtensions = languageService.getFileExtensionsForLanguage(languageId);
+                const fileExtension = fileExtensions.length > 0 ? fileExtensions[0] : '.txt';
                 const defaultFilename = `generated${fileExtension}`;
                 
                 const filenameResult = await vscode.window.showInputBox({
@@ -201,11 +205,11 @@ Only respond with valid, runnable code in a single code block.`
             });
             
             // Show success
-            dependencies.statusBarManager.showReady();
+            dependencies.statusBarManager.setDefaultState();
         } catch (error) {
             context.loggingService.error('Failed to generate code', error);
             vscode.window.showErrorMessage(`Failed to generate code: ${error instanceof Error ? error.message : String(error)}`);
-            dependencies.statusBarManager.showError('Failed');
+            dependencies.statusBarManager.setErrorState('Failed');
         }
     });
     

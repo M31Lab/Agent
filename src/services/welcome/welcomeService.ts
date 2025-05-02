@@ -1,12 +1,8 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
-import { AuthenticationService } from '../authentication/authenticationService';
-import { ConfigurationService } from '../configuration/configurationService';
-import { LoggingService } from '../../utils/logging/loggingService';
-import { TelemetryService } from '../telemetry/telemetryService';
 
 export class WelcomeService implements vscode.Disposable {
-    private static instance: WelcomeService;
+    private static instance: WelcomeService | undefined;
     private firstRunKey = 'firstRun';
     
     constructor(
@@ -136,6 +132,6 @@ export class WelcomeService implements vscode.Disposable {
     
     public dispose(): void {
         // Set the static instance to undefined to allow garbage collection
-        WelcomeService.instance = undefined as any;
+        WelcomeService.instance = undefined;
     }
 } 

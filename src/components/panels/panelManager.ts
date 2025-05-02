@@ -68,7 +68,8 @@ export class PanelManager {
                 localResourceRoots: [
                     vscode.Uri.joinPath(this.context.vscodeContext.extensionUri, 'media'),
                     vscode.Uri.joinPath(this.context.vscodeContext.extensionUri, 'dist')
-                ]
+                ],
+                ...(showOptions || {})
             }
         );
         
@@ -107,6 +108,6 @@ export class PanelManager {
 
     public dispose(): void {
         this.closeAllPanels();
-        PanelManager.instance = undefined as unknown;
+        PanelManager.instance = null as unknown as PanelManager;
     }
 } 

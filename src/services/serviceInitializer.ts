@@ -1,4 +1,4 @@
-import * as _vscode from 'vscode';
+// import * as vscode from 'vscode';
 import { ExtensionContext } from '../models/context/extensionContext';
 import { LanguageSupportService } from './languageSupport/languageSupportService';
 import { CodebaseAnalysisService } from './codeAnalysis/codebaseAnalysisService';
@@ -78,7 +78,7 @@ export async function initializeServices(context: ExtensionContext): Promise<voi
         context.browserService = browserService;
         
         // Initialize checkpoint service
-        const checkpointService = new CheckpointService(context.vscodeContext);
+        const checkpointService = new CheckpointService(context);
         context.registerDisposable(checkpointService);
         context.checkpointService = checkpointService;
         

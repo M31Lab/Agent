@@ -53,4 +53,23 @@ export interface TerminalOptions {
     env?: Record<string, string>;
     autoRestart?: boolean;
     closeOnExit?: boolean;
-} 
+}
+
+export type TerminalEventType = 
+    | 'sessionCreated'
+    | 'sessionClosed'
+    | 'commandStarted'
+    | 'commandCompleted'
+    | 'commandCancelled'
+    | 'commandBackgrounded'
+    | 'terminalOutput'
+    | 'terminalClosed';
+
+export interface TerminalEvent {
+    type: TerminalEventType;
+    sessionId: string;
+    command?: TerminalCommand;
+    result?: TerminalCommandResult;
+    output?: TerminalOutput;
+    timestamp: number;
+}

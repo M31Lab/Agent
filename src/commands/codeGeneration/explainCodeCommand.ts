@@ -26,18 +26,18 @@ export function RegisterExplainCodeCommand(
             }
             
             // Show status bar as busy
-            dependencies.statusBarManager.showBusy('Analyzing code');
+            dependencies.statusBarManager.setLoadingState('Analyzing code');
             
             // Get selected code
             const selectedCode = editor.document.getText(selection);
             
             // Get language info
             const languageService = LanguageSupportService.getInstance();
-            const language = languageService.getLanguageDefinitionForDocument(editor.document);
-            const languageName = language?.name || editor.document.languageId;
+            const language = languageService.getLanguageFeatures(editor.document.languageId);
+            const languageName = language?.id || editor.document.languageId;
             
             // Open chat panel
-            dependencies.chatPanelProvider.createOrShowPanel();
+            dependencies.chatPanelProvider.show();
             
             // Create system message with additional context
             const systemMessage: IOpenRouterMessage = {
@@ -105,11 +105,11 @@ Be thorough but concise in your explanation.`
             });
             
             // Show success
-            dependencies.statusBarManager.showReady();
+            dependencies.statusBarManager.setDefaultState();
         } catch (error) {
             context.loggingService.error('Failed to explain code', error);
             vscode.window.showErrorMessage(`Failed to explain code: ${error instanceof Error ? error.message : String(error)}`);
-            dependencies.statusBarManager.showError('Failed');
+            dependencies.statusBarManager.setErrorState('Failed');
         }
     });
     

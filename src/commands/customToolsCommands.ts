@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as _path from 'path';
+// import * as path from 'path';
 import { CustomToolsService } from '../services/customTools/customToolsService';
-import { CustomToolEndpoint } from '../models/customTool';
+import { CustomTool, CustomToolEndpoint, CustomToolResponse } from '../models/customTool';
 
 interface EndpointQuickPickItem extends vscode.QuickPickItem {
     endpoint: CustomToolEndpoint;
 }
 
 interface ToolQuickPickItem extends vscode.QuickPickItem {
-    tool: unknown;
+    tool: CustomTool;
 }
 
 export function registerCustomToolsCommands(
@@ -270,7 +270,7 @@ export function registerCustomToolsCommands(
     return disposables;
 }
 
-async function viewToolDetails(tool: unknown): Promise<void> {
+async function viewToolDetails(tool: CustomTool): Promise<void> {
     const content = formatToolDetails(tool);
     
     const document = await vscode.workspace.openTextDocument({
@@ -281,7 +281,7 @@ async function viewToolDetails(tool: unknown): Promise<void> {
     await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
 }
 
-async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: unknown): Promise<void> {
+async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: CustomTool): Promise<void> {
     try {
         if (tool.endpoints.length === 0) {
             vscode.window.showErrorMessage('This tool has no endpoints.');
@@ -355,7 +355,7 @@ async function invokeToolEndpoint(customToolsService: CustomToolsService, tool: 
     }
 }
 
-function formatToolDetails(tool: unknown): string {
+function formatToolDetails(tool: CustomTool): string {
     let content = `# Custom Tool: ${tool.name}\n\n`;
     
     content += `**Description:** ${tool.description}\n\n`;
@@ -399,7 +399,7 @@ function formatToolDetails(tool: unknown): string {
     return content;
 }
 
-function formatToolResult(endpoint: unknown, parameters: Record<string, unknown>, result: unknown): string {
+function formatToolResult(endpoint: CustomToolEndpoint, parameters: Record<string, unknown>, result: CustomToolResponse): string {
     let content = '# Tool Invocation Result\n\n';
     
     content += `**Endpoint:** ${endpoint.name} (${endpoint.method} ${endpoint.path})\n\n`;

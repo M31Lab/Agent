@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { OpenRouterApiClient } from './client/openRouterApiClient';
+import { OpenRouterApiClient, AIRequestOptions, AIResponse } from './client/openRouterApiClient';
 
 export interface ApiClient extends vscode.Disposable {
     getApiCallsSinceLastCheck(): number;
@@ -8,6 +8,7 @@ export interface ApiClient extends vscode.Disposable {
     getTotalTokenUsage(): number;
     getApiCallHistory(): number[];
     getTokenUsageHistory(): number[];
+    sendRequest(options: AIRequestOptions): Promise<AIResponse>;
 }
 
 // Re-export the implementation for convenience

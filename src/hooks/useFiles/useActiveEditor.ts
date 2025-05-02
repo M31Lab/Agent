@@ -245,8 +245,7 @@ export function useActiveEditor(
         return editor.document.getText();
     }
 
-    const _editorInfo = getCurrentEditorInfo();
-    const _isActive = !!getActiveEditor();
+    // Removed unused variables _editorInfo and _isActive
 
     return {
         getActiveEditorInfo,

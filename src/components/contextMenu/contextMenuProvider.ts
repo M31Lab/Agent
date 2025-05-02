@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 
 export class ContextMenuProvider {
-    private static instance: ContextMenuProvider;
+    private static instance: ContextMenuProvider | undefined;
     private context: ExtensionContext;
     private disposables: vscode.Disposable[] = [];
 
@@ -87,6 +87,6 @@ export class ContextMenuProvider {
     public dispose(): void {
         this.disposables.forEach(d => d.dispose());
         this.disposables = [];
-        ContextMenuProvider.instance = undefined as unknown;
+        ContextMenuProvider.instance = undefined;
     }
 } 

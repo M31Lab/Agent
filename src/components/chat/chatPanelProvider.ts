@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { ChatMessage, ChatRole, ChatSession } from '../../models/ai/chatTypes';
 import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
-import { OpenRouterChatResponse } from '../../models/ai/openRouterTypes';
 
 interface WebviewMessage {
     command: string;
@@ -278,6 +277,9 @@ export class ChatPanelProvider {
                                 case 'setLoadingState':
                                     setProcessingState(message.isLoading);
                                     break;
+                                case 'focusInput':
+                                    messageInput.focus();
+                                    break;
                             }
                         });
                         
@@ -444,7 +446,7 @@ export class ChatPanelProvider {
 
     public async processMessage(text: string): Promise<string> {
         if (!text.trim() || this.isProcessing) {
-            return "I'm currently processing another request. Please wait a moment.";
+            return 'I\'m currently processing another request. Please wait a moment.';
         }
 
         try {
@@ -646,5 +648,31 @@ export class ChatPanelProvider {
             this.panel.dispose();
             this.panel = undefined;
         }
+    }
+
+    /**
+     * Focuses the input field in the chat panel
+     */
+    public focusInput(): void {
+        if (this.panel) {
+            // First make sure the panel is visible
+            this.panel.reveal();
+            
+            // Send a message to the webview to focus the input field
+            this.panel.webview.postMessage({
+                command: 'focusInput'
+            });
+        } else {
+            // If panel doesn't exist, create it first
+            this.show();
+        }
+    }
+    
+    /**
+     * Clears the current chat session and updates the webview
+     */
+    public clearChat(): void {
+        this.clearCurrentSession();
+        this.updateWebview();
     }
 } 

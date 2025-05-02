@@ -1,6 +1,13 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
-import { TerminalService, CommandResult } from '../../services/terminal/terminalService';
+import { TerminalService } from '../../services/terminal/terminalService';
+import { TerminalCommandResult } from '../../models/terminalExecution';
+
+// Define the CommandResult interface for this hook
+export interface CommandResult {
+    output: string;
+    exitCode: number | null;
+}
 
 export interface TerminalExecutionOptions {
     showTerminal?: boolean;
@@ -58,8 +65,9 @@ export function useTerminalCommand(
                 commandLength: command.length.toString()
             });
             
-            // Execute the command
-            return await terminalService.executeCommand(command, captureOutput);
+            // Execute the command with output, passing the showTerminal option
+            const result = await terminalService.executeCommandWithOutput(command, { showTerminal });
+            return result.output;
         } catch (error) {
             logging.error(`Error executing command: ${error}`);
             vscode.window.showErrorMessage(`Failed to execute command: ${error}`);
@@ -70,7 +78,8 @@ export function useTerminalCommand(
     async function executeCommandWithResult(command: string, options: TerminalExecutionOptions = {}): Promise<CommandResult> {
         const { 
             requireConfirmation, 
-            captureOutput = true 
+            captureOutput = true,
+            showTerminal = true
         } = options;
         
         logging.debug(`Executing command with result: ${command}`);
@@ -96,8 +105,8 @@ export function useTerminalCommand(
                 commandLength: command.length.toString()
             });
             
-            // Execute the command
-            return await terminalService.executeCommandWithOutput(command);
+            // Execute the command, passing the showTerminal option
+            return await terminalService.executeCommandWithOutput(command, { showTerminal });
         } catch (error) {
             logging.error(`Error executing command: ${error}`);
             vscode.window.showErrorMessage(`Failed to execute command: ${error}`);

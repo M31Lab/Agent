@@ -14,7 +14,7 @@ export function registerChatCommands(
         context.loggingService.info('Executing command: m31-agent.showChatPanel');
         context.telemetryService.trackCommand('showChatPanel');
         
-        chatPanelProvider.showPanel();
+        chatPanelProvider.show();
     });
     disposables.push(showChatPanel);
 

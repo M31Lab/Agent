@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from '../../models/context/extensionContext';
 import { CommandDependencies } from '../commandRegistry';
-import { TerminalService } from '../../services/terminal/terminalService';
-import { OpenRouterApiClient } from '../../api/client/openRouterApiClient';
 import { AIRequestType } from '../../models/ai/aiRequestType';
 
 export function RegisterRunCommandCommand(
@@ -11,17 +9,20 @@ export function RegisterRunCommandCommand(
 ): void {
     const command = vscode.commands.registerCommand('m31-agent.runCommand', async () => {
         try {
-            // Get terminal service
-            const terminalService = TerminalService.getInstance();
+            // Get terminal service from context
+            const terminalService = context.terminalService;
             if (!terminalService) {
                 throw new Error('Terminal service is not initialized');
             }
             
             // Get API client
-            const apiClient = OpenRouterApiClient.getInstance();
+            const apiClient = context.apiClient;
+            if (!apiClient) {
+                throw new Error('API client is not initialized');
+            }
             
             // Show status bar as busy
-            dependencies.statusBarManager.showBusy('Getting command');
+            dependencies.statusBarManager.setLoadingState('Getting command');
             
             // Get command from user
             const inputCommand = await vscode.window.showInputBox({
@@ -31,7 +32,7 @@ export function RegisterRunCommandCommand(
             });
             
             if (!inputCommand) {
-                dependencies.statusBarManager.showReady();
+                dependencies.statusBarManager.setDefaultState();
                 return;
             }
             
@@ -41,7 +42,7 @@ export function RegisterRunCommandCommand(
             
             // If it's a description, use AI to generate the actual command
             if (!isDirectCommand) {
-                dependencies.statusBarManager.showBusy('Generating command');
+                dependencies.statusBarManager.setLoadingState('Generating command');
                 
                 try {
                     // Get operating system info for context
@@ -85,7 +86,7 @@ export function RegisterRunCommandCommand(
                 } catch (error) {
                     context.loggingService.error('Error generating command from description', error);
                     vscode.window.showErrorMessage('Failed to generate command from description');
-                    dependencies.statusBarManager.showReady();
+                    dependencies.statusBarManager.setDefaultState();
                     return;
                 }
             }
@@ -98,7 +99,7 @@ export function RegisterRunCommandCommand(
             );
             
             if (confirmation === 'Cancel' || !confirmation) {
-                dependencies.statusBarManager.showReady();
+                dependencies.statusBarManager.setDefaultState();
                 return;
             }
             
@@ -110,7 +111,7 @@ export function RegisterRunCommandCommand(
                 });
                 
                 if (!editedCommand) {
-                    dependencies.statusBarManager.showReady();
+                    dependencies.statusBarManager.setDefaultState();
                     return;
                 }
                 
@@ -118,10 +119,11 @@ export function RegisterRunCommandCommand(
             }
             
             // Prepare to run command
-            dependencies.statusBarManager.showBusy(`Running: ${commandToRun}`);
+            dependencies.statusBarManager.setLoadingState(`Running: ${commandToRun}`);
             
-            // Run the command in a terminal
-            await terminalService.executeCommand(commandToRun);
+            // Create a terminal session and run the command
+            const sessionId = terminalService.createSession();
+            await terminalService.executeCommand(sessionId, commandToRun);
             
             // Track command execution
             context.telemetryService.trackEvent('command_executed', {
@@ -129,12 +131,12 @@ export function RegisterRunCommandCommand(
             });
             
             // Show success
-            dependencies.statusBarManager.showReady();
+            dependencies.statusBarManager.setDefaultState();
             context.loggingService.info(`Executed command: ${commandToRun}`);
         } catch (error) {
             context.loggingService.error('Failed to run command', error);
             vscode.window.showErrorMessage(`Failed to run command: ${error instanceof Error ? error.message : String(error)}`);
-            dependencies.statusBarManager.showError('Failed');
+            dependencies.statusBarManager.setErrorState('Failed');
         }
     });
     

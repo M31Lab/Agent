@@ -22,8 +22,6 @@ export function registerDiagnosticsMonitoringCommands(
                 }
                 
                 const errorCount = diagnosticsService.getErrorCount();
-                const __totalIssues = errorCount.errors + errorCount.warnings + 
-                    errorCount.information + errorCount.hints;
                 
                 // Display diagnostics in a WebView
                 const panel = vscode.window.createWebviewPanel(

@@ -40,7 +40,7 @@ export function registerBrowserCommands(
             try {
                 const sessions = browserService.getAllSessions()
                     .filter(s => s.status === 'running')
-                    .map(s => ({ label: s.id, description: `Started ${new Date(s.startTime).toLocaleTimeString()}` }));
+                    .map(s => ({ label: s.id, description: `Started ${new Date(s.createdAt).toLocaleTimeString()}` }));
                 
                 if (sessions.length === 0) {
                     const createNew = await vscode.window.showInformationMessage(
@@ -96,7 +96,7 @@ export function registerBrowserCommands(
             try {
                 const sessions = browserService.getAllSessions()
                     .filter(s => s.status === 'running')
-                    .map(s => ({ label: s.id, description: `Started ${new Date(s.startTime).toLocaleTimeString()}` }));
+                    .map(s => ({ label: s.id, description: `Started ${new Date(s.createdAt).toLocaleTimeString()}` }));
                 
                 if (sessions.length === 0) {
                     vscode.window.showInformationMessage('No running browser sessions found.');
@@ -229,7 +229,7 @@ export function registerBrowserCommands(
             try {
                 const sessions = browserService.getAllSessions()
                     .filter(s => s.status === 'running')
-                    .map(s => ({ label: s.id, description: `Started ${new Date(s.startTime).toLocaleTimeString()}` }));
+                    .map(s => ({ label: s.id, description: `Started ${new Date(s.createdAt).toLocaleTimeString()}` }));
                 
                 if (sessions.length === 0) {
                     vscode.window.showInformationMessage('No running browser sessions found.');

@@ -146,6 +146,10 @@ export class AnalyzeCodebaseCommand {
         analysisResult: unknown,
         _dependencyGraph: unknown
     ): string {
+        // Type assertions for the parameters
+        const typedOverview = overview as import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').CodebaseOverview;
+        const typedArchitecture = architecture as import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').ArchitecturalPatternMap;
+        const typedAnalysisResult = analysisResult as import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').CodebaseAnalysisResult;
         return `
             <!DOCTYPE html>
             <html lang="en">
@@ -208,27 +212,27 @@ export class AnalyzeCodebaseCommand {
                         <table>
                             <tr>
                                 <td>Project Name</td>
-                                <td>${overview.projectName}</td>
+                                <td>${typedOverview.projectName}</td>
                             </tr>
                             <tr>
                                 <td>Project Type</td>
-                                <td>${overview.projectType}</td>
+                                <td>${typedOverview.projectType}</td>
                             </tr>
                             <tr>
                                 <td>Architecture</td>
-                                <td>${overview.architectureType}</td>
+                                <td>${typedOverview.architectureType}</td>
                             </tr>
                             <tr>
                                 <td>Build System</td>
-                                <td>${overview.buildSystem}</td>
+                                <td>${typedOverview.buildSystem}</td>
                             </tr>
                             <tr>
                                 <td>Total Files</td>
-                                <td>${overview.fileCount}</td>
+                                <td>${typedOverview.fileCount}</td>
                             </tr>
                             <tr>
                                 <td>Total Lines</td>
-                                <td>${overview.totalLineCount.toLocaleString()}</td>
+                                <td>${typedOverview.totalLineCount.toLocaleString()}</td>
                             </tr>
                         </table>
                     </div>
@@ -242,12 +246,12 @@ export class AnalyzeCodebaseCommand {
                                 <th>Lines</th>
                                 <th>Percentage</th>
                             </tr>
-                            ${overview.languageSummary.map((lang: Record<string, unknown>) => `
+                            ${typedOverview.languageSummary.map((lang: import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').LanguageDistribution) => `
                                 <tr>
                                     <td>${lang.language}</td>
                                     <td>${lang.fileCount}</td>
-                                    <td>${(lang.totalLines as number).toLocaleString()}</td>
-                                    <td>${(lang.percentage as number).toFixed(1)}%</td>
+                                    <td>${lang.totalLines.toLocaleString()}</td>
+                                    <td>${lang.percentage.toFixed(1)}%</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -263,7 +267,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Files</th>
                                 <th>Actions</th>
                             </tr>
-                            ${overview.mainModules.map((module: Record<string, unknown>) => `
+                            ${typedOverview.mainModules.map((module: import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').ModuleSummary) => `
                                 <tr>
                                     <td>${module.name}</td>
                                     <td>${module.path}</td>
@@ -288,7 +292,7 @@ export class AnalyzeCodebaseCommand {
                                 <th>Complexity</th>
                                 <th>Reason</th>
                             </tr>
-                            ${analysisResult.complexityHotspots.slice(0, 10).map((hotspot: Record<string, unknown>) => `
+                            ${typedAnalysisResult.complexityHotspots.slice(0, 10).map((hotspot: import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').ComplexityHotspot) => `
                                 <tr class="hotspot">
                                     <td class="file-link" onclick="showFileDependencies('${hotspot.filePath}')">
                                         ${hotspot.filePath}
@@ -309,11 +313,19 @@ export class AnalyzeCodebaseCommand {
                                 <th>Confidence</th>
                                 <th>Locations</th>
                             </tr>
-                            ${architecture.patterns.map((pattern: Record<string, unknown>) => `
+                            ${typedArchitecture.patterns.map((pattern: {
+                                name: string;
+                                confidence: number;
+                                locations: Array<{
+                                    file: string;
+                                    startLine: number;
+                                    endLine: number;
+                                }>;
+                            }) => `
                                 <tr>
                                     <td>${pattern.name}</td>
-                                    <td>${((pattern.confidence as number) * 100).toFixed(0)}%</td>
-                                    <td>${(pattern.locations as unknown[]).length} files</td>
+                                    <td>${(pattern.confidence * 100).toFixed(0)}%</td>
+                                    <td>${pattern.locations.length} files</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -343,6 +355,8 @@ export class AnalyzeCodebaseCommand {
     }
 
     private generateFileDependenciesHtml(relationships: unknown): string {
+        // Type assertion for the relationships parameter
+        const typedRelationships = relationships as import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').FileRelationshipMap;
         return `
             <!DOCTYPE html>
             <html lang="en">
@@ -388,26 +402,26 @@ export class AnalyzeCodebaseCommand {
             <body>
                 <div class="container">
                     <div class="card">
-                        <h1>File Dependencies: ${relationships.file}</h1>
+                        <h1>File Dependencies: ${typedRelationships.file}</h1>
                         
-                        <h2>Imports (${relationships.imports.length})</h2>
+                        <h2>Imports (${typedRelationships.imports.length})</h2>
                         <table>
                             <tr>
                                 <th>Module/File</th>
                             </tr>
-                            ${relationships.imports.map((imp: string) => `
+                            ${typedRelationships.imports.map((imp: string) => `
                                 <tr>
                                     <td>${imp}</td>
                                 </tr>
                             `).join('')}
                         </table>
                         
-                        <h2>Imported By (${relationships.importedBy.length})</h2>
+                        <h2>Imported By (${typedRelationships.importedBy.length})</h2>
                         <table>
                             <tr>
                                 <th>File</th>
                             </tr>
-                            ${relationships.importedBy.map((imp: string) => `
+                            ${typedRelationships.importedBy.map((imp: string) => `
                                 <tr>
                                     <td>${imp}</td>
                                 </tr>
@@ -421,7 +435,11 @@ export class AnalyzeCodebaseCommand {
                                 <th>Relationship</th>
                                 <th>Strength</th>
                             </tr>
-                            ${relationships.relatedFiles.map((related: Record<string, unknown>) => `
+                            ${typedRelationships.relatedFiles.map((related: {
+                                path: string;
+                                relationReason: string;
+                                relationStrength: number;
+                            }) => `
                                 <tr>
                                     <td>${related.path}</td>
                                     <td>${related.relationReason}</td>
@@ -437,6 +455,8 @@ export class AnalyzeCodebaseCommand {
     }
 
     private generateModuleInsightsHtml(insights: unknown): string {
+        // Type assertion for the insights parameter
+        const typedInsights = insights as import('../../services/codeAnalysis/interfaces/codebaseUnderstandingInterface').ModuleInsights;
         return `
             <!DOCTYPE html>
             <html lang="en">
@@ -501,29 +521,29 @@ export class AnalyzeCodebaseCommand {
             <body>
                 <div class="container">
                     <div class="card">
-                        <h1>Module Insights: ${insights.path}</h1>
+                        <h1>Module Insights: ${typedInsights.path}</h1>
                         
                         <div class="stats">
                             <div class="stat-item">
                                 <div>Complexity</div>
-                                <div class="stat-value">${insights.complexity.toFixed(1)}</div>
+                                <div class="stat-value">${typedInsights.complexity.toFixed(1)}</div>
                             </div>
                             <div class="stat-item">
                                 <div>Usage Count</div>
-                                <div class="stat-value">${insights.usageCount}</div>
+                                <div class="stat-value">${typedInsights.usageCount}</div>
                             </div>
                             <div class="stat-item">
                                 <div>Change Frequency</div>
-                                <div class="stat-value">${insights.changeFrequency.toFixed(1)}</div>
+                                <div class="stat-value">${typedInsights.changeFrequency.toFixed(1)}</div>
                             </div>
                         </div>
                         
-                        <h2>Exported Symbols (${insights.exportedSymbols.length})</h2>
+                        <h2>Exported Symbols (${typedInsights.exportedSymbols.length})</h2>
                         <table>
                             <tr>
                                 <th>Symbol</th>
                             </tr>
-                            ${insights.exportedSymbols.map((symbol: string) => `
+                            ${typedInsights.exportedSymbols.map((symbol: string) => `
                                 <tr>
                                     <td>${symbol}</td>
                                 </tr>
@@ -535,7 +555,7 @@ export class AnalyzeCodebaseCommand {
                             <tr>
                                 <th>Module</th>
                             </tr>
-                            ${insights.importedModules.map((module: string) => `
+                            ${typedInsights.importedModules.map((module: string) => `
                                 <tr>
                                     <td>${module}</td>
                                 </tr>
@@ -543,7 +563,7 @@ export class AnalyzeCodebaseCommand {
                         </table>
                         
                         <h2>Documentation</h2>
-                        <pre>${insights.documentation}</pre>
+                        <pre>${typedInsights.documentation}</pre>
                     </div>
                 </div>
             </body>

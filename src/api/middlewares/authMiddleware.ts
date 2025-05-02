@@ -8,7 +8,7 @@ export function authMiddleware(apiKey: string) {
         config.headers = {
             ...config.headers,
             'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://github.com/m31-ai/m31-agent-vscode',
+            'HTTP-Referer': 'https://github.com/M31Lab/Agent',
             'X-Title': 'M31-Agent VS Code Extension'
         };
         return config;

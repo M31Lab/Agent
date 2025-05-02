@@ -83,8 +83,8 @@ export class StatusBarManager {
         
         this.loadingInterval = setInterval(() => {
             this.loadingFrame = (this.loadingFrame + 1) % this.loadingAnimation.length;
-            const _frame = this.loadingAnimation[this.loadingFrame];
-            this.statusBarItem.text = '$(sync~spin) M31 Agent';
+            const frame = this.loadingAnimation[this.loadingFrame];
+            this.statusBarItem.text = `${frame} M31 Agent`;
             this.statusBarItem.tooltip = `${message}...`;
         }, 250);
     }
