@@ -130,8 +130,7 @@ export function registerTerminalCommands(
         async () => {
             const outputText = await vscode.window.showInputBox({
                 prompt: 'Paste the terminal output you want explained',
-                placeHolder: 'Terminal output...',
-                multiline: true
+                placeHolder: 'Terminal output...'
             });
 
             if (!outputText) {

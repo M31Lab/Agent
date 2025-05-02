@@ -7,10 +7,13 @@ const path = require('path');
 const extensionConfig = {
   target: 'node',
   mode: 'development',
-  entry: './src/extension.ts',
+  entry: {
+    extension: './src/extension.ts',
+    'debug-extension': './src/debug-extension.ts'
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'extension.js',
+    filename: '[name].js',
     libraryTarget: 'commonjs2'
   },
   externals: {

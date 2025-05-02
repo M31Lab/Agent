@@ -28,7 +28,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./dist/extension.js",
+  "main": "./dist/debug-extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [

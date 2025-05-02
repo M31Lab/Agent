@@ -53,11 +53,25 @@ export function registerAllCommands(
         const codeCommandsPath = './code/codeCommands';
         // Dynamic import to avoid circular dependencies
         import(codeCommandsPath).then(module => {
-            const codeCommands = module.registerCodeCommands(context);
-            codeCommands.forEach(disposable => {
-                context.registerDisposable(disposable);
-            });
-            context.loggingService.debug('Registered code feature commands');
+            try {
+                // Handle both export formats (direct function or named export)
+                const registerFn = typeof module.default === 'function' ? module.default : module.registerCodeCommands;
+                if (typeof registerFn === 'function') {
+                    const codeCommands = registerFn(context, chatPanelProvider, statusBarManager);
+                    if (Array.isArray(codeCommands)) {
+                        codeCommands.forEach(disposable => {
+                            context.registerDisposable(disposable);
+                        });
+                        context.loggingService.debug('Registered code feature commands');
+                    } else {
+                        context.loggingService.error('Code commands module did not return an array of disposables');
+                    }
+                } else {
+                    context.loggingService.error('Code commands module does not export a valid registration function');
+                }
+            } catch (innerError) {
+                context.loggingService.error('Error executing code commands registration', innerError);
+            }
         }).catch(error => {
             context.loggingService.error('Failed to register code feature commands', error);
         });
